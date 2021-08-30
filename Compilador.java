@@ -4,9 +4,9 @@ import java.util.Hashtable;
 import java.util.Scanner;
 
 public class Compilador {
-    static final String[] palavrasReservadas = { "const", "int", "char", "while", "if", "float", "else", "&&", "||",
-            "!", "<-", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln",
-            "div", "write", "writeln", "mod", "[", "]" };
+    static final String[] reservedWords = { "const", "int", "char", "while", "if", "float", "else", "&&", "||", "!",
+            "<-", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln", "div",
+            "write", "writeln", "mod", "[", "]" };
 
     static final int tokenId = 1;
     static final int tokenConst = 2;
@@ -61,21 +61,56 @@ public class Compilador {
         byte tamanho;
     }
 
+    static class Lexer {
+        static String lexeme = "";
+
+        int state0(char c) {
+            int nextState = 0;
+            lexeme += c;
+
+            if (Character.isLetter(c)) {
+                nextState = 1;
+            } else if (c == '.' || c == '_') {
+                nextState = 2;
+            }
+            return nextState;
+        }
+
+        void nextState(char c) {
+            int currentState = 0;
+
+            while (currentState != 15) {
+                switch (currentState) {
+                    case 0:
+                        currentState = state0(c);
+                        break;
+                }
+            }
+        }
+
+        String getLexeme(String str) {
+            for (int i = 0; i < str.length(); i++) {
+                nextState(str.charAt(i));
+            }
+            return lexeme;
+        }
+    }
+
     public static void main(String[] args) {
         Hashtable<String, Symbol> symbolTable = new Hashtable<String, Symbol>();
 
-        for (int i = 0; i < palavrasReservadas.length; i++) {
-            Symbol symbol = new Symbol(palavrasReservadas[i], i + 2);
-            symbolTable.put(palavrasReservadas[i], symbol);
+        for (int i = 0; i < reservedWords.length; i++) {
+            Symbol symbol = new Symbol(reservedWords[i], i + 2);
+            symbolTable.put(reservedWords[i], symbol);
         }
 
         try {
             File file = new File("programa.txt");
             Scanner scanner = new Scanner(file);
             while (scanner.hasNext()) {
-                // String str =
-                // for(int i = 0; i < )
-                System.out.println(scanner.next().charAt(0));
+                Lexer lexer = new Lexer();
+                String str = lexer.getLexeme(scanner.next());
+                System.out.println(str);
             }
             scanner.close();
         } catch (FileNotFoundException e) {
