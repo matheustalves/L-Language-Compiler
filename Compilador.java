@@ -90,6 +90,7 @@ public class Compilador {
             return nextState;
         }
 
+        // id and reserved words
         int state1(char c) {
             int nextState = 0;
             lexeme += c;
@@ -97,7 +98,10 @@ public class Compilador {
             if (Character.isLetter(c) || Character.isDigit(c) || c == '.' || c == '_') {
                 nextState = 1;
             } else {
-                nextState = 0;
+                if (c == '\u0020')
+                    nextState = 15;
+                else
+                    nextState = 0;
 
                 Symbol symbol = symbolTable.get(lexeme);
 
@@ -115,12 +119,18 @@ public class Compilador {
             return nextState;
         }
 
+        // <
         int state2(char c) {
             int nextState = 0;
             lexeme += c;
 
             if (c == '-') {
                 nextState = 0;
+
+                Symbol symbol = symbolTable.get(lexeme);
+
+                Token token = new Token(lexeme, symbol.token, "String");
+                tokenList.add(token);
             }
             return nextState;
         }
@@ -133,6 +143,14 @@ public class Compilador {
                 nextState = 3;
             } else if (c == '.') {
                 nextState = 4;
+            } else {
+                if (c == '\u0020')
+                    nextState = 15;
+                else
+                    nextState = 0;
+
+                Token token = new Token(lexeme, tokenConst, "Integer");
+                tokenList.add(token);
             }
             return nextState;
         }
@@ -158,24 +176,25 @@ public class Compilador {
                 if (i < str.length()) {
                     c = str.charAt(i);
                     i++;
-
-                    switch (currentState) {
-                        case 0:
-                            currentState = state0(c);
-                            break;
-                        case 1:
-                            currentState = state1(c);
-                            break;
-                        case 2:
-                            currentState = state2(c);
-                            break;
-                        case 3:
-                            currentState = state3(c);
-                            break;
-                        case 15:
-                            break;
-                    }
                 } else {
+                    c = '\u0020';
+                }
+
+                switch (currentState) {
+                    case 0:
+                        currentState = state0(c);
+                        break;
+                    case 1:
+                        currentState = state1(c);
+                        break;
+                    case 2:
+                        currentState = state2(c);
+                        break;
+                    case 3:
+                        currentState = state3(c);
+                        break;
+                    case 15:
+                        break;
                 }
 
             }
