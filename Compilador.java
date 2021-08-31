@@ -76,6 +76,11 @@ public class Compilador {
             return nextState;
         }
 
+        int state1(char c) {
+            int nextState = 0;
+            return nextState;
+        }
+
         void nextState(char c) {
             int currentState = 0;
 
