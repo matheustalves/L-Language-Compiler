@@ -1,0 +1,51 @@
+char =>     0 a 255 pode 0xDD
+
+string =>   ate 255 caracteres, fim com $. ASPAS
+            nao pode conter aspas, \n e $
+
+float =>    6 casas, pode começar com .
+
+int
+
+boolean
+
+const
+
+variaveis => comeca com letra ou sublinhado
+             pode ter ponto ou numeros
+
+RESERVADAS
+
+const int char while if float
+else && || ! <- =
+( ) < > != >=
+<= , + - * /
+; { } readln div
+write writeln mod [ ]
+
+variaveis =>    <- ATRIBUIÇAO
+
+A ordem de precedência nas expressões é:
+a) Acesso a posições do string, usand [ ];
+b) parênteses;
+c) conversão de tipos: int(expressão) ou float(expressão)
+d) negação lógica (!);
+e) multiplicação aritmética (*) e lógica (&&), divisão real (/), quociente da divisão (div) e
+resto da divisão (mod);
+f) subtração (-), adição aritmética (+) e lógica ( || );
+g) comparação aritmética (=,!=,<,>,<=,>=) e entre strings (=).
+
+Comentarios =>  /* */
+
+while expressao comando
+while expressao {comandos}
+
+if expressão comando1
+if expressão comando1 else comando2
+
+comando nulo => ;
+
+readln(id)
+
+write(lista_expressões) ou 
+writeln(lista_expressões) 

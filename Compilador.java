@@ -90,8 +90,19 @@ public class Compilador {
                 nextState = 4;
             } else if (c == '>') {
                 nextState = 5;
+            } else if (c == '!') {
+                nextState = 6;
+            } else if (c == '&') {
+                nextState = 7;
+            } else if (c == '|') {
+                nextState = 8;
+            } else if (c == '/') {
+                nextState = 9;
+            } else if (c == '=' || c == '+' || c == '-' || c == '*' || c == ',' || c == '(' || c == ')' || c == '{'
+                    || c == '}' || c == '[' || c == ']') {
+                nextState = 10;
             } else if (c == ';') {
-                nextState = 14;
+                nextState = 11;
             } else if (c == '\u0020') {
                 nextState = 15;
             }
@@ -121,12 +132,11 @@ public class Compilador {
 
                 } else {
                     Symbol newSymbol = new Symbol(lexeme, tokenId);
-                    Token token = new Token(lexeme, tokenId, "String");
-
                     symbolTable.put(lexeme, newSymbol);
 
-                    System.out.println(token.lexeme);
+                    Token token = new Token(lexeme, tokenId, "String");
 
+                    System.out.println(token.lexeme);
                 }
 
                 lexeme = "";
@@ -142,6 +152,7 @@ public class Compilador {
             if (Character.isDigit(c)) {
                 lexeme += c;
             } else if (c == '.') {
+                lexeme += c;
                 nextState = 3;
             } else {
                 if (c == '\u0020')
@@ -225,6 +236,67 @@ public class Compilador {
             return nextState;
         }
 
+        // !
+        int state6(char c) {
+            int nextState = 0;
+
+            if (c == '=')
+                lexeme += c;
+            else
+                i--;
+
+            Symbol symbol = symbolTable.get(lexeme);
+
+            Token token = new Token(lexeme, symbol.token, "String");
+
+            System.out.println(token.lexeme);
+
+            lexeme = "";
+
+            return nextState;
+        }
+
+        // !
+        int state7(char c) {
+            int nextState = 0;
+
+            if (c == '|')
+                lexeme += c;
+            else
+                i--;
+
+            Symbol symbol = symbolTable.get(lexeme);
+
+            Token token = new Token(lexeme, symbol.token, "String");
+
+            System.out.println(token.lexeme);
+
+            lexeme = "";
+
+            return nextState;
+        }
+
+        // = + - * , ( ) { } [ ]
+        int state10(char c) {
+            int nextState = 0;
+
+            if (c == '\u0020')
+                nextState = 15;
+            else {
+                i--;
+            }
+
+            Symbol symbol = symbolTable.get(lexeme);
+
+            Token token = new Token(lexeme, symbol.token, "String");
+
+            System.out.println(token.lexeme);
+
+            lexeme = "";
+
+            return nextState;
+        }
+
         String getLexeme(String str) {
             lexeme = "";
             i = 0;
@@ -258,6 +330,9 @@ public class Compilador {
                     case 5:
                         currentState = state5(c);
                         break;
+                    case 6:
+                        currentState = state6(c);
+                        break;
                     case 15:
                         break;
                 }
@@ -269,7 +344,7 @@ public class Compilador {
     }
 
     public static void main(String[] args) {
-        int qntLines = 0;
+        // int qntLines = 0;
 
         for (int i = 0; i < reservedWords.length; i++) {
             Symbol symbol = new Symbol(reservedWords[i], i + 2);
@@ -281,7 +356,7 @@ public class Compilador {
             Scanner scanner = new Scanner(file);
             Lexer lexer = new Lexer();
             while (scanner.hasNext()) {
-                qntLines++;
+                // qntLines++;
                 String str = scanner.next();
                 System.out.println("String Lida: " + str);
                 String lex = lexer.getLexeme(str);
