@@ -12,6 +12,9 @@ public class Compilador {
             "<-", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln", "div",
             "write", "writeln", "mod", "[", "]" };
 
+    static int lineCount = 0;
+    static boolean pauseCompiling = false;
+
     static final int tokenId = 1;
     static final int tokenConst = 2;
     static final int tokenInt = 3;
@@ -77,9 +80,11 @@ public class Compilador {
         static boolean commenting = false;
 
         void throwError(String type) {
+            pauseCompiling = true;
+
             // invalid character
             if (type == "invalid_char") {
-
+                System.out.println("caractere invalido.");
             }
             // non identified lexeme
             else if (type == "invalid_lexeme") {
@@ -110,7 +115,7 @@ public class Compilador {
                 if (c != '0')
                     nextState = 2;
                 else
-                    nextState = 13;
+                    nextState = 14;
             } else if (c == '.') {
                 nextState = 3;
             } else if (c == '<') {
@@ -130,14 +135,14 @@ public class Compilador {
             } else if (c == '\'') {
                 nextState = 11;
             } else if (c == '\"') {
-                nextState = 12;
+                nextState = 13;
             } else if (c == '=' || c == '+' || c == '-' || c == ',' || c == '(' || c == ')' || c == '{' || c == '}'
                     || c == '[' || c == ']') {
-                nextState = 14;
+                nextState = 17;
             } else if (c == ';') {
-                nextState = 15;
+                nextState = 0;
             } else if (c == '\u0020') {
-                nextState = 15;
+                nextState = 19;
             }
             return nextState;
         }
@@ -150,7 +155,7 @@ public class Compilador {
                 lexeme += c;
             } else {
                 if (c == '\u0020')
-                    nextState = 15;
+                    nextState = 19;
                 else {
                     nextState = 0;
                     i--;
@@ -189,7 +194,7 @@ public class Compilador {
                 nextState = 3;
             } else {
                 if (c == '\u0020')
-                    nextState = 15;
+                    nextState = 19;
                 else {
                     nextState = 0;
                     i--;
@@ -213,7 +218,7 @@ public class Compilador {
                 lexeme += c;
             } else {
                 if (c == '\u0020')
-                    nextState = 15;
+                    nextState = 19;
                 else {
                     nextState = 0;
                     i--;
@@ -303,8 +308,7 @@ public class Compilador {
 
                 lexeme = "";
             } else {
-                // gerar erro
-                i--;
+                throwError("invalid_char");
             }
 
             return nextState;
@@ -324,8 +328,7 @@ public class Compilador {
 
                 lexeme = "";
             } else {
-                // gerar erro
-                i--;
+                throwError("invalid_char");
             }
 
             return nextState;
@@ -358,7 +361,7 @@ public class Compilador {
             int nextState = 0;
 
             if (c == '/') {
-                // eh comentario
+                // fim do comentario
                 commenting = false;
             } else {
                 i--;
@@ -377,25 +380,14 @@ public class Compilador {
 
         // '
         int state11(char c) {
-            int nextState = 11;
+            int nextState = 12;
 
             if (c == '\u0020') {
-
-            }
-
-            if (c != '\"' && c != '$') {
-                lexeme += c;
-            } else if (c == '\'') {
-                lexeme += c;
-                nextState = 0;
-
-                Token token = new Token(lexeme, tokenConst, "Char");
-
-                System.out.println(token.lexeme);
-
-                lexeme = "";
+                throwError("unexpected_eof");
+            } else if (c == '\"' || c == '$') {
+                throwError("invalid_char");
             } else {
-                // erro
+                lexeme += c;
             }
 
             return nextState;
@@ -403,21 +395,21 @@ public class Compilador {
 
         // 'c
         int state12(char c) {
-            int nextState = 11;
+            int nextState = 0;
 
-            if (c != '\"' && c != '$') {
+            if (c == '\u0020') {
+                throwError("unexpected_eof");
+            } else if (c != '\'') {
                 lexeme += c;
-            } else if (c == '\'') {
+                throwError("invalid_lexeme");
+            } else {
                 lexeme += c;
-                nextState = 0;
 
                 Token token = new Token(lexeme, tokenConst, "Char");
 
                 System.out.println(token.lexeme);
 
                 lexeme = "";
-            } else {
-                // erro
             }
 
             return nextState;
@@ -425,7 +417,7 @@ public class Compilador {
 
         // "
         int state13(char c) {
-            int nextState = 12;
+            int nextState = 13;
 
             if (c != '$') {
                 lexeme += c;
@@ -439,7 +431,7 @@ public class Compilador {
 
                 lexeme = "";
             } else {
-                // erro
+                throwError("invalid_char");
             }
 
             return nextState;
@@ -447,17 +439,16 @@ public class Compilador {
 
         // 0
         int state14(char c) {
-            int nextState = 13;
+            int nextState = 15;
 
             if (Character.isDigit(c)) {
                 lexeme += c;
                 nextState = 2;
             } else if (c == 'x' || c == 'X') {
                 lexeme += c;
-                nextState = 14;
             } else {
                 if (c == '\u0020')
-                    nextState = 15;
+                    nextState = 19;
                 else {
                     nextState = 0;
                     i--;
@@ -475,12 +466,13 @@ public class Compilador {
 
         // 0x
         int state15(char c) {
-            int nextState = 14;
+            int nextState = 16;
+
+            lexeme += c;
 
             if (c == '\u0020') {
                 throwError("unexpected_eof");
             } else if (!isHexa(c)) {
-                lexeme += c;
                 throwError("invalid_lexeme");
             }
 
@@ -489,18 +481,15 @@ public class Compilador {
 
         // 0x?
         int state16(char c) {
-            int nextState = 14;
+            int nextState = 0;
 
-            if (isHexa(c) && lexeme.length() < 4) {
-                lexeme += c;
+            lexeme += c;
+
+            if (c == '\u0020') {
+                throwError("unexpected_eof");
+            } else if (!isHexa(c)) {
+                throwError("invalid_lexeme");
             } else {
-                if (c == '\u0020')
-                    nextState = 15;
-                else {
-                    nextState = 0;
-                    i--;
-                }
-
                 Token token = new Token(lexeme, tokenConst, "Char");
 
                 System.out.println(token.lexeme);
@@ -516,7 +505,7 @@ public class Compilador {
             int nextState = 0;
 
             if (c == '\u0020')
-                nextState = 15;
+                nextState = 19;
             else {
                 i--;
             }
@@ -532,15 +521,15 @@ public class Compilador {
             return nextState;
         }
 
-        String getLexeme(String str) {
+        void getLexemes(String line) {
             lexeme = "";
             i = 0;
             int currentState = 0;
             char c;
 
-            while (currentState != 15) {
-                if (i < str.length()) {
-                    c = str.charAt(i);
+            while (currentState != 19 && !pauseCompiling) {
+                if (i < line.length()) {
+                    c = line.charAt(i);
                     i++;
                 } else {
                     c = '\u0020';
@@ -548,61 +537,91 @@ public class Compilador {
 
                 switch (currentState) {
                     case 0:
+                        // System.out.println("estado 0");
                         currentState = state0(c);
                         break;
                     case 1:
+                        // System.out.println("estado 1");
                         currentState = state1(c);
                         break;
                     case 2:
+                        // System.out.println("estado 2");
                         currentState = state2(c);
                         break;
                     case 3:
+                        // System.out.println("estado 3");
                         currentState = state3(c);
                         break;
                     case 4:
+                        // System.out.println("estado 4");
                         currentState = state4(c);
                         break;
                     case 5:
+                        // System.out.println("estado 5");
                         currentState = state5(c);
                         break;
                     case 6:
+                        // System.out.println("estado 6");
                         currentState = state6(c);
                         break;
                     case 7:
+                        // System.out.println("estado 7");
                         currentState = state7(c);
                         break;
                     case 8:
+                        // System.out.println("estado 8");
                         currentState = state8(c);
                         break;
                     case 9:
+                        // System.out.println("estado 9");
                         currentState = state9(c);
                         break;
                     case 10:
+                        // System.out.println("estado 10");
                         currentState = state10(c);
                         break;
                     case 11:
+                        // System.out.println("estado 11");
                         currentState = state11(c);
                         break;
                     case 12:
+                        // System.out.println("estado 12");
                         currentState = state12(c);
                         break;
                     case 13:
+                        // System.out.println("estado 13");
                         currentState = state13(c);
                         break;
                     case 14:
+                        // System.out.println("estado 14");
                         currentState = state14(c);
                         break;
                     case 15:
+                        // System.out.println("estado 15");
+                        currentState = state15(c);
+                        break;
+                    case 16:
+                        // System.out.println("estado 16");
+                        currentState = state16(c);
+                        break;
+                    case 17:
+                        // System.out.println("estado 17");
+                        currentState = state17(c);
+                        break;
+                    case 18:
+                        // System.out.println("estado 18");
+                        currentState = state17(c);
+                        break;
+                    case 19:
+                        // System.out.println("estado 19");
                         break;
                 }
 
             }
-            return lexeme;
         }
     }
 
     public static void main(String[] args) {
-        // int qntLines = 0;
 
         for (int i = 0; i < reservedWords.length; i++) {
             Symbol symbol = new Symbol(reservedWords[i], i + 2);
@@ -613,12 +632,19 @@ public class Compilador {
             File file = new File("programa.txt");
             Scanner scanner = new Scanner(file);
             Lexer lexer = new Lexer();
-            while (scanner.hasNext()) {
-                // qntLines++;
-                String str = scanner.next();
-                System.out.println("String Lida: " + str);
-                String lex = lexer.getLexeme(str);
-                // System.out.println(str);
+            // while (scanner.hasNext() && !pauseCompiling) {
+            // String str = scanner.next();
+            // System.out.println("String Lida: " + str);
+            // String lex = lexer.getLexemes(str);
+            // }
+            while (scanner.hasNextLine() && !pauseCompiling) {
+                String line = scanner.nextLine();
+
+                if (line != "") {
+                    lineCount++;
+                    System.out.println("String Lida: " + line);
+                    lexer.getLexemes(line);
+                }
             }
             scanner.close();
         } catch (FileNotFoundException e) {

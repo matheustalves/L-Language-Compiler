@@ -6,7 +6,7 @@ float media<- .0;
 
 string nome;
 
-char letra<-0x48, letra2<-‘a’;
+char letra<-0x48, letra2<-'a’;
 
 nome[2]<-letra;
 
