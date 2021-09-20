@@ -1,3 +1,1 @@
-readln(nome); readln(x);
-
-x<-y*2+z;
+int x<-0, y, z<- -1;

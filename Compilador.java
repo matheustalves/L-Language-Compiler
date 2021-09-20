@@ -139,10 +139,11 @@ public class Compilador {
             } else if (c == '=' || c == '+' || c == '-' || c == ',' || c == '(' || c == ')' || c == '{' || c == '}'
                     || c == '[' || c == ']') {
                 nextState = 17;
-            } else if (c == ';') {
-                nextState = 0;
             } else if (c == '\u0020') {
                 nextState = 19;
+            } else if (c == ';' || c == ' ') {
+                nextState = 0;
+                lexeme = "";
             }
             return nextState;
         }
