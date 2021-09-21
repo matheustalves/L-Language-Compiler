@@ -139,7 +139,7 @@ public class Compilador {
             } else if (c == '=' || c == '+' || c == '-' || c == ',' || c == '(' || c == ')' || c == '{' || c == '}'
                     || c == '[' || c == ']') {
                 nextState = 17;
-            } else if (c == '\u0020') {
+            } else if (c == '#') {
                 nextState = 19;
             } else if (c == ';' || c == ' ') {
                 nextState = 0;
@@ -155,7 +155,7 @@ public class Compilador {
             if (Character.isLetter(c) || Character.isDigit(c) || c == '.' || c == '_') {
                 lexeme += c;
             } else {
-                if (c == '\u0020')
+                if (c == '#')
                     nextState = 19;
                 else {
                     nextState = 0;
@@ -194,7 +194,7 @@ public class Compilador {
                 lexeme += c;
                 nextState = 3;
             } else {
-                if (c == '\u0020')
+                if (c == '#')
                     nextState = 19;
                 else {
                     nextState = 0;
@@ -218,7 +218,7 @@ public class Compilador {
             if (Character.isDigit(c)) {
                 lexeme += c;
             } else {
-                if (c == '\u0020')
+                if (c == '#')
                     nextState = 19;
                 else {
                     nextState = 0;
@@ -383,7 +383,7 @@ public class Compilador {
         int state11(char c) {
             int nextState = 12;
 
-            if (c == '\u0020') {
+            if (c == '#') {
                 throwError("unexpected_eof");
             } else if (c == '\"' || c == '$') {
                 throwError("invalid_char");
@@ -398,7 +398,7 @@ public class Compilador {
         int state12(char c) {
             int nextState = 0;
 
-            if (c == '\u0020') {
+            if (c == '#') {
                 throwError("unexpected_eof");
             } else if (c != '\'') {
                 lexeme += c;
@@ -420,10 +420,11 @@ public class Compilador {
         int state13(char c) {
             int nextState = 13;
 
-            if (c != '$') {
-                lexeme += c;
+            if (c == '$' || c == '\n') {
+                throwError("invalid_char");
             } else if (c == '\"') {
-                lexeme += c + "$";
+
+                lexeme += "$" + c;
                 nextState = 0;
 
                 Token token = new Token(lexeme, tokenConst, "String");
@@ -432,7 +433,7 @@ public class Compilador {
 
                 lexeme = "";
             } else {
-                throwError("invalid_char");
+                lexeme += c;
             }
 
             return nextState;
@@ -448,7 +449,7 @@ public class Compilador {
             } else if (c == 'x' || c == 'X') {
                 lexeme += c;
             } else {
-                if (c == '\u0020')
+                if (c == '#')
                     nextState = 19;
                 else {
                     nextState = 0;
@@ -471,7 +472,7 @@ public class Compilador {
 
             lexeme += c;
 
-            if (c == '\u0020') {
+            if (c == '#') {
                 throwError("unexpected_eof");
             } else if (!isHexa(c)) {
                 throwError("invalid_lexeme");
@@ -486,7 +487,7 @@ public class Compilador {
 
             lexeme += c;
 
-            if (c == '\u0020') {
+            if (c == '#') {
                 throwError("unexpected_eof");
             } else if (!isHexa(c)) {
                 throwError("invalid_lexeme");
@@ -505,7 +506,7 @@ public class Compilador {
         int state17(char c) {
             int nextState = 0;
 
-            if (c == '\u0020')
+            if (c == '#')
                 nextState = 19;
             else {
                 i--;
@@ -533,7 +534,7 @@ public class Compilador {
                     c = line.charAt(i);
                     i++;
                 } else {
-                    c = '\u0020';
+                    c = '#';
                 }
 
                 switch (currentState) {
