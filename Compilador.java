@@ -12,7 +12,7 @@ public class Compilador {
             "<-", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln", "div",
             "write", "writeln", "mod", "[", "]" };
 
-    static int lineCount = 0;
+    static int lineCount = 1;
     static boolean pauseCompiling = false;
 
     static final int tokenId = 1;
@@ -83,6 +83,7 @@ public class Compilador {
         void throwError(String type) {
             pauseCompiling = true;
 
+            System.out.println(lineCount);
             // invalid character
             if (type == "invalid_char") {
                 System.out.println("caractere invalido.");
@@ -95,6 +96,16 @@ public class Compilador {
             else if (type == "unexpected_eof") {
                 System.out.println("fim de arquivo nao esperado.");
             }
+        }
+
+        boolean isValid(char c) {
+            if (Character.isDigit(c) || Character.isLetter(c) || c == ' ' || c == '_' || c == '.' || c == ';' | c == ','
+                    || c == ':' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == '+'
+                    || c == '-' || c == '\"' || c == '\'' || c == '/' || c == '*' || c == '|' || c == '\\' || c == '&'
+                    || c == '%' || c == '!' || c == '?' || c == '>' || c == '<' || c == '=' || c == '\n' || c == '#')
+                return true;
+            else
+                return false;
         }
 
         boolean isHexa(char c) {
@@ -116,30 +127,30 @@ public class Compilador {
                 if (c != '0')
                     nextState = 2;
                 else
-                    nextState = 15;
+                    nextState = 16;
             } else if (c == '.') {
                 nextState = 3;
             } else if (c == '<') {
-                nextState = 4;
-            } else if (c == '>') {
                 nextState = 5;
-            } else if (c == '!') {
+            } else if (c == '>') {
                 nextState = 6;
-            } else if (c == '&') {
+            } else if (c == '!') {
                 nextState = 7;
-            } else if (c == '|') {
+            } else if (c == '&') {
                 nextState = 8;
-            } else if (c == '/') {
+            } else if (c == '|') {
                 nextState = 9;
+            } else if (c == '/') {
+                nextState = 10;
             } else if (c == '\'') {
-                nextState = 12;
+                nextState = 13;
             } else if (c == '\"') {
-                nextState = 14;
+                nextState = 15;
             } else if (c == '=' || c == '*' || c == '+' || c == '-' || c == ',' || c == '(' || c == ')' || c == '{'
                     || c == '}' || c == '[' || c == ']') {
-                nextState = 18;
-            } else if (c == '#') {
                 nextState = 19;
+            } else if (c == '#') {
+                nextState = 20;
             } else if (c == ';' || c == ' ' || c == '\n') {
                 nextState = 0;
                 lexeme = "";
@@ -155,7 +166,7 @@ public class Compilador {
                 lexeme += c;
             } else {
                 if (c == '#')
-                    nextState = 19;
+                    nextState = 20;
                 else {
                     nextState = 0;
                     i--;
@@ -194,7 +205,7 @@ public class Compilador {
                 nextState = 3;
             } else {
                 if (c == '#')
-                    nextState = 19;
+                    nextState = 20;
                 else {
                     nextState = 0;
                     i--;
@@ -210,15 +221,31 @@ public class Compilador {
             return nextState;
         }
 
-        // float
+        // ?. (float)
         int state3(char c) {
-            int nextState = 3;
+            int nextState = 4;
+
+            if (Character.isDigit(c)) {
+                lexeme += c;
+            } else if (c == '#') {
+                throwError("unexpected_eof");
+            } else {
+                lexeme += c;
+                throwError("invalid_lexeme");
+            }
+
+            return nextState;
+        }
+
+        // ?.d float
+        int state4(char c) {
+            int nextState = 4;
 
             if (Character.isDigit(c)) {
                 lexeme += c;
             } else {
                 if (c == '#')
-                    nextState = 19;
+                    nextState = 20;
                 else {
                     nextState = 0;
                     i--;
@@ -235,7 +262,7 @@ public class Compilador {
         }
 
         // <
-        int state4(char c) {
+        int state5(char c) {
             int nextState = 0;
 
             if (c == '-' || c == '=')
@@ -255,26 +282,6 @@ public class Compilador {
         }
 
         // >
-        int state5(char c) {
-            int nextState = 0;
-
-            if (c == '=')
-                lexeme += c;
-            else
-                i--;
-
-            Symbol symbol = symbolTable.get(lexeme);
-
-            Token token = new Token(lexeme, symbol.token, "String");
-
-            System.out.println(token.lexeme);
-
-            lexeme = "";
-
-            return nextState;
-        }
-
-        // !
         int state6(char c) {
             int nextState = 0;
 
@@ -294,12 +301,32 @@ public class Compilador {
             return nextState;
         }
 
-        // &
+        // !
         int state7(char c) {
             int nextState = 0;
 
-            if (c == '&') {
+            if (c == '=')
                 lexeme += c;
+            else
+                i--;
+
+            Symbol symbol = symbolTable.get(lexeme);
+
+            Token token = new Token(lexeme, symbol.token, "String");
+
+            System.out.println(token.lexeme);
+
+            lexeme = "";
+
+            return nextState;
+        }
+
+        // &
+        int state8(char c) {
+            int nextState = 0;
+
+            lexeme += c;
+            if (c == '&') {
                 Symbol symbol = symbolTable.get(lexeme);
 
                 Token token = new Token(lexeme, symbol.token, "String");
@@ -308,18 +335,18 @@ public class Compilador {
 
                 lexeme = "";
             } else {
-                throwError("invalid_char");
+                throwError("invalid_lexeme");
             }
 
             return nextState;
         }
 
         // |
-        int state8(char c) {
+        int state9(char c) {
             int nextState = 0;
 
+            lexeme += c;
             if (c == '|') {
-                lexeme += c;
                 Symbol symbol = symbolTable.get(lexeme);
 
                 Token token = new Token(lexeme, symbol.token, "String");
@@ -328,19 +355,18 @@ public class Compilador {
 
                 lexeme = "";
             } else {
-                throwError("invalid_char");
+                throwError("invalid_lexeme");
             }
 
             return nextState;
         }
 
         // /
-        int state9(char c) {
+        int state10(char c) {
             int nextState = 0;
 
             if (c == '*') {
-                lexeme = "";
-                nextState = 10;
+                nextState = 11;
             } else {
                 i--;
 
@@ -349,42 +375,42 @@ public class Compilador {
                 Token token = new Token(lexeme, symbol.token, "String");
 
                 System.out.println(token.lexeme);
-
-                lexeme = "";
             }
+
+            lexeme = "";
 
             return nextState;
         }
 
         // /* inside comment
-        int state10(char c) {
-            int nextState = 10;
+        int state11(char c) {
+            int nextState = 11;
 
             if (c == '#')
                 throwError("unexpected_eof");
             else if (c == '*')
-                nextState = 11;
+                nextState = 12;
 
             return nextState;
         }
 
         // /* ? *
-        int state11(char c) {
-            int nextState = 11;
+        int state12(char c) {
+            int nextState = 12;
 
             if (c == '#')
                 throwError("unexpected_eof");
             else if (c == '/')
                 nextState = 0;
             else if (c != '*')
-                nextState = 10;
+                nextState = 11;
 
             return nextState;
         }
 
         // '
-        int state12(char c) {
-            int nextState = 13;
+        int state13(char c) {
+            int nextState = 14;
 
             if (c == '#') {
                 throwError("unexpected_eof");
@@ -398,7 +424,7 @@ public class Compilador {
         }
 
         // 'c
-        int state13(char c) {
+        int state14(char c) {
             int nextState = 0;
 
             if (c == '#') {
@@ -420,11 +446,12 @@ public class Compilador {
         }
 
         // "
-        int state14(char c) {
-            int nextState = 14;
+        int state15(char c) {
+            int nextState = 15;
 
             if (c == '$' || c == '\n') {
-                throwError("invalid_char");
+                lexeme += c;
+                throwError("invalid_lexeme");
             } else if (c == '\"') {
                 lexeme += "$" + c;
                 nextState = 0;
@@ -442,8 +469,8 @@ public class Compilador {
         }
 
         // 0
-        int state15(char c) {
-            int nextState = 16;
+        int state16(char c) {
+            int nextState = 17;
 
             if (Character.isDigit(c)) {
                 lexeme += c;
@@ -452,7 +479,7 @@ public class Compilador {
                 lexeme += c;
             } else {
                 if (c == '#')
-                    nextState = 19;
+                    nextState = 20;
                 else {
                     nextState = 0;
                     i--;
@@ -469,8 +496,8 @@ public class Compilador {
         }
 
         // 0x
-        int state16(char c) {
-            int nextState = 17;
+        int state17(char c) {
+            int nextState = 18;
 
             lexeme += c;
 
@@ -484,7 +511,7 @@ public class Compilador {
         }
 
         // 0x?
-        int state17(char c) {
+        int state18(char c) {
             int nextState = 0;
 
             lexeme += c;
@@ -505,11 +532,11 @@ public class Compilador {
         }
 
         // = * + - , ( ) { } [ ]
-        int state18(char c) {
+        int state19(char c) {
             int nextState = 0;
 
             if (c == '#')
-                nextState = 19;
+                nextState = 20;
             else {
                 i--;
             }
@@ -530,7 +557,7 @@ public class Compilador {
             i = 0;
             char c;
 
-            while (currentState != 19 && !pauseCompiling) {
+            while (currentState != 20 && !pauseCompiling) {
                 if (i < fileStr.length()) {
                     c = fileStr.charAt(i);
                     i++;
@@ -538,86 +565,95 @@ public class Compilador {
                     c = '#';
                 }
 
-                switch (currentState) {
-                    case 0:
-                        // System.out.println("estado 0");
-                        currentState = state0(c);
-                        break;
-                    case 1:
-                        // System.out.println("estado 1");
-                        currentState = state1(c);
-                        break;
-                    case 2:
-                        // System.out.println("estado 2");
-                        currentState = state2(c);
-                        break;
-                    case 3:
-                        // System.out.println("estado 3");
-                        currentState = state3(c);
-                        break;
-                    case 4:
-                        // System.out.println("estado 4");
-                        currentState = state4(c);
-                        break;
-                    case 5:
-                        // System.out.println("estado 5");
-                        currentState = state5(c);
-                        break;
-                    case 6:
-                        // System.out.println("estado 6");
-                        currentState = state6(c);
-                        break;
-                    case 7:
-                        // System.out.println("estado 7");
-                        currentState = state7(c);
-                        break;
-                    case 8:
-                        // System.out.println("estado 8");
-                        currentState = state8(c);
-                        break;
-                    case 9:
-                        // System.out.println("estado 9");
-                        currentState = state9(c);
-                        break;
-                    case 10:
-                        // System.out.println("estado 10");
-                        currentState = state10(c);
-                        break;
-                    case 11:
-                        // System.out.println("estado 11");
-                        currentState = state11(c);
-                        break;
-                    case 12:
-                        // System.out.println("estado 12");
-                        currentState = state12(c);
-                        break;
-                    case 13:
-                        // System.out.println("estado 13");
-                        currentState = state13(c);
-                        break;
-                    case 14:
-                        // System.out.println("estado 14");
-                        currentState = state14(c);
-                        break;
-                    case 15:
-                        // System.out.println("estado 15");
-                        currentState = state15(c);
-                        break;
-                    case 16:
-                        // System.out.println("estado 16");
-                        currentState = state16(c);
-                        break;
-                    case 17:
-                        // System.out.println("estado 17");
-                        currentState = state17(c);
-                        break;
-                    case 18:
-                        // System.out.println("estado 18");
-                        currentState = state18(c);
-                        break;
-                    case 19:
-                        // System.out.println("estado 19");
-                        break;
+                if (isValid(c)) {
+                    if (c == '\n')
+                        lineCount++;
+                    switch (currentState) {
+                        case 0:
+                            // System.out.println("estado 0");
+                            currentState = state0(c);
+                            break;
+                        case 1:
+                            // System.out.println("estado 1");
+                            currentState = state1(c);
+                            break;
+                        case 2:
+                            // System.out.println("estado 2");
+                            currentState = state2(c);
+                            break;
+                        case 3:
+                            // System.out.println("estado 3");
+                            currentState = state3(c);
+                            break;
+                        case 4:
+                            // System.out.println("estado 4");
+                            currentState = state4(c);
+                            break;
+                        case 5:
+                            // System.out.println("estado 5");
+                            currentState = state5(c);
+                            break;
+                        case 6:
+                            // System.out.println("estado 6");
+                            currentState = state6(c);
+                            break;
+                        case 7:
+                            // System.out.println("estado 7");
+                            currentState = state7(c);
+                            break;
+                        case 8:
+                            // System.out.println("estado 8");
+                            currentState = state8(c);
+                            break;
+                        case 9:
+                            // System.out.println("estado 9");
+                            currentState = state9(c);
+                            break;
+                        case 10:
+                            // System.out.println("estado 10");
+                            currentState = state10(c);
+                            break;
+                        case 11:
+                            // System.out.println("estado 11");
+                            currentState = state11(c);
+                            break;
+                        case 12:
+                            // System.out.println("estado 12");
+                            currentState = state12(c);
+                            break;
+                        case 13:
+                            // System.out.println("estado 13");
+                            currentState = state13(c);
+                            break;
+                        case 14:
+                            // System.out.println("estado 14");
+                            currentState = state14(c);
+                            break;
+                        case 15:
+                            // System.out.println("estado 15");
+                            currentState = state15(c);
+                            break;
+                        case 16:
+                            // System.out.println("estado 16");
+                            currentState = state16(c);
+                            break;
+                        case 17:
+                            // System.out.println("estado 17");
+                            currentState = state17(c);
+                            break;
+                        case 18:
+                            // System.out.println("estado 18");
+                            currentState = state18(c);
+                            break;
+                        case 19:
+                            // System.out.println("estado 19");
+                            currentState = state19(c);
+                            break;
+                        case 20:
+                            break;
+                    }
+                } else {
+                    throwError("invalid_char");
                 }
 
             }
@@ -645,6 +681,9 @@ public class Compilador {
             System.out.println("String lida:\n" + fileStr);
 
             lexer.getLexemes(fileStr);
+
+            if (!pauseCompiling)
+                System.out.println(lineCount + " linhas compiladas.");
 
             scanner.close();
         } catch (FileNotFoundException e) {
