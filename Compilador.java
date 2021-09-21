@@ -78,6 +78,7 @@ public class Compilador {
         static String lexeme = "";
         static int i = 0;
         static boolean commenting = false;
+        static int currentState = 0;
 
         void throwError(String type) {
             pauseCompiling = true;
@@ -115,7 +116,7 @@ public class Compilador {
                 if (c != '0')
                     nextState = 2;
                 else
-                    nextState = 14;
+                    nextState = 15;
             } else if (c == '.') {
                 nextState = 3;
             } else if (c == '<') {
@@ -133,13 +134,13 @@ public class Compilador {
             } else if (c == '*') {
                 nextState = 10;
             } else if (c == '\'') {
-                nextState = 11;
+                nextState = 12;
             } else if (c == '\"') {
-                nextState = 13;
-            } else if (c == '=' || c == '+' || c == '-' || c == ',' || c == '(' || c == ')' || c == '{' || c == '}'
-                    || c == '[' || c == ']') {
-                nextState = 17;
-            } else if (c == '#') {
+                nextState = 14;
+            } else if (c == '=' || c == '*' || c == '+' || c == '-' || c == ',' || c == '(' || c == ')' || c == '{'
+                    || c == '}' || c == '[' || c == ']') {
+                nextState = 18;
+            } else if (c == '#' || c == '\n') {
                 nextState = 19;
             } else if (c == ';' || c == ' ') {
                 nextState = 0;
@@ -340,8 +341,8 @@ public class Compilador {
             int nextState = 0;
 
             if (c == '*') {
-                // eh comentario
-                commenting = true;
+                lexeme = "";
+                nextState = 10;
             } else {
                 i--;
 
@@ -357,31 +358,35 @@ public class Compilador {
             return nextState;
         }
 
-        // *
+        // /* inside comment
         int state10(char c) {
-            int nextState = 0;
+            int nextState = 10;
 
-            if (c == '/') {
-                // fim do comentario
-                commenting = false;
-            } else {
-                i--;
+            if (c == '#')
+                throwError("unexpected_eof");
+            else if (c == '*')
+                nextState = 11;
 
-                Symbol symbol = symbolTable.get(lexeme);
+            return nextState;
+        }
 
-                Token token = new Token(lexeme, symbol.token, "String");
+        // /* ? *
+        int state11(char c) {
+            int nextState = 11;
 
-                System.out.println(token.lexeme);
-
-                lexeme = "";
-            }
+            if (c == '#')
+                throwError("unexpected_eof");
+            else if (c == '/')
+                nextState = 0;
+            else if (c != '*')
+                nextState = 10;
 
             return nextState;
         }
 
         // '
-        int state11(char c) {
-            int nextState = 12;
+        int state12(char c) {
+            int nextState = 13;
 
             if (c == '#') {
                 throwError("unexpected_eof");
@@ -395,7 +400,7 @@ public class Compilador {
         }
 
         // 'c
-        int state12(char c) {
+        int state13(char c) {
             int nextState = 0;
 
             if (c == '#') {
@@ -417,13 +422,12 @@ public class Compilador {
         }
 
         // "
-        int state13(char c) {
-            int nextState = 13;
+        int state14(char c) {
+            int nextState = 14;
 
             if (c == '$' || c == '\n') {
                 throwError("invalid_char");
             } else if (c == '\"') {
-
                 lexeme += "$" + c;
                 nextState = 0;
 
@@ -440,8 +444,8 @@ public class Compilador {
         }
 
         // 0
-        int state14(char c) {
-            int nextState = 15;
+        int state15(char c) {
+            int nextState = 16;
 
             if (Character.isDigit(c)) {
                 lexeme += c;
@@ -467,8 +471,8 @@ public class Compilador {
         }
 
         // 0x
-        int state15(char c) {
-            int nextState = 16;
+        int state16(char c) {
+            int nextState = 17;
 
             lexeme += c;
 
@@ -482,7 +486,7 @@ public class Compilador {
         }
 
         // 0x?
-        int state16(char c) {
+        int state17(char c) {
             int nextState = 0;
 
             lexeme += c;
@@ -502,8 +506,8 @@ public class Compilador {
             return nextState;
         }
 
-        // = + - , ( ) { } [ ]
-        int state17(char c) {
+        // = * + - , ( ) { } [ ]
+        int state18(char c) {
             int nextState = 0;
 
             if (c == '#')
@@ -526,7 +530,6 @@ public class Compilador {
         void getLexemes(String line) {
             lexeme = "";
             i = 0;
-            int currentState = 0;
             char c;
 
             while (currentState != 19 && !pauseCompiling) {
@@ -612,7 +615,7 @@ public class Compilador {
                         break;
                     case 18:
                         // System.out.println("estado 18");
-                        currentState = state17(c);
+                        currentState = state18(c);
                         break;
                     case 19:
                         // System.out.println("estado 19");
@@ -634,27 +637,21 @@ public class Compilador {
             File file = new File("programa.txt");
             Scanner scanner = new Scanner(file);
             Lexer lexer = new Lexer();
-            // while (scanner.hasNext() && !pauseCompiling) {
-            // String str = scanner.next();
-            // System.out.println("String Lida: " + str);
-            // String lex = lexer.getLexemes(str);
-            // }
+
             while (scanner.hasNextLine() && !pauseCompiling) {
                 String line = scanner.nextLine();
+                lineCount++;
 
                 if (line != "") {
-                    lineCount++;
                     System.out.println("String Lida: " + line);
                     lexer.getLexemes(line);
                 }
+
             }
             scanner.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-
-        // System.out.println(symbolTable.get("+"));
-
     }
 
 }
