@@ -131,8 +131,6 @@ public class Compilador {
                 nextState = 8;
             } else if (c == '/') {
                 nextState = 9;
-            } else if (c == '*') {
-                nextState = 10;
             } else if (c == '\'') {
                 nextState = 12;
             } else if (c == '\"') {
@@ -140,9 +138,9 @@ public class Compilador {
             } else if (c == '=' || c == '*' || c == '+' || c == '-' || c == ',' || c == '(' || c == ')' || c == '{'
                     || c == '}' || c == '[' || c == ']') {
                 nextState = 18;
-            } else if (c == '#' || c == '\n') {
+            } else if (c == '#') {
                 nextState = 19;
-            } else if (c == ';' || c == ' ') {
+            } else if (c == ';' || c == ' ' || c == '\n') {
                 nextState = 0;
                 lexeme = "";
             }
@@ -527,14 +525,14 @@ public class Compilador {
             return nextState;
         }
 
-        void getLexemes(String line) {
+        void getLexemes(String fileStr) {
             lexeme = "";
             i = 0;
             char c;
 
             while (currentState != 19 && !pauseCompiling) {
-                if (i < line.length()) {
-                    c = line.charAt(i);
+                if (i < fileStr.length()) {
+                    c = fileStr.charAt(i);
                     i++;
                 } else {
                     c = '#';
@@ -638,16 +636,16 @@ public class Compilador {
             Scanner scanner = new Scanner(file);
             Lexer lexer = new Lexer();
 
-            while (scanner.hasNextLine() && !pauseCompiling) {
-                String line = scanner.nextLine();
-                lineCount++;
+            String fileStr = "";
 
-                if (line != "") {
-                    System.out.println("String Lida: " + line);
-                    lexer.getLexemes(line);
-                }
-
+            while (scanner.hasNextLine()) {
+                fileStr += scanner.nextLine() + '\n';
             }
+
+            System.out.println("String lida:\n" + fileStr);
+
+            lexer.getLexemes(fileStr);
+
             scanner.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();

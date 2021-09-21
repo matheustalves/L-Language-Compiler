@@ -1,3 +1,5 @@
+int x<-0, y, z<- -1; /* exemplo de arquivo fonte */
+
 readln(nome); readln(x);
 
-x<-int(media*2/3) + x mod 2;
+x<-y*2+z;
