@@ -8,14 +8,16 @@ import java.util.List;
 public class Compilador {
     static Hashtable<String, Symbol> symbolTable = new Hashtable<String, Symbol>();
     // static List<Token> tokenList = new ArrayList<Token>();
-    static final String[] reservedWords = { "const", "int", "char", "while", "if", "float", "else", "&&", "||", "!",
-            "<-", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln", "div",
-            "write", "writeln", "mod", "[", "]" };
+    static final String[] reservedWords = { "string", "const", "int", "char", "while", "if", "float", "else", "&&",
+            "||", "!", "<-", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}",
+            "readln", "div", "write", "writeln", "mod", "[", "]" };
 
     static int lineCount = 1;
     static boolean pauseCompiling = false;
+    static Lexer lexer = new Lexer();
 
-    static final int tokenId = 1;
+    static final int tokenId = 0;
+    static final int tokenStr = 1;
     static final int tokenConst = 2;
     static final int tokenInt = 3;
     static final int tokenChar = 4;
@@ -50,6 +52,7 @@ public class Compilador {
     static final int tokenMod = 33;
     static final int tokenOpenSq = 34;
     static final int tokenCloseSq = 35;
+    static final int tokenValue = 36;
 
     static class Symbol {
         String lexeme;
@@ -77,7 +80,6 @@ public class Compilador {
     static class Lexer {
         static String lexeme = "";
         static int i = 0;
-        static boolean commenting = false;
         static int currentState = 0;
 
         void throwError(String type) {
@@ -211,7 +213,7 @@ public class Compilador {
                     i--;
                 }
 
-                Token token = new Token(lexeme, tokenConst, "Integer");
+                Token token = new Token(lexeme, tokenValue, "Integer");
 
                 System.out.println(token.lexeme);
 
@@ -251,7 +253,7 @@ public class Compilador {
                     i--;
                 }
 
-                Token token = new Token(lexeme, tokenConst, "Integer");
+                Token token = new Token(lexeme, tokenValue, "Float");
 
                 System.out.println(token.lexeme);
 
@@ -414,7 +416,7 @@ public class Compilador {
 
             if (c == '#') {
                 throwError("unexpected_eof");
-            } else if (c == '\"' || c == '$') {
+            } else if (c == '\"') {
                 throwError("invalid_char");
             } else {
                 lexeme += c;
@@ -435,7 +437,7 @@ public class Compilador {
             } else {
                 lexeme += c;
 
-                Token token = new Token(lexeme, tokenConst, "Char");
+                Token token = new Token(lexeme, tokenValue, "Char");
 
                 System.out.println(token.lexeme);
 
@@ -449,14 +451,13 @@ public class Compilador {
         int state15(char c) {
             int nextState = 15;
 
-            if (c == '$' || c == '\n') {
-                lexeme += c;
+            if (c == '\n') {
                 throwError("invalid_lexeme");
             } else if (c == '\"') {
-                lexeme += "$" + c;
+                lexeme += "0" + c;
                 nextState = 0;
 
-                Token token = new Token(lexeme, tokenConst, "String");
+                Token token = new Token(lexeme, tokenValue, "String");
 
                 System.out.println(token.lexeme);
 
@@ -485,7 +486,7 @@ public class Compilador {
                     i--;
                 }
 
-                Token token = new Token(lexeme, tokenConst, "Integer");
+                Token token = new Token(lexeme, tokenValue, "Integer");
 
                 System.out.println(token.lexeme);
 
@@ -521,7 +522,7 @@ public class Compilador {
             } else if (!isHexa(c)) {
                 throwError("invalid_lexeme");
             } else {
-                Token token = new Token(lexeme, tokenConst, "Char");
+                Token token = new Token(lexeme, tokenValue, "Char");
 
                 System.out.println(token.lexeme);
 
@@ -660,17 +661,60 @@ public class Compilador {
         }
     }
 
+    static class Parser {
+        static Token currentToken = new Token("a", 33, "String");
+
+        void checkToken(int expectedToken) {
+            if (expectedToken == currentToken.token)
+                System.out.println("proximo lex");
+            else
+                System.out.println("token n esperado");
+        }
+
+        void DECL() {
+            if (currentToken.token == tokenStr) {
+                checkToken(tokenStr);
+                DECL1();
+                while (currentToken.token == tokenComma) {
+                    checkToken(tokenComma);
+                    DECL1();
+                }
+            }
+        }
+
+        void DECL1() {
+            if (currentToken.token == tokenId) {
+                checkToken(tokenId);
+
+                if (currentToken.token == tokenAtrib) {
+                    checkToken(tokenAtrib);
+                    TIPO_DECL();
+                }
+            }
+        }
+
+        void TIPO_DECL() {
+            if (currentToken.token == tokenMinus) {
+                checkToken(tokenMinus);
+                if (currentToken.token == tokenValue) {
+                    checkToken(tokenValue);
+                }
+            } else if (currentToken.token == tokenValue) {
+                checkToken(tokenValue);
+            }
+        }
+    }
+
     public static void main(String[] args) {
 
         for (int i = 0; i < reservedWords.length; i++) {
-            Symbol symbol = new Symbol(reservedWords[i], i + 2);
+            Symbol symbol = new Symbol(reservedWords[i], i + 1);
             symbolTable.put(reservedWords[i], symbol);
         }
 
         try {
             File file = new File("programa.txt");
             Scanner scanner = new Scanner(file);
-            Lexer lexer = new Lexer();
 
             String fileStr = "";
 

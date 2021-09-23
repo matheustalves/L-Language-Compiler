@@ -1,1 +1,3 @@
-float x = .;
+int x<-0a, y, z<- -1; /* exemplo de arquivo fonte */
+
+x<-y*2+z;
