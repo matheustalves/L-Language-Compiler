@@ -6,10 +6,10 @@ DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1}* ;	|
 DECL1-> 		id [<- TIPO_DECL ]
 TIPO_DECL-> 	[-]num | string | hexa | caractere
 
-COMANDO->	id (lambda | "[" EXP "]") <- EXP;		|
-			while EXP TIPO_CMD;				|
+COMANDO->	id (lambda | "[" EXP "]") <- EXP;		    |
+			while EXP TIPO_CMD;				            |
 			if EXP TIPO_CMD (lambda | else TIPO_CMD);	|
-			readln "(" id ")";				|
+			readln "(" id ")";				            |
 			(write | writeln) "(" LISTA_EXP ")";		|
 			;
 
@@ -17,47 +17,9 @@ TIPO_CMD->	C | "{" {C}+ "}"
 LISTA_EXP->	EXP {, EXP}
 OPERADOR->    	= | != | < | > | <= | >=
 
-EXP-> 		EXP {OPERADOR , EXP}*
+EXP-> 		EXP1 {OPERADOR EXP1}*
 EXP1->		[-] EXP2 { (+ | - | "||") EXP2 }
 EXP2->		EXP3 { ("*" | && | / | div | mod) EXP3 }
 EXP3->		{!} EXP4
 EXP4->		(int | float) "(" EXP ")" | EXP5
 EXP5->     	"(" EXP ")" | id (lambda | "[" EXP "]") | num
-
-
-static final int tokenId = 0;
-    static final int tokenStr = 1;
-    static final int tokenConst = 2;
-    static final int tokenInt = 3;
-    static final int tokenChar = 4;
-    static final int tokenWhile = 5;
-    static final int tokenIf = 6;
-    static final int tokenFloat = 7;
-    static final int tokenElse = 8;
-    static final int tokenAnd = 9;
-    static final int tokenOr = 10;
-    static final int tokenNot = 11;
-    static final int tokenAtrib = 12;
-    static final int tokenEqual = 13;
-    static final int tokenOpenPar = 14;
-    static final int tokenClosePar = 15;
-    static final int tokenLess = 16;
-    static final int tokenGtr = 17;
-    static final int tokenDif = 18;
-    static final int tokenGtrEqual = 19;
-    static final int tokenLessEqual = 20;
-    static final int tokenComma = 21;
-    static final int tokenPlus = 22;
-    static final int tokenMinus = 23;
-    static final int tokenMult = 24;
-    static final int tokenDiv = 25;
-    static final int tokenSemiColon = 26;
-    static final int tokenOpenBra = 27;
-    static final int tokenCloseBra = 28;
-    static final int tokenRead = 29;
-    static final int tokenDiv2 = 30;
-    static final int tokenWrite = 31;
-    static final int tokenWriteLn = 32;
-    static final int tokenMod = 33;
-    static final int tokenOpenSq = 34;
-    static final int tokenCloseSq = 35;

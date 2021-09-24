@@ -2,12 +2,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Hashtable;
 import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Compilador {
     static Hashtable<String, Symbol> symbolTable = new Hashtable<String, Symbol>();
-    // static List<Token> tokenList = new ArrayList<Token>();
     static final String[] reservedWords = { "string", "const", "int", "char", "while", "if", "float", "else", "&&",
             "||", "!", "<-", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}",
             "readln", "div", "write", "writeln", "mod", "[", "]" };
@@ -87,6 +84,7 @@ public class Compilador {
 
         void throwError(String type) {
             pauseCompiling = true;
+            currentToken = null;
 
             System.out.println(lineCount);
             // invalid character
@@ -154,8 +152,14 @@ public class Compilador {
             } else if (c == '=' || c == '*' || c == '+' || c == '-' || c == ',' || c == '(' || c == ')' || c == '{'
                     || c == '}' || c == '[' || c == ']') {
                 nextState = 19;
-            } else if (c == '#' || c == ';' || c == ' ' || c == '\n') {
+            } else if (c == '#') {
                 nextState = 20;
+                currentToken = null;
+            } else if (c == ';') {
+                currentToken = new Token(lexeme, tokenSemiColon, "String");
+                nextState = 20;
+            } else if (c == ' ' || c == '\n') {
+                lexeme = "";
             }
             return nextState;
         }
@@ -538,8 +542,9 @@ public class Compilador {
                 }
 
                 if (isValid(c)) {
-                    if (c == '\n')
+                    if (c == '\n') {
                         lineCount++;
+                    }
                     switch (currentState) {
                         case 0:
                             // System.out.println("estado 0");
@@ -643,11 +648,14 @@ public class Compilador {
         }
 
         void START() {
-            if (currentToken.token == 1 || currentToken.token == 2 || currentToken.token == 3 || currentToken.token == 4
-                    || currentToken.token == 7) {
-                DECL();
-            } else
-                System.out.println("fodase");
+            while (currentToken != null) {
+                if (currentToken.token == tokenStr || currentToken.token == tokenConst || currentToken.token == tokenInt
+                        || currentToken.token == tokenChar || currentToken.token == tokenFloat) {
+                    DECL();
+                } else
+                    COMMAND();
+            }
+
         }
 
         void DECL() {
@@ -664,14 +672,13 @@ public class Compilador {
                     checkToken(tokenId);
                     if (currentToken.token == tokenEqual) {
                         checkToken(tokenEqual);
-                        TIPO_DECL();
+                        DECL_TYPE();
                     }
                 }
             } else if (currentToken.token == tokenInt) {
                 checkToken(tokenInt);
                 DECL1();
                 while (currentToken.token == tokenComma) {
-                    System.out.println("entrou");
                     checkToken(tokenComma);
                     DECL1();
                 }
@@ -698,16 +705,210 @@ public class Compilador {
 
                 if (currentToken.token == tokenAtrib) {
                     checkToken(tokenAtrib);
-                    TIPO_DECL();
+                    DECL_TYPE();
                 }
             }
         }
 
-        void TIPO_DECL() {
+        void DECL_TYPE() {
             if (currentToken.token == tokenMinus) {
                 checkToken(tokenMinus);
                 if (currentToken.token == tokenValue) {
                     checkToken(tokenValue);
+                }
+            } else if (currentToken.token == tokenValue) {
+                checkToken(tokenValue);
+            }
+        }
+
+        void COMMAND() {
+            if (currentToken.token == tokenId) {
+                checkToken(tokenId);
+                if (currentToken.token == tokenOpenSq) {
+                    checkToken(tokenOpenSq);
+                    EXP();
+                    if (currentToken.token == tokenCloseSq) {
+                        checkToken(tokenCloseSq);
+                    }
+                }
+                if (currentToken.token == tokenAtrib) {
+                    checkToken(tokenAtrib);
+                    EXP();
+                }
+            } else if (currentToken.token == tokenWhile) {
+                checkToken(tokenWhile);
+                EXP();
+                CMD_TYPE();
+            } else if (currentToken.token == tokenIf) {
+                checkToken(tokenIf);
+                EXP();
+                CMD_TYPE();
+                if (currentToken.token == tokenElse) {
+                    checkToken(tokenElse);
+                    CMD_TYPE();
+                }
+            } else if (currentToken.token == tokenRead) {
+                checkToken(tokenRead);
+                if (currentToken.token == tokenOpenPar) {
+                    checkToken(tokenOpenPar);
+                    if (currentToken.token == tokenId) {
+                        checkToken(tokenId);
+                        if (currentToken.token == tokenClosePar) {
+                            checkToken(tokenClosePar);
+                        }
+                    }
+                }
+            } else if (currentToken.token == tokenWrite) {
+                checkToken(tokenWrite);
+                if (currentToken.token == tokenOpenPar) {
+                    checkToken(tokenOpenPar);
+                    EXP_LIST();
+                    if (currentToken.token == tokenClosePar) {
+                        checkToken(tokenClosePar);
+                    }
+
+                }
+            } else if (currentToken.token == tokenWriteLn) {
+                checkToken(tokenWriteLn);
+                if (currentToken.token == tokenOpenPar) {
+                    checkToken(tokenOpenPar);
+                    EXP_LIST();
+                    if (currentToken.token == tokenClosePar) {
+                        checkToken(tokenClosePar);
+                    }
+
+                }
+            } else if (currentToken.token == tokenSemiColon) {
+                checkToken(tokenSemiColon);
+            }
+        }
+
+        void CMD_TYPE() {
+            if (currentToken.token == tokenOpenBra) {
+                checkToken(tokenOpenBra);
+                while (currentToken.token != tokenCloseBra) {
+                    COMMAND();
+                }
+                checkToken(tokenCloseBra);
+            } else {
+                COMMAND();
+            }
+        }
+
+        void EXP_LIST() {
+            EXP();
+            while (currentToken.token == tokenComma) {
+                checkToken(tokenComma);
+                EXP();
+            }
+        }
+
+        void OPERATOR() {
+            if (currentToken.token == tokenEqual)
+                checkToken(tokenEqual);
+            else if (currentToken.token == tokenDif)
+                checkToken(tokenDif);
+            else if (currentToken.token == tokenLess)
+                checkToken(tokenLess);
+            else if (currentToken.token == tokenGtr)
+                checkToken(tokenGtr);
+            else if (currentToken.token == tokenLessEqual)
+                checkToken(tokenLessEqual);
+            else if (currentToken.token == tokenGtrEqual)
+                checkToken(tokenGtrEqual);
+        }
+
+        void EXP() {
+            EXP1();
+            while (currentToken.token == tokenEqual || currentToken.token == tokenDif || currentToken.token == tokenLess
+                    || currentToken.token == tokenGtr || currentToken.token == tokenLessEqual
+                    || currentToken.token == tokenGtrEqual) {
+                OPERATOR();
+                EXP1();
+            }
+        }
+
+        void EXP1() {
+            if (currentToken.token == tokenMinus) {
+                checkToken(tokenMinus);
+            }
+            EXP2();
+            while (currentToken.token == tokenPlus || currentToken.token == tokenMinus
+                    || currentToken.token == tokenOr) {
+                if (currentToken.token == tokenPlus) {
+                    checkToken(tokenPlus);
+                } else if (currentToken.token == tokenMinus) {
+                    checkToken(tokenMinus);
+                } else if (currentToken.token == tokenOr) {
+                    checkToken(tokenOr);
+                }
+                EXP2();
+            }
+        }
+
+        void EXP2() {
+            EXP3();
+            while (currentToken.token == tokenMult || currentToken.token == tokenAnd || currentToken.token == tokenDiv
+                    || currentToken.token == tokenMod) {
+                if (currentToken.token == tokenMult) {
+                    checkToken(tokenMult);
+                } else if (currentToken.token == tokenAnd) {
+                    checkToken(tokenAnd);
+                } else if (currentToken.token == tokenDiv) {
+                    checkToken(tokenDiv);
+                } else if (currentToken.token == tokenMod) {
+                    checkToken(tokenMod);
+                }
+                EXP3();
+            }
+        }
+
+        void EXP3() {
+            while (currentToken.token == tokenNot) {
+                checkToken(tokenNot);
+            }
+            EXP4();
+        }
+
+        void EXP4() {
+            if (currentToken.token == tokenInt) {
+                checkToken(tokenInt);
+                if (currentToken.token == tokenOpenPar) {
+                    checkToken(tokenOpenPar);
+                    EXP();
+                    if (currentToken.token == tokenClosePar) {
+                        checkToken(tokenClosePar);
+                    }
+                }
+            } else if (currentToken.token == tokenFloat) {
+                checkToken(tokenFloat);
+                if (currentToken.token == tokenOpenPar) {
+                    checkToken(tokenOpenPar);
+                    EXP();
+                    if (currentToken.token == tokenClosePar) {
+                        checkToken(tokenClosePar);
+                    }
+                }
+            } else {
+                EXP5();
+            }
+        }
+
+        void EXP5() {
+            if (currentToken.token == tokenOpenPar) {
+                checkToken(tokenOpenPar);
+                EXP();
+                if (currentToken.token == tokenClosePar) {
+                    checkToken(tokenClosePar);
+                }
+            } else if (currentToken.token == tokenId) {
+                checkToken(tokenId);
+                if (currentToken.token == tokenOpenSq) {
+                    checkToken(tokenOpenSq);
+                    EXP();
+                    if (currentToken.token == tokenCloseSq) {
+                        checkToken(tokenCloseSq);
+                    }
                 }
             } else if (currentToken.token == tokenValue) {
                 checkToken(tokenValue);
