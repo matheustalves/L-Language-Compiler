@@ -102,10 +102,17 @@ public class Compilador {
         }
 
         boolean isValid(char c) {
-            if (Character.isDigit(c) || Character.isLetter(c) || c == ' ' || c == '_' || c == '.' || c == ';' | c == ','
+            if (Character.isDigit(c) || isLetter(c) || c == ' ' || c == '_' || c == '.' || c == ';' | c == ','
                     || c == ':' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == '+'
                     || c == '-' || c == '\"' || c == '\'' || c == '/' || c == '*' || c == '|' || c == '\\' || c == '&'
                     || c == '%' || c == '!' || c == '?' || c == '>' || c == '<' || c == '=' || c == '\n' || c == '#')
+                return true;
+            else
+                return false;
+        }
+
+        boolean isLetter(char c) {
+            if ((c >= 'A' && c <= 'Z') || (c >= 97 && c <= 122))
                 return true;
             else
                 return false;
@@ -124,7 +131,7 @@ public class Compilador {
 
             lexeme += c;
 
-            if (Character.isLetter(c) || c == '_') {
+            if (isLetter(c) || c == '_') {
                 nextState = 1;
             } else if (Character.isDigit(c)) {
                 if (c != '0')
@@ -160,6 +167,8 @@ public class Compilador {
                 nextState = 20;
             } else if (c == ' ' || c == '\n') {
                 lexeme = "";
+            } else {
+                throwError("invalid_lexeme");
             }
             return nextState;
         }
@@ -168,7 +177,7 @@ public class Compilador {
         int state1(char c) {
             int nextState = 1;
 
-            if (Character.isLetter(c) || Character.isDigit(c) || c == '.' || c == '_') {
+            if (isLetter(c) || Character.isDigit(c) || c == '.' || c == '_') {
                 lexeme += c;
             } else {
                 Symbol symbol = symbolTable.get(lexeme);
