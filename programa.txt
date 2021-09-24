@@ -1,5 +1,7 @@
-while x<y x<-x+1;
-
 if x=0 writeln(x); else writeln("x dif de 0",nome[3]);
 
-a
+;;;
+
+readnq[](nome); readln(x);
+
+x<-int(media*2/3) + x mod 2;

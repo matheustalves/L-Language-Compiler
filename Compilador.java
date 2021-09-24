@@ -84,7 +84,7 @@ public class Compilador {
 
         void throwError(String type) {
             pauseCompiling = true;
-            currentToken = null;
+            currentToken = new Token("ERRO", 666, "ERRO");
 
             System.out.println(lineCount);
             // invalid character
@@ -154,7 +154,7 @@ public class Compilador {
                 nextState = 19;
             } else if (c == '#') {
                 nextState = 20;
-                currentToken = null;
+                currentToken = new Token("EOF", 667, "EOF");
             } else if (c == ';') {
                 currentToken = new Token(lexeme, tokenSemiColon, "String");
                 nextState = 20;
@@ -461,7 +461,7 @@ public class Compilador {
             if (Character.isDigit(c)) {
                 lexeme += c;
                 nextState = 2;
-            } else if (c == 'x' || c == 'X') {
+            } else if (c == 'x') {
                 lexeme += c;
             } else {
 
@@ -640,15 +640,27 @@ public class Compilador {
 
     static class Parser {
 
+        void thowParserError() {
+            if (currentToken.token != 667) {
+                pauseCompiling = true;
+                System.out.println(lineCount);
+                System.out.println("token nao esperado [" + currentToken.lexeme + "].");
+            } else {
+                pauseCompiling = true;
+                System.out.println(lineCount);
+                System.out.println("fim de arquivo nao esperado.");
+            }
+        }
+
         void checkToken(int expectedToken) {
             if (expectedToken == currentToken.token)
                 lexer.getLexeme(fileStr);
             else
-                System.out.println("token n esperado");
+                thowParserError();
         }
 
         void START() {
-            while (currentToken != null) {
+            while (currentToken.token != 667 && !pauseCompiling) {
                 if (currentToken.token == tokenStr || currentToken.token == tokenConst || currentToken.token == tokenInt
                         || currentToken.token == tokenChar || currentToken.token == tokenFloat) {
                     DECL();
@@ -659,259 +671,437 @@ public class Compilador {
         }
 
         void DECL() {
-            if (currentToken.token == tokenStr) {
-                checkToken(tokenStr);
-                DECL1();
-                while (currentToken.token == tokenComma) {
-                    checkToken(tokenComma);
+            if (!pauseCompiling) {
+                if (currentToken.token == tokenStr) {
+                    checkToken(tokenStr);
+                    if (pauseCompiling)
+                        return;
                     DECL1();
-                }
-            } else if (currentToken.token == tokenConst) {
-                checkToken(tokenConst);
-                if (currentToken.token == tokenId) {
-                    checkToken(tokenId);
-                    if (currentToken.token == tokenEqual) {
-                        checkToken(tokenEqual);
-                        DECL_TYPE();
+                    while (currentToken.token == tokenComma) {
+                        checkToken(tokenComma);
+                        if (pauseCompiling)
+                            return;
+                        DECL1();
                     }
-                }
-            } else if (currentToken.token == tokenInt) {
-                checkToken(tokenInt);
-                DECL1();
-                while (currentToken.token == tokenComma) {
-                    checkToken(tokenComma);
+                } else if (currentToken.token == tokenConst) {
+                    checkToken(tokenConst);
+                    if (pauseCompiling)
+                        return;
+                    if (currentToken.token == tokenId) {
+                        checkToken(tokenId);
+                        if (pauseCompiling)
+                            return;
+                        if (currentToken.token == tokenEqual) {
+                            checkToken(tokenEqual);
+                            if (pauseCompiling)
+                                return;
+                            DECL_TYPE();
+                        } else
+                            thowParserError();
+                    } else
+                        thowParserError();
+                } else if (currentToken.token == tokenInt) {
+                    checkToken(tokenInt);
+                    if (pauseCompiling)
+                        return;
                     DECL1();
-                }
-            } else if (currentToken.token == tokenChar) {
-                checkToken(tokenChar);
-                DECL1();
-                while (currentToken.token == tokenComma) {
-                    checkToken(tokenComma);
+                    while (currentToken.token == tokenComma) {
+                        checkToken(tokenComma);
+                        if (pauseCompiling)
+                            return;
+                        DECL1();
+                    }
+                } else if (currentToken.token == tokenChar) {
+                    checkToken(tokenChar);
+                    if (pauseCompiling)
+                        return;
                     DECL1();
-                }
-            } else if (currentToken.token == tokenFloat) {
-                checkToken(tokenFloat);
-                DECL1();
-                while (currentToken.token == tokenComma) {
-                    checkToken(tokenComma);
+                    while (currentToken.token == tokenComma) {
+                        checkToken(tokenComma);
+                        if (pauseCompiling)
+                            return;
+                        DECL1();
+                    }
+                } else if (currentToken.token == tokenFloat) {
+                    checkToken(tokenFloat);
+                    if (pauseCompiling)
+                        return;
                     DECL1();
-                }
+                    while (currentToken.token == tokenComma) {
+                        checkToken(tokenComma);
+                        if (pauseCompiling)
+                            return;
+                        DECL1();
+                    }
+                } else
+                    thowParserError();
             }
         }
 
         void DECL1() {
-            if (currentToken.token == tokenId) {
-                checkToken(tokenId);
+            if (!pauseCompiling) {
+                if (currentToken.token == tokenId) {
+                    checkToken(tokenId);
+                    if (pauseCompiling)
+                        return;
 
-                if (currentToken.token == tokenAtrib) {
-                    checkToken(tokenAtrib);
-                    DECL_TYPE();
+                    if (currentToken.token == tokenAtrib) {
+                        checkToken(tokenAtrib);
+                        if (pauseCompiling)
+                            return;
+                        DECL_TYPE();
+                    }
                 }
             }
         }
 
         void DECL_TYPE() {
-            if (currentToken.token == tokenMinus) {
-                checkToken(tokenMinus);
+            if (!pauseCompiling) {
+                if (currentToken.token == tokenMinus) {
+                    checkToken(tokenMinus);
+                    if (pauseCompiling)
+                        return;
+                }
                 if (currentToken.token == tokenValue) {
                     checkToken(tokenValue);
-                }
-            } else if (currentToken.token == tokenValue) {
-                checkToken(tokenValue);
+                    if (pauseCompiling)
+                        return;
+                } else
+                    thowParserError();
             }
         }
 
         void COMMAND() {
-            if (currentToken.token == tokenId) {
-                checkToken(tokenId);
-                if (currentToken.token == tokenOpenSq) {
-                    checkToken(tokenOpenSq);
-                    EXP();
-                    if (currentToken.token == tokenCloseSq) {
-                        checkToken(tokenCloseSq);
+            if (!pauseCompiling) {
+                if (currentToken.token == tokenId) {
+                    checkToken(tokenId);
+                    if (pauseCompiling)
+                        return;
+                    if (currentToken.token == tokenOpenSq) {
+                        checkToken(tokenOpenSq);
+                        if (pauseCompiling)
+                            return;
+                        EXP();
+                        if (currentToken.token == tokenCloseSq) {
+                            checkToken(tokenCloseSq);
+                            if (pauseCompiling)
+                                return;
+                        } else
+                            thowParserError();
                     }
-                }
-                if (currentToken.token == tokenAtrib) {
-                    checkToken(tokenAtrib);
+                    if (currentToken.token == tokenAtrib) {
+                        checkToken(tokenAtrib);
+                        if (pauseCompiling)
+                            return;
+                        EXP();
+                    } else
+                        thowParserError();
+                } else if (currentToken.token == tokenWhile) {
+                    checkToken(tokenWhile);
+                    if (pauseCompiling)
+                        return;
                     EXP();
-                }
-            } else if (currentToken.token == tokenWhile) {
-                checkToken(tokenWhile);
-                EXP();
-                CMD_TYPE();
-            } else if (currentToken.token == tokenIf) {
-                checkToken(tokenIf);
-                EXP();
-                CMD_TYPE();
-                if (currentToken.token == tokenElse) {
-                    checkToken(tokenElse);
                     CMD_TYPE();
-                }
-            } else if (currentToken.token == tokenRead) {
-                checkToken(tokenRead);
-                if (currentToken.token == tokenOpenPar) {
-                    checkToken(tokenOpenPar);
-                    if (currentToken.token == tokenId) {
-                        checkToken(tokenId);
+                } else if (currentToken.token == tokenIf) {
+                    checkToken(tokenIf);
+                    if (pauseCompiling)
+                        return;
+                    EXP();
+                    CMD_TYPE();
+                    if (currentToken.token == tokenSemiColon) {
+                        checkToken(tokenSemiColon);
+                        if (pauseCompiling)
+                            return;
+                    }
+                    if (currentToken.token == tokenElse) {
+                        checkToken(tokenElse);
+                        if (pauseCompiling)
+                            return;
+                        CMD_TYPE();
+                    } else
+                        thowParserError();
+                } else if (currentToken.token == tokenRead) {
+                    checkToken(tokenRead);
+                    if (pauseCompiling)
+                        return;
+                    if (currentToken.token == tokenOpenPar) {
+                        checkToken(tokenOpenPar);
+                        if (pauseCompiling)
+                            return;
+                        if (currentToken.token == tokenId) {
+                            checkToken(tokenId);
+                            if (pauseCompiling)
+                                return;
+                            if (currentToken.token == tokenClosePar) {
+                                checkToken(tokenClosePar);
+                                if (pauseCompiling)
+                                    return;
+                            } else
+                                thowParserError();
+                        } else
+                            thowParserError();
+                    } else
+                        thowParserError();
+                } else if (currentToken.token == tokenWrite) {
+                    checkToken(tokenWrite);
+                    if (pauseCompiling)
+                        return;
+                    if (currentToken.token == tokenOpenPar) {
+                        checkToken(tokenOpenPar);
+                        if (pauseCompiling)
+                            return;
+                        EXP_LIST();
                         if (currentToken.token == tokenClosePar) {
                             checkToken(tokenClosePar);
-                        }
-                    }
+                            if (pauseCompiling)
+                                return;
+                        } else
+                            thowParserError();
+                    } else
+                        thowParserError();
+                } else if (currentToken.token == tokenWriteLn) {
+                    checkToken(tokenWriteLn);
+                    if (pauseCompiling)
+                        return;
+                    if (currentToken.token == tokenOpenPar) {
+                        checkToken(tokenOpenPar);
+                        if (pauseCompiling)
+                            return;
+                        EXP_LIST();
+                        if (currentToken.token == tokenClosePar) {
+                            checkToken(tokenClosePar);
+                            if (pauseCompiling)
+                                return;
+                        } else
+                            thowParserError();
+                    } else
+                        thowParserError();
+                } else if (currentToken.token == tokenSemiColon) {
+                    checkToken(tokenSemiColon);
+                    if (pauseCompiling)
+                        return;
                 }
-            } else if (currentToken.token == tokenWrite) {
-                checkToken(tokenWrite);
-                if (currentToken.token == tokenOpenPar) {
-                    checkToken(tokenOpenPar);
-                    EXP_LIST();
-                    if (currentToken.token == tokenClosePar) {
-                        checkToken(tokenClosePar);
-                    }
-
-                }
-            } else if (currentToken.token == tokenWriteLn) {
-                checkToken(tokenWriteLn);
-                if (currentToken.token == tokenOpenPar) {
-                    checkToken(tokenOpenPar);
-                    EXP_LIST();
-                    if (currentToken.token == tokenClosePar) {
-                        checkToken(tokenClosePar);
-                    }
-
-                }
-            } else if (currentToken.token == tokenSemiColon) {
-                checkToken(tokenSemiColon);
             }
         }
 
         void CMD_TYPE() {
-            if (currentToken.token == tokenOpenBra) {
-                checkToken(tokenOpenBra);
-                while (currentToken.token != tokenCloseBra) {
+            if (!pauseCompiling) {
+                if (currentToken.token == tokenOpenBra) {
+                    checkToken(tokenOpenBra);
+                    if (pauseCompiling)
+                        return;
+                    while (currentToken.token != tokenCloseBra) {
+                        COMMAND();
+                    }
+                    checkToken(tokenCloseBra);
+                    if (pauseCompiling)
+                        return;
+                } else {
                     COMMAND();
                 }
-                checkToken(tokenCloseBra);
-            } else {
-                COMMAND();
             }
         }
 
         void EXP_LIST() {
-            EXP();
-            while (currentToken.token == tokenComma) {
-                checkToken(tokenComma);
+            if (!pauseCompiling) {
                 EXP();
+                while (currentToken.token == tokenComma) {
+                    checkToken(tokenComma);
+                    if (pauseCompiling)
+                        return;
+                    EXP();
+                }
             }
         }
 
         void OPERATOR() {
-            if (currentToken.token == tokenEqual)
-                checkToken(tokenEqual);
-            else if (currentToken.token == tokenDif)
-                checkToken(tokenDif);
-            else if (currentToken.token == tokenLess)
-                checkToken(tokenLess);
-            else if (currentToken.token == tokenGtr)
-                checkToken(tokenGtr);
-            else if (currentToken.token == tokenLessEqual)
-                checkToken(tokenLessEqual);
-            else if (currentToken.token == tokenGtrEqual)
-                checkToken(tokenGtrEqual);
+            if (!pauseCompiling) {
+                if (currentToken.token == tokenEqual) {
+                    checkToken(tokenEqual);
+                    if (pauseCompiling)
+                        return;
+                } else if (currentToken.token == tokenDif) {
+                    checkToken(tokenDif);
+                    if (pauseCompiling)
+                        return;
+                } else if (currentToken.token == tokenLess) {
+                    checkToken(tokenLess);
+                    if (pauseCompiling)
+                        return;
+                } else if (currentToken.token == tokenGtr) {
+                    checkToken(tokenGtr);
+                    if (pauseCompiling)
+                        return;
+                } else if (currentToken.token == tokenLessEqual) {
+                    checkToken(tokenLessEqual);
+                    if (pauseCompiling)
+                        return;
+                } else if (currentToken.token == tokenGtrEqual) {
+                    checkToken(tokenGtrEqual);
+                    if (pauseCompiling)
+                        return;
+                } else
+                    thowParserError();
+            }
         }
 
         void EXP() {
-            EXP1();
-            while (currentToken.token == tokenEqual || currentToken.token == tokenDif || currentToken.token == tokenLess
-                    || currentToken.token == tokenGtr || currentToken.token == tokenLessEqual
-                    || currentToken.token == tokenGtrEqual) {
-                OPERATOR();
+            if (!pauseCompiling) {
                 EXP1();
+                while (currentToken.token == tokenEqual || currentToken.token == tokenDif
+                        || currentToken.token == tokenLess || currentToken.token == tokenGtr
+                        || currentToken.token == tokenLessEqual || currentToken.token == tokenGtrEqual) {
+                    OPERATOR();
+                    EXP1();
+                }
             }
         }
 
         void EXP1() {
-            if (currentToken.token == tokenMinus) {
-                checkToken(tokenMinus);
-            }
-            EXP2();
-            while (currentToken.token == tokenPlus || currentToken.token == tokenMinus
-                    || currentToken.token == tokenOr) {
-                if (currentToken.token == tokenPlus) {
-                    checkToken(tokenPlus);
-                } else if (currentToken.token == tokenMinus) {
+            if (!pauseCompiling) {
+                if (currentToken.token == tokenMinus) {
                     checkToken(tokenMinus);
-                } else if (currentToken.token == tokenOr) {
-                    checkToken(tokenOr);
+                    if (pauseCompiling)
+                        return;
                 }
                 EXP2();
+                while (currentToken.token == tokenPlus || currentToken.token == tokenMinus
+                        || currentToken.token == tokenOr) {
+                    if (currentToken.token == tokenPlus) {
+                        checkToken(tokenPlus);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenMinus) {
+                        checkToken(tokenMinus);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenOr) {
+                        checkToken(tokenOr);
+                        if (pauseCompiling)
+                            return;
+                    } else
+                        thowParserError();
+                    EXP2();
+                }
             }
         }
 
         void EXP2() {
-            EXP3();
-            while (currentToken.token == tokenMult || currentToken.token == tokenAnd || currentToken.token == tokenDiv
-                    || currentToken.token == tokenMod) {
-                if (currentToken.token == tokenMult) {
-                    checkToken(tokenMult);
-                } else if (currentToken.token == tokenAnd) {
-                    checkToken(tokenAnd);
-                } else if (currentToken.token == tokenDiv) {
-                    checkToken(tokenDiv);
-                } else if (currentToken.token == tokenMod) {
-                    checkToken(tokenMod);
-                }
+            if (!pauseCompiling) {
                 EXP3();
+                while (currentToken.token == tokenMult || currentToken.token == tokenAnd
+                        || currentToken.token == tokenDiv || currentToken.token == tokenMod) {
+                    if (currentToken.token == tokenMult) {
+                        checkToken(tokenMult);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenAnd) {
+                        checkToken(tokenAnd);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenDiv) {
+                        checkToken(tokenDiv);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenMod) {
+                        checkToken(tokenMod);
+                        if (pauseCompiling)
+                            return;
+                    } else
+                        thowParserError();
+                    EXP3();
+                }
             }
         }
 
         void EXP3() {
-            while (currentToken.token == tokenNot) {
-                checkToken(tokenNot);
+            if (!pauseCompiling) {
+                while (currentToken.token == tokenNot) {
+                    checkToken(tokenNot);
+                    if (pauseCompiling)
+                        return;
+                }
+                EXP4();
             }
-            EXP4();
         }
 
         void EXP4() {
-            if (currentToken.token == tokenInt) {
-                checkToken(tokenInt);
-                if (currentToken.token == tokenOpenPar) {
-                    checkToken(tokenOpenPar);
-                    EXP();
-                    if (currentToken.token == tokenClosePar) {
-                        checkToken(tokenClosePar);
-                    }
+            if (!pauseCompiling) {
+                if (currentToken.token == tokenInt) {
+                    checkToken(tokenInt);
+                    if (pauseCompiling)
+                        return;
+                    if (currentToken.token == tokenOpenPar) {
+                        checkToken(tokenOpenPar);
+                        if (pauseCompiling)
+                            return;
+                        EXP();
+                        if (currentToken.token == tokenClosePar) {
+                            checkToken(tokenClosePar);
+                            if (pauseCompiling)
+                                return;
+                        } else
+                            thowParserError();
+                    } else
+                        thowParserError();
+                } else if (currentToken.token == tokenFloat) {
+                    checkToken(tokenFloat);
+                    if (pauseCompiling)
+                        return;
+                    if (currentToken.token == tokenOpenPar) {
+                        checkToken(tokenOpenPar);
+                        if (pauseCompiling)
+                            return;
+                        EXP();
+                        if (currentToken.token == tokenClosePar) {
+                            checkToken(tokenClosePar);
+                            if (pauseCompiling)
+                                return;
+                        } else
+                            thowParserError();
+                    } else
+                        thowParserError();
+                } else {
+                    EXP5();
                 }
-            } else if (currentToken.token == tokenFloat) {
-                checkToken(tokenFloat);
-                if (currentToken.token == tokenOpenPar) {
-                    checkToken(tokenOpenPar);
-                    EXP();
-                    if (currentToken.token == tokenClosePar) {
-                        checkToken(tokenClosePar);
-                    }
-                }
-            } else {
-                EXP5();
             }
         }
 
         void EXP5() {
-            if (currentToken.token == tokenOpenPar) {
-                checkToken(tokenOpenPar);
-                EXP();
-                if (currentToken.token == tokenClosePar) {
-                    checkToken(tokenClosePar);
-                }
-            } else if (currentToken.token == tokenId) {
-                checkToken(tokenId);
-                if (currentToken.token == tokenOpenSq) {
-                    checkToken(tokenOpenSq);
+            if (!pauseCompiling) {
+                if (currentToken.token == tokenOpenPar) {
+                    checkToken(tokenOpenPar);
+                    if (pauseCompiling)
+                        return;
                     EXP();
-                    if (currentToken.token == tokenCloseSq) {
-                        checkToken(tokenCloseSq);
+                    if (currentToken.token == tokenClosePar) {
+                        checkToken(tokenClosePar);
+                        if (pauseCompiling)
+                            return;
+                    } else
+                        thowParserError();
+                } else if (currentToken.token == tokenId) {
+                    checkToken(tokenId);
+                    if (pauseCompiling)
+                        return;
+                    if (currentToken.token == tokenOpenSq) {
+                        checkToken(tokenOpenSq);
+                        if (pauseCompiling)
+                            return;
+                        EXP();
+                        if (currentToken.token == tokenCloseSq) {
+                            checkToken(tokenCloseSq);
+                            if (pauseCompiling)
+                                return;
+                        } else
+                            thowParserError();
                     }
-                }
-            } else if (currentToken.token == tokenValue) {
-                checkToken(tokenValue);
+                } else if (currentToken.token == tokenValue) {
+                    checkToken(tokenValue);
+                    if (pauseCompiling)
+                        return;
+                } else
+                    thowParserError();
             }
         }
     }
