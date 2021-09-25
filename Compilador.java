@@ -649,7 +649,7 @@ public class Compilador {
 
     static class Parser {
 
-        void thowParserError() {
+        void throwParserError() {
             if (currentToken.token != 667) {
                 pauseCompiling = true;
                 System.out.println(lineCount);
@@ -665,7 +665,7 @@ public class Compilador {
             if (expectedToken == currentToken.token)
                 lexer.getLexeme(fileStr);
             else
-                thowParserError();
+                throwParserError();
         }
 
         void START() {
@@ -706,9 +706,9 @@ public class Compilador {
                                 return;
                             DECL_TYPE();
                         } else
-                            thowParserError();
+                            throwParserError();
                     } else
-                        thowParserError();
+                        throwParserError();
                 } else if (currentToken.token == tokenInt) {
                     checkToken(tokenInt);
                     if (pauseCompiling)
@@ -743,7 +743,12 @@ public class Compilador {
                         DECL1();
                     }
                 } else
-                    thowParserError();
+                    throwParserError();
+
+                if (currentToken.token == tokenSemiColon) {
+                    checkToken(tokenSemiColon);
+                } else
+                    throwParserError();
             }
         }
 
@@ -776,7 +781,7 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
                 } else
-                    thowParserError();
+                    throwParserError();
             }
         }
 
@@ -796,15 +801,21 @@ public class Compilador {
                             if (pauseCompiling)
                                 return;
                         } else
-                            thowParserError();
+                            throwParserError();
                     }
                     if (currentToken.token == tokenAtrib) {
                         checkToken(tokenAtrib);
                         if (pauseCompiling)
                             return;
                         EXP();
+                        if (currentToken.token == tokenSemiColon) {
+                            checkToken(tokenSemiColon);
+                            if (pauseCompiling)
+                                return;
+                        } else
+                            throwParserError();
                     } else
-                        thowParserError();
+                        throwParserError();
                 } else if (currentToken.token == tokenWhile) {
                     checkToken(tokenWhile);
                     if (pauseCompiling)
@@ -828,7 +839,7 @@ public class Compilador {
                             return;
                         CMD_TYPE();
                     } else
-                        thowParserError();
+                        throwParserError();
                 } else if (currentToken.token == tokenRead) {
                     checkToken(tokenRead);
                     if (pauseCompiling)
@@ -845,12 +856,18 @@ public class Compilador {
                                 checkToken(tokenClosePar);
                                 if (pauseCompiling)
                                     return;
+                                if (currentToken.token == tokenSemiColon) {
+                                    checkToken(tokenSemiColon);
+                                    if (pauseCompiling)
+                                        return;
+                                } else
+                                    throwParserError();
                             } else
-                                thowParserError();
+                                throwParserError();
                         } else
-                            thowParserError();
+                            throwParserError();
                     } else
-                        thowParserError();
+                        throwParserError();
                 } else if (currentToken.token == tokenWrite) {
                     checkToken(tokenWrite);
                     if (pauseCompiling)
@@ -864,10 +881,16 @@ public class Compilador {
                             checkToken(tokenClosePar);
                             if (pauseCompiling)
                                 return;
+                            if (currentToken.token == tokenSemiColon) {
+                                checkToken(tokenSemiColon);
+                                if (pauseCompiling)
+                                    return;
+                            } else
+                                throwParserError();
                         } else
-                            thowParserError();
+                            throwParserError();
                     } else
-                        thowParserError();
+                        throwParserError();
                 } else if (currentToken.token == tokenWriteLn) {
                     checkToken(tokenWriteLn);
                     if (pauseCompiling)
@@ -881,15 +904,22 @@ public class Compilador {
                             checkToken(tokenClosePar);
                             if (pauseCompiling)
                                 return;
+                            if (currentToken.token == tokenSemiColon) {
+                                checkToken(tokenSemiColon);
+                                if (pauseCompiling)
+                                    return;
+                            } else
+                                throwParserError();
                         } else
-                            thowParserError();
+                            throwParserError();
                     } else
-                        thowParserError();
+                        throwParserError();
                 } else if (currentToken.token == tokenSemiColon) {
                     checkToken(tokenSemiColon);
                     if (pauseCompiling)
                         return;
-                }
+                } else
+                    throwParserError();
             }
         }
 
@@ -950,7 +980,7 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
                 } else
-                    thowParserError();
+                    throwParserError();
             }
         }
 
@@ -989,7 +1019,7 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                     } else
-                        thowParserError();
+                        throwParserError();
                     EXP2();
                 }
             }
@@ -1017,7 +1047,7 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                     } else
-                        thowParserError();
+                        throwParserError();
                     EXP3();
                 }
             }
@@ -1050,9 +1080,9 @@ public class Compilador {
                             if (pauseCompiling)
                                 return;
                         } else
-                            thowParserError();
+                            throwParserError();
                     } else
-                        thowParserError();
+                        throwParserError();
                 } else if (currentToken.token == tokenFloat) {
                     checkToken(tokenFloat);
                     if (pauseCompiling)
@@ -1067,9 +1097,9 @@ public class Compilador {
                             if (pauseCompiling)
                                 return;
                         } else
-                            thowParserError();
+                            throwParserError();
                     } else
-                        thowParserError();
+                        throwParserError();
                 } else {
                     EXP5();
                 }
@@ -1088,7 +1118,7 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                     } else
-                        thowParserError();
+                        throwParserError();
                 } else if (currentToken.token == tokenId) {
                     checkToken(tokenId);
                     if (pauseCompiling)
@@ -1103,14 +1133,14 @@ public class Compilador {
                             if (pauseCompiling)
                                 return;
                         } else
-                            thowParserError();
+                            throwParserError();
                     }
                 } else if (currentToken.token == tokenValue) {
                     checkToken(tokenValue);
                     if (pauseCompiling)
                         return;
                 } else
-                    thowParserError();
+                    throwParserError();
             }
         }
     }

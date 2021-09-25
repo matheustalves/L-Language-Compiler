@@ -7,8 +7,8 @@ DECL1-> 		id [<- TIPO_DECL ]
 TIPO_DECL-> 	[-]num | string | hexa | caractere
 
 COMANDO->	id (lambda | "[" EXP "]") <- EXP;		    |
-			while EXP TIPO_CMD;				            |
-			if EXP TIPO_CMD (lambda | else TIPO_CMD);	|
+			while EXP TIPO_CMD				            |
+			if EXP TIPO_CMD (lambda | else TIPO_CMD)	|
 			readln "(" id ")";				            |
 			(write | writeln) "(" LISTA_EXP ")";		|
 			;
