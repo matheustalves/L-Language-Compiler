@@ -15,6 +15,7 @@ public class Compilador {
     static Lexer lexer = new Lexer();
     static Parser parser = new Parser();
     static Token currentToken;
+    static char lineSeparator = System.lineSeparator().charAt(0);
 
     static final int tokenId = 0;
     static final int tokenStr = 1;
@@ -87,6 +88,7 @@ public class Compilador {
             currentToken = new Token("ERRO", 666, "ERRO");
 
             System.out.println(lineCount);
+
             // invalid character
             if (type == "invalid_char") {
                 System.out.println("caractere invalido.");
@@ -105,7 +107,8 @@ public class Compilador {
             if (Character.isDigit(c) || isLetter(c) || c == ' ' || c == '_' || c == '.' || c == ';' | c == ','
                     || c == ':' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == '+'
                     || c == '-' || c == '\"' || c == '\'' || c == '/' || c == '*' || c == '|' || c == '\\' || c == '&'
-                    || c == '%' || c == '!' || c == '?' || c == '>' || c == '<' || c == '=' || c == '\n' || c == '#')
+                    || c == '%' || c == '!' || c == '?' || c == '>' || c == '<' || c == '=' || c == lineSeparator
+                    || c == '#')
                 return true;
             else
                 return false;
@@ -165,8 +168,11 @@ public class Compilador {
             } else if (c == ';') {
                 currentToken = new Token(lexeme, tokenSemiColon, "String");
                 nextState = 20;
-            } else if (c == ' ' || c == '\n') {
+            } else if (c == ' ') {
                 lexeme = "";
+            } else if (c == lineSeparator) {
+                lexeme = "";
+                lineCount++;
             } else {
                 throwError("invalid_lexeme");
             }
@@ -187,7 +193,7 @@ public class Compilador {
 
                     currentToken = token;
 
-                    System.out.println(token.lexeme);
+                    // System.out.println(token.lexeme);
 
                 } else {
                     Symbol newSymbol = new Symbol(lexeme, tokenId);
@@ -196,7 +202,7 @@ public class Compilador {
                     Token token = new Token(lexeme, tokenId, "String");
                     currentToken = token;
 
-                    System.out.println(token.lexeme);
+                    // System.out.println(token.lexeme);
                 }
 
                 nextState = 20;
@@ -219,7 +225,7 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "Integer");
                 currentToken = token;
 
-                System.out.println(token.lexeme);
+                // System.out.println(token.lexeme);
 
                 nextState = 20;
                 i--;
@@ -254,7 +260,7 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "Float");
                 currentToken = token;
 
-                System.out.println(token.lexeme);
+                // System.out.println(token.lexeme);
 
                 nextState = 20;
                 i--;
@@ -277,7 +283,7 @@ public class Compilador {
             Token token = new Token(lexeme, symbol.token, "String");
             currentToken = token;
 
-            System.out.println(token.lexeme);
+            // System.out.println(token.lexeme);
 
             return nextState;
         }
@@ -296,7 +302,7 @@ public class Compilador {
             Token token = new Token(lexeme, symbol.token, "String");
             currentToken = token;
 
-            System.out.println(token.lexeme);
+            // System.out.println(token.lexeme);
 
             return nextState;
         }
@@ -315,7 +321,7 @@ public class Compilador {
             Token token = new Token(lexeme, symbol.token, "String");
             currentToken = token;
 
-            System.out.println(token.lexeme);
+            // System.out.println(token.lexeme);
 
             return nextState;
         }
@@ -332,7 +338,7 @@ public class Compilador {
                 Token token = new Token(lexeme, symbol.token, "String");
                 currentToken = token;
 
-                System.out.println(token.lexeme);
+                // System.out.println(token.lexeme);
             } else {
                 throwError("invalid_lexeme");
             }
@@ -352,7 +358,7 @@ public class Compilador {
                 Token token = new Token(lexeme, symbol.token, "String");
                 currentToken = token;
 
-                System.out.println(token.lexeme);
+                // System.out.println(token.lexeme);
             } else {
                 throwError("invalid_lexeme");
             }
@@ -375,7 +381,7 @@ public class Compilador {
                 Token token = new Token(lexeme, symbol.token, "String");
                 currentToken = token;
 
-                System.out.println(token.lexeme);
+                // System.out.println(token.lexeme);
             }
 
             return nextState;
@@ -390,6 +396,9 @@ public class Compilador {
             else if (c == '*')
                 nextState = 12;
 
+            if (c == lineSeparator)
+                lineCount++;
+
             return nextState;
         }
 
@@ -403,6 +412,9 @@ public class Compilador {
                 nextState = 0;
             else if (c != '*')
                 nextState = 11;
+
+            if (c == lineSeparator)
+                lineCount++;
 
             return nextState;
         }
@@ -436,7 +448,7 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "Char");
                 currentToken = token;
 
-                System.out.println(token.lexeme);
+                // System.out.println(token.lexeme);
             }
 
             return nextState;
@@ -446,7 +458,7 @@ public class Compilador {
         int state15(char c) {
             int nextState = 15;
 
-            if (c == '\n') {
+            if (c == lineSeparator) {
                 throwError("invalid_lexeme");
             } else if (c == '\"') {
                 lexeme += "0" + c;
@@ -455,7 +467,7 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "String");
                 currentToken = token;
 
-                System.out.println(token.lexeme);
+                // System.out.println(token.lexeme);
             } else {
                 lexeme += c;
             }
@@ -477,7 +489,7 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "Integer");
                 currentToken = token;
 
-                System.out.println(token.lexeme);
+                // System.out.println(token.lexeme);
 
                 nextState = 20;
                 i--;
@@ -515,7 +527,7 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "Char");
                 currentToken = token;
 
-                System.out.println(token.lexeme);
+                // System.out.println(token.lexeme);
             }
 
             return nextState;
@@ -530,7 +542,7 @@ public class Compilador {
             Token token = new Token(lexeme, symbol.token, "String");
             currentToken = token;
 
-            System.out.println(token.lexeme);
+            // System.out.println(token.lexeme);
 
             i--;
 
@@ -551,88 +563,65 @@ public class Compilador {
                 }
 
                 if (isValid(c)) {
-                    if (c == '\n') {
-                        lineCount++;
-                    }
                     switch (currentState) {
                         case 0:
-                            // System.out.println("estado 0");
                             currentState = state0(c);
                             break;
                         case 1:
-                            // System.out.println("estado 1");
                             currentState = state1(c);
                             break;
                         case 2:
-                            // System.out.println("estado 2");
                             currentState = state2(c);
                             break;
                         case 3:
-                            // System.out.println("estado 3");
                             currentState = state3(c);
                             break;
                         case 4:
-                            // System.out.println("estado 4");
                             currentState = state4(c);
                             break;
                         case 5:
-                            // System.out.println("estado 5");
                             currentState = state5(c);
                             break;
                         case 6:
-                            // System.out.println("estado 6");
                             currentState = state6(c);
                             break;
                         case 7:
-                            // System.out.println("estado 7");
                             currentState = state7(c);
                             break;
                         case 8:
-                            // System.out.println("estado 8");
                             currentState = state8(c);
                             break;
                         case 9:
-                            // System.out.println("estado 9");
                             currentState = state9(c);
                             break;
                         case 10:
-                            // System.out.println("estado 10");
                             currentState = state10(c);
                             break;
                         case 11:
-                            // System.out.println("estado 11");
                             currentState = state11(c);
                             break;
                         case 12:
-                            // System.out.println("estado 12");
                             currentState = state12(c);
                             break;
                         case 13:
-                            // System.out.println("estado 13");
                             currentState = state13(c);
                             break;
                         case 14:
-                            // System.out.println("estado 14");
                             currentState = state14(c);
                             break;
                         case 15:
-                            // System.out.println("estado 15");
                             currentState = state15(c);
                             break;
                         case 16:
-                            // System.out.println("estado 16");
                             currentState = state16(c);
                             break;
                         case 17:
-                            // System.out.println("estado 17");
                             currentState = state17(c);
                             break;
                         case 18:
-                            // System.out.println("estado 18");
                             currentState = state18(c);
                             break;
                         case 19:
-                            // System.out.println("estado 19");
                             currentState = state19(c);
                             break;
                         case 20:
@@ -686,11 +675,15 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
                     DECL1();
+                    if (pauseCompiling)
+                        return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
                         DECL1();
+                        if (pauseCompiling)
+                            return;
                     }
                 } else if (currentToken.token == tokenConst) {
                     checkToken(tokenConst);
@@ -705,6 +698,8 @@ public class Compilador {
                             if (pauseCompiling)
                                 return;
                             DECL_TYPE();
+                            if (pauseCompiling)
+                                return;
                         } else
                             throwParserError();
                     } else
@@ -714,33 +709,45 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
                     DECL1();
+                    if (pauseCompiling)
+                        return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
                         DECL1();
+                        if (pauseCompiling)
+                            return;
                     }
                 } else if (currentToken.token == tokenChar) {
                     checkToken(tokenChar);
                     if (pauseCompiling)
                         return;
                     DECL1();
+                    if (pauseCompiling)
+                        return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
                         DECL1();
+                        if (pauseCompiling)
+                            return;
                     }
                 } else if (currentToken.token == tokenFloat) {
                     checkToken(tokenFloat);
                     if (pauseCompiling)
                         return;
                     DECL1();
+                    if (pauseCompiling)
+                        return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
                         DECL1();
+                        if (pauseCompiling)
+                            return;
                     }
                 } else
                     throwParserError();
@@ -758,12 +765,13 @@ public class Compilador {
                     checkToken(tokenId);
                     if (pauseCompiling)
                         return;
-
                     if (currentToken.token == tokenAtrib) {
                         checkToken(tokenAtrib);
                         if (pauseCompiling)
                             return;
                         DECL_TYPE();
+                        if (pauseCompiling)
+                            return;
                     }
                 }
             }
@@ -796,6 +804,8 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                         EXP();
+                        if (pauseCompiling)
+                            return;
                         if (currentToken.token == tokenCloseSq) {
                             checkToken(tokenCloseSq);
                             if (pauseCompiling)
@@ -808,6 +818,8 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                         EXP();
+                        if (pauseCompiling)
+                            return;
                         if (currentToken.token == tokenSemiColon) {
                             checkToken(tokenSemiColon);
                             if (pauseCompiling)
@@ -821,13 +833,21 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
                     EXP();
+                    if (pauseCompiling)
+                        return;
                     CMD_TYPE();
+                    if (pauseCompiling)
+                        return;
                 } else if (currentToken.token == tokenIf) {
                     checkToken(tokenIf);
                     if (pauseCompiling)
                         return;
                     EXP();
+                    if (pauseCompiling)
+                        return;
                     CMD_TYPE();
+                    if (pauseCompiling)
+                        return;
                     if (currentToken.token == tokenSemiColon) {
                         checkToken(tokenSemiColon);
                         if (pauseCompiling)
@@ -838,6 +858,8 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                         CMD_TYPE();
+                        if (pauseCompiling)
+                            return;
                     } else
                         throwParserError();
                 } else if (currentToken.token == tokenRead) {
@@ -877,6 +899,8 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                         EXP_LIST();
+                        if (pauseCompiling)
+                            return;
                         if (currentToken.token == tokenClosePar) {
                             checkToken(tokenClosePar);
                             if (pauseCompiling)
@@ -931,12 +955,16 @@ public class Compilador {
                         return;
                     while (currentToken.token != tokenCloseBra) {
                         COMMAND();
+                        if (pauseCompiling)
+                            return;
                     }
                     checkToken(tokenCloseBra);
                     if (pauseCompiling)
                         return;
                 } else {
                     COMMAND();
+                    if (pauseCompiling)
+                        return;
                 }
             }
         }
@@ -944,11 +972,15 @@ public class Compilador {
         void EXP_LIST() {
             if (!pauseCompiling) {
                 EXP();
+                if (pauseCompiling)
+                    return;
                 while (currentToken.token == tokenComma) {
                     checkToken(tokenComma);
                     if (pauseCompiling)
                         return;
                     EXP();
+                    if (pauseCompiling)
+                        return;
                 }
             }
         }
@@ -987,11 +1019,17 @@ public class Compilador {
         void EXP() {
             if (!pauseCompiling) {
                 EXP1();
+                if (pauseCompiling)
+                    return;
                 while (currentToken.token == tokenEqual || currentToken.token == tokenDif
                         || currentToken.token == tokenLess || currentToken.token == tokenGtr
                         || currentToken.token == tokenLessEqual || currentToken.token == tokenGtrEqual) {
                     OPERATOR();
+                    if (pauseCompiling)
+                        return;
                     EXP1();
+                    if (pauseCompiling)
+                        return;
                 }
             }
         }
@@ -1004,6 +1042,8 @@ public class Compilador {
                         return;
                 }
                 EXP2();
+                if (pauseCompiling)
+                    return;
                 while (currentToken.token == tokenPlus || currentToken.token == tokenMinus
                         || currentToken.token == tokenOr) {
                     if (currentToken.token == tokenPlus) {
@@ -1021,6 +1061,8 @@ public class Compilador {
                     } else
                         throwParserError();
                     EXP2();
+                    if (pauseCompiling)
+                        return;
                 }
             }
         }
@@ -1028,6 +1070,8 @@ public class Compilador {
         void EXP2() {
             if (!pauseCompiling) {
                 EXP3();
+                if (pauseCompiling)
+                    return;
                 while (currentToken.token == tokenMult || currentToken.token == tokenAnd
                         || currentToken.token == tokenDiv || currentToken.token == tokenMod) {
                     if (currentToken.token == tokenMult) {
@@ -1049,6 +1093,8 @@ public class Compilador {
                     } else
                         throwParserError();
                     EXP3();
+                    if (pauseCompiling)
+                        return;
                 }
             }
         }
@@ -1061,6 +1107,8 @@ public class Compilador {
                         return;
                 }
                 EXP4();
+                if (pauseCompiling)
+                    return;
             }
         }
 
@@ -1075,6 +1123,8 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                         EXP();
+                        if (pauseCompiling)
+                            return;
                         if (currentToken.token == tokenClosePar) {
                             checkToken(tokenClosePar);
                             if (pauseCompiling)
@@ -1102,6 +1152,8 @@ public class Compilador {
                         throwParserError();
                 } else {
                     EXP5();
+                    if (pauseCompiling)
+                        return;
                 }
             }
         }
@@ -1113,6 +1165,8 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
                     EXP();
+                    if (pauseCompiling)
+                        return;
                     if (currentToken.token == tokenClosePar) {
                         checkToken(tokenClosePar);
                         if (pauseCompiling)
@@ -1128,6 +1182,8 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                         EXP();
+                        if (pauseCompiling)
+                            return;
                         if (currentToken.token == tokenCloseSq) {
                             checkToken(tokenCloseSq);
                             if (pauseCompiling)
@@ -1152,27 +1208,27 @@ public class Compilador {
             symbolTable.put(reservedWords[i], symbol);
         }
 
-        try {
-            File file = new File("programa.txt");
-            Scanner scanner = new Scanner(file);
+        // try {
+        // File file = new File("programa.in");
+        // Scanner scanner = new Scanner(file);
 
-            while (scanner.hasNextLine()) {
-                fileStr += scanner.nextLine() + '\n';
-            }
+        Scanner scanner = new Scanner(System.in);
 
-            System.out.println("String lida:\n" + fileStr);
-
-            lexer.getLexeme(fileStr);
-
-            parser.START();
-
-            if (!pauseCompiling)
-                System.out.println(lineCount + " linhas compiladas.");
-
-            scanner.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        while (scanner.hasNextLine()) {
+            fileStr += scanner.nextLine() + lineSeparator;
         }
+
+        lexer.getLexeme(fileStr);
+
+        parser.START();
+
+        if (!pauseCompiling && lineCount != 1)
+            System.out.println(lineCount + " linhas compiladas.");
+
+        scanner.close();
+        // } catch (FileNotFoundException e) {
+        // e.printStackTrace();
+        // }
     }
 
 }
