@@ -570,6 +570,10 @@ public class Compilador {
                 if (i < fileStr.length()) {
                     c = fileStr.charAt(i);
                     i++;
+                    if (c == '#') {
+                        throwError("invalid_char");
+                        break;
+                    }
                 } else {
                     c = '#';
                 }
