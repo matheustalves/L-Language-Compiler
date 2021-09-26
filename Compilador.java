@@ -95,6 +95,8 @@ public class Compilador {
             }
             // non identified lexeme
             else if (type == "invalid_lexeme") {
+                if (lexeme.charAt(lexeme.length() - 1) == lineSeparator)
+                    lexeme = lexeme.substring(0, lexeme.length() - 1);
                 System.out.println("lexema nao identificado [" + lexeme + "].");
             }
             // unexpected EOF
@@ -122,8 +124,7 @@ public class Compilador {
         }
 
         boolean isHexa(char c) {
-            if (Character.isDigit(c) || c == 'a' || c == 'A' || c == 'b' || c == 'B' || c == 'c' || c == 'C' || c == 'd'
-                    || c == 'D' || c == 'e' || c == 'E' || c == 'f' || c == 'F')
+            if (Character.isDigit(c) || (c >= 'A' && c <= 'F'))
                 return true;
             else
                 return false;
@@ -185,6 +186,9 @@ public class Compilador {
 
             if (isLetter(c) || Character.isDigit(c) || c == '.' || c == '_') {
                 lexeme += c;
+
+                if (lexeme.length() > 32)
+                    throwError("invalid_lexeme");
             } else {
                 Symbol symbol = symbolTable.get(lexeme);
 
@@ -256,6 +260,9 @@ public class Compilador {
 
             if (Character.isDigit(c)) {
                 lexeme += c;
+
+                if (lexeme.length() > 7)
+                    throwError("invalid_lexeme");
             } else {
                 Token token = new Token(lexeme, tokenValue, "Float");
                 currentToken = token;
@@ -425,8 +432,6 @@ public class Compilador {
 
             if (c == '#') {
                 throwError("unexpected_eof");
-            } else if (c == '\"') {
-                throwError("invalid_lexeme");
             } else {
                 lexeme += c;
             }
@@ -441,6 +446,7 @@ public class Compilador {
             if (c == '#') {
                 throwError("unexpected_eof");
             } else if (c != '\'') {
+                lexeme += c;
                 throwError("invalid_lexeme");
             } else {
                 lexeme += c;
@@ -460,6 +466,8 @@ public class Compilador {
 
             if (c == lineSeparator) {
                 throwError("invalid_lexeme");
+            } else if (c == '#') {
+                throwError("unexpected_eof");
             } else if (c == '\"') {
                 lexeme += "0" + c;
                 nextState = 20;
@@ -470,6 +478,8 @@ public class Compilador {
                 // System.out.println(token.lexeme);
             } else {
                 lexeme += c;
+                if (lexeme.length() > 256)
+                    throwError("invalid_lexeme");
             }
 
             return nextState;
@@ -505,6 +515,7 @@ public class Compilador {
             if (c == '#') {
                 throwError("unexpected_eof");
             } else if (!isHexa(c)) {
+                lexeme += c;
                 throwError("invalid_lexeme");
             } else {
                 lexeme += c;
@@ -520,6 +531,7 @@ public class Compilador {
             if (c == '#') {
                 throwError("unexpected_eof");
             } else if (!isHexa(c)) {
+                lexeme += c;
                 throwError("invalid_lexeme");
             } else {
                 lexeme += c;
