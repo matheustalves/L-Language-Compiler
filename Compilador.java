@@ -120,7 +120,7 @@ public class Compilador {
             }
             // non identified lexeme
             else if (type == "invalid_lexeme") {
-                if (lexeme.charAt(lexeme.length() - 1) == lineSeparator)
+                if (lexeme.charAt(lexeme.length() - 1) == lineSeparator || lexeme.charAt(lexeme.length() - 1) == ';')
                     lexeme = lexeme.substring(0, lexeme.length() - 1);
                 System.out.println("lexema nao identificado [" + lexeme + "].");
             }
