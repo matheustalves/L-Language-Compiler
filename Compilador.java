@@ -4,6 +4,18 @@ import java.util.Hashtable;
 import java.util.Scanner;
 
 public class Compilador {
+
+    /*
+     * Declarações iniciais: 
+     * symbolTable      -> Tabela de Símbolos 
+     * reservedWords    -> Palavras reservadas da linguagem 
+     * lineCount        -> Contador de linhas
+     * pauseCompiling   -> Pausa compilação ao encontrar erro 
+     * fileStr          -> String que compoe arquivo fonte 
+     * lexer, parser    -> Analisador Lexico e Sintático
+     * lineSeparator    -> Separador de linha dependendo do OS 
+     * Tokens           -> Tokens da linguagem
+     */
     static Hashtable<String, Symbol> symbolTable = new Hashtable<String, Symbol>();
     static final String[] reservedWords = { "string", "const", "int", "char", "while", "if", "float", "else", "&&",
             "||", "!", "<-", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}",
@@ -55,6 +67,7 @@ public class Compilador {
     static final int tokenCloseSq = 35;
     static final int tokenValue = 36;
 
+    // Classe dos Elementos da Tabela de Símbolos
     static class Symbol {
         String lexeme;
         int token;
@@ -65,6 +78,7 @@ public class Compilador {
         }
     }
 
+    // Classe dos Tokens encontrados
     static class Token {
         int token;
         String lexeme;
@@ -78,11 +92,22 @@ public class Compilador {
         }
     }
 
+    /*
+        Classe do Analisador Lexico 
+    
+        Variáveis locais: 
+            lexeme          -> lexema da formação do token
+            i               -> posição no arquivo fonte
+            currentState    -> estado atual
+    */
     static class Lexer {
         static String lexeme = "";
         static int i = 0;
         static int currentState = 0;
 
+        /* 
+            Metodo ThrowError -> Encerra o programa ao encontrar erro lexico
+        */
         void throwError(String type) {
             pauseCompiling = true;
             currentToken = new Token("ERRO", 666, "ERRO");
@@ -105,6 +130,9 @@ public class Compilador {
             }
         }
 
+        /*  
+            Método isValid -> Verifica se caracter é válido
+        */
         boolean isValid(char c) {
             if (Character.isDigit(c) || isLetter(c) || c == ' ' || c == '_' || c == '.' || c == ';' | c == ','
                     || c == ':' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == '+'
@@ -116,6 +144,9 @@ public class Compilador {
                 return false;
         }
 
+        /*  
+            Método isLetter -> Verifica se caracter é letra
+        */
         boolean isLetter(char c) {
             if ((c >= 'A' && c <= 'Z') || (c >= 97 && c <= 122))
                 return true;
@@ -123,6 +154,9 @@ public class Compilador {
                 return false;
         }
 
+        /*  
+            Método isHexa -> Verifica se caracter é Hexadecimal
+        */
         boolean isHexa(char c) {
             if (Character.isDigit(c) || (c >= 'A' && c <= 'F'))
                 return true;
@@ -130,6 +164,9 @@ public class Compilador {
                 return false;
         }
 
+        /*  
+            Estado Inicial do Automato: Com base no primeiro caracter lido, define proximo estado.
+        */
         int state0(char c) {
             int nextState = 0;
 
@@ -180,7 +217,11 @@ public class Compilador {
             return nextState;
         }
 
-        // id / reserved words
+        /*  
+            Estado 1 -> Trata de identificadores e palavras reservadas.
+            Continua no mesmo estado enquanto for um caracter valido para estes tipos e length <= 32.
+            Caso contrario, salva e vai pro estado final.
+        */
         int state1(char c) {
             int nextState = 1;
 
@@ -216,7 +257,12 @@ public class Compilador {
             return nextState;
         }
 
-        // int
+        /*  
+            Estado 2 -> Trata de inteiros.
+            Continua no mesmo estado enquanto for digito.
+            Caso leia . , vai pro estado 3.
+            Caso contrario, salva e vai pro estado final.
+        */
         int state2(char c) {
             int nextState = 2;
 
@@ -238,7 +284,11 @@ public class Compilador {
             return nextState;
         }
 
-        // ?. (float)
+        /*  
+            Estado 3 -> ?. Trata de floats com so um ponto
+            Caso leia digito, vai pro estado 4.
+            Caso contrario, da erro de eof ou lexema invalido.
+        */
         int state3(char c) {
             int nextState = 4;
 
@@ -254,7 +304,12 @@ public class Compilador {
             return nextState;
         }
 
-        // ?.d float
+        /*  
+            Estado 4 -> ?.d Trata de floats com ponto e 1 digito
+            Continua no mesmo estado enquanto for digito
+            Caso length > 7, erro de lexema invalido
+            Caso contrario, salva e vai pro estado final.
+        */
         int state4(char c) {
             int nextState = 4;
 
@@ -276,7 +331,10 @@ public class Compilador {
             return nextState;
         }
 
-        // <
+        /*  
+            Estado 5 -> Trata de <
+            Estado final se - ou = ou diferente.
+        */
         int state5(char c) {
             int nextState = 20;
 
@@ -295,7 +353,10 @@ public class Compilador {
             return nextState;
         }
 
-        // >
+        /*  
+            Estado 6 -> Trata de >
+            Estado final se = ou diferente.
+        */
         int state6(char c) {
             int nextState = 20;
 
@@ -314,7 +375,10 @@ public class Compilador {
             return nextState;
         }
 
-        // !
+        /*  
+            Estado 7 -> Trata de !
+            Estado final se = ou diferente.
+        */
         int state7(char c) {
             int nextState = 20;
 
@@ -333,7 +397,10 @@ public class Compilador {
             return nextState;
         }
 
-        // &
+        /*  
+            Estado 8 -> Trata de &
+            Estado final se &, caso contrario erro de lexema invalido.
+        */
         int state8(char c) {
             int nextState = 20;
 
@@ -353,7 +420,10 @@ public class Compilador {
             return nextState;
         }
 
-        // |
+        /*  
+            Estado 9 -> Trata de |
+            Estado final se |, caso contrario erro de lexema invalido.
+        */
         int state9(char c) {
             int nextState = 20;
 
@@ -373,7 +443,11 @@ public class Compilador {
             return nextState;
         }
 
-        // /
+        /*  
+            Estado 10 -> Trata de /
+            Caso *, vai pro estado 11 e reinicia lexema. (comentario n eh token)
+            Estado final se != *
+        */
         int state10(char c) {
             int nextState = 20;
 
@@ -394,7 +468,13 @@ public class Compilador {
             return nextState;
         }
 
-        // /* inside comment
+        /*  
+            Estado 11 -> Trata de comentario /* 
+            Caso EOF, erro
+            else Caso *, estado 12
+        
+            caso \n, aumenta contagem de linha
+        */
         int state11(char c) {
             int nextState = 11;
 
@@ -409,7 +489,14 @@ public class Compilador {
             return nextState;
         }
 
-        // /* ? *
+        /*  
+            Estado 12 -> Trata de comentario /* ? *
+            Caso EOF, erro
+            else Caso c = /, estado 0
+            else caso c != *, estado 11
+        
+            caso \n, aumenta contagem de linha
+        */
         int state12(char c) {
             int nextState = 12;
 
@@ -426,7 +513,11 @@ public class Compilador {
             return nextState;
         }
 
-        // '
+        /*  
+            Estado 13 -> Trata de ' (char)
+            Caso EOF, erro
+            else estado 14
+        */
         int state13(char c) {
             int nextState = 14;
 
@@ -439,7 +530,12 @@ public class Compilador {
             return nextState;
         }
 
-        // 'c
+        /*  
+            Estado 14 -> Trata de '? (char)
+            Caso EOF, erro
+            else Caso != ', lexema invalido
+            else estado final
+        */
         int state14(char c) {
             int nextState = 20;
 
@@ -460,7 +556,13 @@ public class Compilador {
             return nextState;
         }
 
-        // "
+        /*  
+            Estado 15 -> Trata de " (string)
+            Caso \n, erro de lexema invalido
+            Caso EOF, erro de eof
+            else Caso c != ", continua no estado 15
+            else Caso c = ", encerra string e estado final
+        */
         int state15(char c) {
             int nextState = 15;
 
@@ -485,7 +587,12 @@ public class Compilador {
             return nextState;
         }
 
-        // 0
+        /*  
+            Estado 16 -> Trata de 0
+            Caso c = digito, estado 2
+            else c = x, estado 17
+            else salva 0 e estado final
+        */
         int state16(char c) {
             int nextState = 17;
 
@@ -495,7 +602,6 @@ public class Compilador {
             } else if (c == 'x') {
                 lexeme += c;
             } else {
-
                 Token token = new Token(lexeme, tokenValue, "Integer");
                 currentToken = token;
 
@@ -508,7 +614,12 @@ public class Compilador {
             return nextState;
         }
 
-        // 0x
+        /*  
+            Estado 17 -> Trata de 0x (hexadecimal)
+            Caso EOF, erro de eof
+            else Caso c != Hexa, erro de lexema invalido
+            else Estado 18
+        */
         int state17(char c) {
             int nextState = 18;
 
@@ -524,7 +635,12 @@ public class Compilador {
             return nextState;
         }
 
-        // 0x?
+        /*  
+            Estado 18 -> Trata de 0xD (hexadecimal)
+            Caso EOF, erro de eof
+            else Caso c != Hexa, erro de lexema invalido
+            else salva e estado final
+        */
         int state18(char c) {
             int nextState = 20;
 
@@ -545,7 +661,10 @@ public class Compilador {
             return nextState;
         }
 
-        // = * + - , ( ) { } [ ]
+        /*  
+            Estado 19 -> Trata de tokens = * + - , ( ) { } [ ]
+            Salva e vai pro estado final.
+        */
         int state19(char c) {
             int nextState = 20;
 
