@@ -313,7 +313,7 @@ public class Compilador {
 
         /*  
             Estado 4 -> ?.d Trata de floats com ponto e 1 digito
-            Continua no mesmo estado enquanto for digito
+            Continua no mesmo estado enquanto c for digito
             Caso length > 7, erro de lexema invalido
             Caso contrario, salva e vai pro estado final.
         */
@@ -340,7 +340,7 @@ public class Compilador {
 
         /*  
             Estado 5 -> Trata de <
-            Estado final se - ou = ou diferente.
+            Estado final se c = - ou = ou diferente.
         */
         int state5(char c) {
             int nextState = 20;
@@ -406,7 +406,7 @@ public class Compilador {
 
         /*  
             Estado 8 -> Trata de &
-            Estado final se &, caso contrario erro de lexema invalido.
+            Estado final se c = &, caso contrario erro de lexema invalido.
         */
         int state8(char c) {
             int nextState = 20;
@@ -429,7 +429,7 @@ public class Compilador {
 
         /*  
             Estado 9 -> Trata de |
-            Estado final se |, caso contrario erro de lexema invalido.
+            Estado final se c = |, caso contrario erro de lexema invalido.
         */
         int state9(char c) {
             int nextState = 20;
@@ -452,8 +452,8 @@ public class Compilador {
 
         /*  
             Estado 10 -> Trata de /
-            Caso *, vai pro estado 11 e reinicia lexema. (comentario n eh token)
-            Estado final se != *
+            Caso c = *, vai pro estado 11 e reinicia lexema. (comentario n eh token)
+            Estado final se c != *
         */
         int state10(char c) {
             int nextState = 20;
@@ -478,9 +478,9 @@ public class Compilador {
         /*  
             Estado 11 -> Trata de comentario /* 
             Caso EOF, erro
-            else Caso *, estado 12
+            else Caso c =  *, estado 12
         
-            caso \n, aumenta contagem de linha
+            caso c = \n, aumenta contagem de linha
         */
         int state11(char c) {
             int nextState = 11;
@@ -502,7 +502,7 @@ public class Compilador {
             else Caso c = /, estado 0
             else caso c != *, estado 11
         
-            caso \n, aumenta contagem de linha
+            caso c = \n, aumenta contagem de linha
         */
         int state12(char c) {
             int nextState = 12;
@@ -540,7 +540,7 @@ public class Compilador {
         /*  
             Estado 14 -> Trata de '? (char)
             Caso EOF, erro
-            else Caso != ', lexema invalido
+            else Caso c != ', lexema invalido
             else estado final
         */
         int state14(char c) {
@@ -687,6 +687,17 @@ public class Compilador {
             return nextState;
         }
 
+        /* 
+            Metodo getLexeme -> Roda o analisador léxico para encontrar um token
+            Quando é chamado, se inicia no estado 0 e com lexema vazio.
+            Continua tratando próximo caracter enquanto o estado é diferente de 20 (final) e não tenha erros.
+            Caso o caracter seja invalido, acusa erro de caracter invalido.
+            
+            Caso chegue no estado final, retorna token global currentToken.
+        
+            ----- OBSERVAÇÃO -----
+            Por convenção adotamos # como EOF, visto que java não possui EOF e # não é caracter válido.
+        */
         Token getLexeme(String fileStr) {
             lexeme = "";
             char c;
@@ -778,8 +789,54 @@ public class Compilador {
         }
     }
 
+    /* 
+        Classe do Analisador Sintático
+    
+        Apesar de não possuir variáveis locais, utiliza as seguintes variáveis globais:
+            currentToken    -> Token atual no escopo global do programa
+            pauseCompiling  -> Flag de erro global do Compilador
+            token?          -> Tokens da linguagem
+    
+        ----- OBSERVAÇÃO -----
+        Por convenção, EOF entra no analisador sintático como token 667.
+        Na prática EOF não é token, mas nesta implementação utilizamos essa estratégia para identificar o tipo de erro sintático.
+    
+        O Parser segue a seguinte Gramática:
+        (na implementação, simbolos não terminais foram traduzidos para INGLÊS para seguir a mesma convenção do restante do código)
+    
+            INÍCIO-> 	(D | C)* eof
+        
+            DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1}* ;	|
+                            const id = TIPO_DECL;
+        
+            DECL1-> 		id [<- TIPO_DECL ]
+            TIPO_DECL-> 	[-]num | string | hexa | caractere
+        
+            COMANDO->	id (lambda | "[" EXP "]") <- EXP;           |
+                        while EXP TIPO_CMD				            |
+                        if EXP TIPO_CMD (lambda | else TIPO_CMD)	|
+                        readln "(" id ")";				            |
+                        (write | writeln) "(" LISTA_EXP ")";		|
+                        ;
+        
+            TIPO_CMD->	    C | "{" {C}+ "}"
+            LISTA_EXP->	    EXP {, EXP}
+            OPERADOR->    	= | != | < | > | <= | >=
+        
+            EXP-> 		EXP1 {OPERADOR EXP1}*
+            EXP1->		[-] EXP2 { (+ | - | "||") EXP2 }
+            EXP2->		EXP3 { ("*" | && | / | div | mod) EXP3 }
+            EXP3->		{!} EXP4
+            EXP4->		(int | float) "(" EXP ")" | EXP5
+            EXP5->     	"(" EXP ")" | id (lambda | "[" EXP "]") | num
+    */
     static class Parser {
 
+        /* 
+            Metodo throwParserError -> Acusa erro sintático e pausa compilador.
+            Caso 667 (EOF), fim de arquivo nao esperado.
+            Else token nao esperado.
+        */
         void throwParserError() {
             if (currentToken.token != 667) {
                 pauseCompiling = true;
@@ -792,6 +849,11 @@ public class Compilador {
             }
         }
 
+        /* 
+            Metodo checkToken (CasaToken) -> Verifica se token atual é o token esperado.
+            Caso iguais, roda analisador léxico para pegar próximo token.
+            Caso diferentes, erro.
+        */
         void checkToken(int expectedToken) {
             if (expectedToken == currentToken.token)
                 lexer.getLexeme(fileStr);
@@ -799,6 +861,12 @@ public class Compilador {
                 throwParserError();
         }
 
+        /* 
+            Na gramática: INÍCIO-> 	(D | C)* eof
+        
+            Metodo START -> Símbolo não terminal inicial da gramática. 
+            Aceita declaração ou comando até EOF ou erro.
+        */
         void START() {
             while (currentToken.token != 667 && !pauseCompiling) {
                 if (currentToken.token == tokenStr || currentToken.token == tokenConst || currentToken.token == tokenInt
@@ -810,6 +878,14 @@ public class Compilador {
 
         }
 
+        /* 
+            Na gramática: DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1}* ;	|
+                                        const id = TIPO_DECL;
+        
+            Metodo DECL -> Símbolo não terminal de Declaração da gramática. 
+            Caso inicio com (int | float | string | char), vai para DECL1 e pode rodar ,DECL1 0 ou + vezes depois.
+            Caso inicio com const, proximos tokens são um identificador, token de igual e vai para TIPO_DECL.
+        */
         void DECL() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenStr) {
@@ -901,6 +977,12 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: DECL1-> 	id [<- TIPO_DECL ]
+        
+            Metodo DECL1 -> Símbolo não terminal auxiliar 1 para Declaração
+            Le token identificador e opcionalmente pode ter uma atribuição <- TIPO_DECL
+        */
         void DECL1() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenId) {
@@ -919,6 +1001,12 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: TIPO_DECL-> 	[-]num | string | hexa | caractere
+        
+            Metodo TIPO_DECL -> Símbolo não terminal para valores de variáveis de Declaração
+            Lê opcionalmente um menos e depois é necessário um valor válido (num | string | hexa | caractere)
+        */
         void DECL_TYPE() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenMinus) {
@@ -935,6 +1023,20 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática:
+            COMANDO->	id (lambda | "[" EXP "]") <- EXP;		    |
+        	            while EXP TIPO_CMD				            |
+                        if EXP TIPO_CMD (lambda | else TIPO_CMD)	|
+                        readln "(" id ")";				            |
+                        (write | writeln) "(" LISTA_EXP ")";		|
+                        ;
+        
+            Metodo COMANDO -> Símbolo não terminal para Comandos da linguagem
+        
+            
+            
+        */
         void COMMAND() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenId) {
