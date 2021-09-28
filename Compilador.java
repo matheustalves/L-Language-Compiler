@@ -26,7 +26,7 @@ public class Compilador {
     static String fileStr = "";
     static Lexer lexer = new Lexer();
     static Parser parser = new Parser();
-    static Token currentToken;
+    static Token currentToken = null;
     static char lineSeparator = System.lineSeparator().charAt(0);
 
     static final int tokenId = 0;
@@ -210,7 +210,14 @@ public class Compilador {
                 lexeme = "";
             } else if (c == lineSeparator) {
                 lexeme = "";
-                lineCount++;
+
+                if (currentToken != null) {
+                    if (currentToken.token == tokenSemiColon || currentToken.token == tokenOpenBra
+                            || currentToken.token == tokenCloseBra)
+                        lineCount++;
+                } else {
+                    lineCount++;
+                }
             } else {
                 throwError("invalid_lexeme");
             }
@@ -1344,8 +1351,8 @@ public class Compilador {
         }
 
         // try {
-        // File file = new File("programa.in");
-        // Scanner scanner = new Scanner(file);
+        //     File file = new File("programa.in");
+        //     Scanner scanner = new Scanner(file);
 
         Scanner scanner = new Scanner(System.in);
 
@@ -1362,7 +1369,7 @@ public class Compilador {
 
         scanner.close();
         // } catch (FileNotFoundException e) {
-        // e.printStackTrace();
+        //     e.printStackTrace();
         // }
     }
 
