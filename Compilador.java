@@ -35,7 +35,7 @@ public class Compilador {
     static Lexer lexer = new Lexer();
     static Parser parser = new Parser();
     static Token currentToken = null;
-    static char lineSeparator = System.lineSeparator().charAt(0);
+    static char lineSeparator = '\n';
 
     static final int tokenId = 0;
     static final int tokenStr = 1;
@@ -120,20 +120,21 @@ public class Compilador {
             pauseCompiling = true;
             currentToken = new Token("ERRO", 666, "ERRO");
 
-            System.out.println(lineCount);
-
             // invalid character
             if (type == "invalid_char") {
+                System.out.println(lineCount);
                 System.out.println("caractere invalido.");
             }
             // non identified lexeme
             else if (type == "invalid_lexeme") {
                 if (lexeme.charAt(lexeme.length() - 1) == lineSeparator || lexeme.charAt(lexeme.length() - 1) == ';')
                     lexeme = lexeme.substring(0, lexeme.length() - 1);
+                System.out.println(lineCount);
                 System.out.println("lexema nao identificado [" + lexeme + "].");
             }
             // unexpected EOF
             else if (type == "unexpected_eof") {
+                System.out.println(lineCount);
                 System.out.println("fim de arquivo nao esperado.");
             }
         }
@@ -539,13 +540,12 @@ public class Compilador {
 
             if (c == '#') {
                 throwError("unexpected_eof");
-            } else if (!Character.isDigit(c) && !isLetter(c)) {
+            } else if (Character.isDigit(c) || isLetter(c)) {
                 lexeme += c;
-                throwError("invalid_lexeme");
             } else {
                 lexeme += c;
+                throwError("invalid_lexeme");
             }
-
             return nextState;
         }
 
@@ -559,6 +559,7 @@ public class Compilador {
             int nextState = 20;
 
             if (c == '#') {
+                // lineCount--;
                 throwError("unexpected_eof");
             } else if (c != '\'') {
                 lexeme += c;
@@ -722,12 +723,20 @@ public class Compilador {
                 if (i < fileStr.length()) {
                     c = fileStr.charAt(i);
                     i++;
+
+                    if (c == '\r') {
+                        c = fileStr.charAt(i);
+                        i++;
+                    }
+
                     if (c == '#') {
                         throwError("invalid_char");
                         break;
                     }
                 } else {
+                    // EOF
                     c = '#';
+                    // lineCount++;
                 }
 
                 if (isValid(c)) {
@@ -1563,6 +1572,8 @@ public class Compilador {
 
         while (scanner.hasNextLine()) {
             fileStr += scanner.nextLine() + lineSeparator;
+            // if (scanner.hasNextLine())
+            //     fileStr += lineSeparator;
         }
 
         lexer.getLexeme(fileStr);
