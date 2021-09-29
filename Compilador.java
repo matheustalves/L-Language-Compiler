@@ -1,3 +1,11 @@
+/* 
+    *   Trabalho Prático - Compiladores 2021/2
+    *   GRUPO 9
+    *   Bernardo Cerqueira de Lima      928061
+    *   Henrique Dornas Mendes          1201827
+    *   Matheus Teixeira Alves          636132
+*/
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Hashtable;
@@ -804,31 +812,31 @@ public class Compilador {
         O Parser segue a seguinte Gramática:
         (na implementação, simbolos não terminais foram traduzidos para INGLÊS para seguir a mesma convenção do restante do código)
     
-            INÍCIO-> 	(D | C)* eof
+            INÍCIO-> 	{D | C} eof
         
-            DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1}* ;	|
+            DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1};	|
                             const id = TIPO_DECL;
         
             DECL1-> 		id [<- TIPO_DECL ]
             TIPO_DECL-> 	[-]num | string | hexa | caractere
         
-            COMANDO->	id (lambda | "[" EXP "]") <- EXP;           |
+            COMANDO->	id ["[" EXP "]"] <- EXP;                    |
                         while EXP TIPO_CMD				            |
-                        if EXP TIPO_CMD (lambda | else TIPO_CMD)	|
+                        if EXP TIPO_CMD [else TIPO_CMD]	            |
                         readln "(" id ")";				            |
                         (write | writeln) "(" LISTA_EXP ")";		|
                         ;
         
-            TIPO_CMD->	    C | "{" {C}+ "}"
+            TIPO_CMD->	    COMANDO | "{" {COMANDO}+ "}"
             LISTA_EXP->	    EXP {, EXP}
             OPERADOR->    	= | != | < | > | <= | >=
         
-            EXP-> 		EXP1 {OPERADOR EXP1}*
+            EXP-> 		EXP1 {OPERADOR EXP1}
             EXP1->		[-] EXP2 { (+ | - | "||") EXP2 }
             EXP2->		EXP3 { ("*" | && | / | div | mod) EXP3 }
             EXP3->		{!} EXP4
             EXP4->		(int | float) "(" EXP ")" | EXP5
-            EXP5->     	"(" EXP ")" | id (lambda | "[" EXP "]") | num
+            EXP5->     	"(" EXP ")" | id ["[" EXP "]"] | num
     */
     static class Parser {
 
@@ -863,7 +871,7 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: INÍCIO-> 	(D | C)* eof
+            Na gramática: INÍCIO-> 	{D | C} eof
         
             Metodo START -> Símbolo não terminal inicial da gramática. 
             Aceita declaração ou comando até EOF ou erro.
@@ -880,7 +888,7 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1}* ;	|
+            Na gramática: DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1};	|
                                         const id = TIPO_DECL;
         
             Metodo DECL -> Símbolo não terminal de Declaração da gramática. 
@@ -1028,17 +1036,22 @@ public class Compilador {
 
         /* 
             Na gramática:
-            COMANDO->	id (lambda | "[" EXP "]") <- EXP;		    |
+            COMANDO->	id ["[" EXP "]"] <- EXP;		            |
         	            while EXP TIPO_CMD				            |
-                        if EXP TIPO_CMD (lambda | else TIPO_CMD)	|
+                        if EXP TIPO_CMD [else TIPO_CMD]	            |
                         readln "(" id ")";				            |
                         (write | writeln) "(" LISTA_EXP ")";		|
                         ;
         
             Metodo COMANDO -> Símbolo não terminal para Comandos da linguagem
         
-            
-            
+            1. Caso leia um token identificador, opcionalmente podera ler [EXP]. Em seguida, sera necessario um token de atribuicao, vai chamar EXP e finalmente um token de ponto e virgula.
+            2. Caso leia um token while, sera chamado EXP e depois TIPO_CMD.
+            3. Caso leia um token if, sera chamado EXP e depois TIPO_CMD. Opcionalmente pode-se ter um token else seguido de uma chamada TIPO_CMD.
+            4. Caso leia um token readln, deverao aparecer os tokens (identificador), seguido de token ponto e virgula.
+            5. Caso leia token write ou writeln, sera chamado LISTA_EXP dentro de tokens ( e ), seguido de token ponto e virgula.
+            6. Caso leia token ponto e virgula, so chama o CasaToken mesmo.
+            7. Caso contrario, erro.
         */
         void COMMAND() {
             if (!pauseCompiling) {
@@ -1204,6 +1217,13 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: TIPO_CMD->	C | "{" {C}+ "}"
+        
+            Metodo TIPO_CMD -> Símbolo não terminal para comando ou bloco de comandos.
+            Caso token = {, devera rodar "{" {COMANDO}+ "}". (bloco)
+            Caso contrario, so roda COMANDO.
+        */
         void CMD_TYPE() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenOpenBra) {
@@ -1226,6 +1246,13 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: LISTA_EXP->	EXP {, EXP}
+        
+            Metodo LISTA_EXP -> Símbolo não terminal para lista de expressao.
+            Caso token = {, devera rodar "{" {COMANDO}+ "}". (bloco)
+            Caso contrario, so roda COMANDO.
+        */
         void EXP_LIST() {
             if (!pauseCompiling) {
                 EXP();
@@ -1242,6 +1269,13 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: OPERADOR->   = | != | < | > | <= | >=
+        
+            Metodo OPERADOR -> Símbolo não terminal para operadores.
+            Caso token = (= | != | < | > | <= | >=), continua
+            Caso seja diferente, erro
+        */
         void OPERATOR() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenEqual) {
@@ -1273,6 +1307,12 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: EXP-> EXP1 {OPERADOR EXP1}
+        
+            Metodo EXP -> Símbolo não terminal para expressoes.
+            Chama metodo EXP1 e pode rodar OPERADOR EXP1 opcionalmente, quantas vezes quiser.
+        */
         void EXP() {
             if (!pauseCompiling) {
                 EXP1();
@@ -1291,6 +1331,12 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: EXP1-> [-] EXP2 { (+ | - | "||") EXP2 }
+        
+            Metodo EXP1 -> Símbolo não terminal auxiliar 1 para expressoes.
+            Opcionalmente pode iniciar com token de menos. Chama EXP2 e pode opcionalmente rodar (+ | - | "||") EXP2, quantas vezes quiser.
+        */
         void EXP1() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenMinus) {
@@ -1324,6 +1370,12 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: EXP2-> EXP3 { ("*" | && | / | div | mod) EXP3 }
+        
+            Metodo EXP2 -> Símbolo não terminal auxiliar 2 para expressoes.
+            Chama EXP3 e pode opcionalmente rodar ("*" | && | / | div | mod) EXP3, quantas vezes quiser.
+        */
         void EXP2() {
             if (!pauseCompiling) {
                 EXP3();
@@ -1356,6 +1408,12 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: EXP3-> {!} EXP4
+        
+            Metodo EXP3 -> Símbolo não terminal auxiliar 3 para expressoes.
+            Pode iniciar com token !, e enquanto o proximo for igual a !, continua nesse loop. Depois chama EXP4.
+        */
         void EXP3() {
             if (!pauseCompiling) {
                 while (currentToken.token == tokenNot) {
@@ -1369,6 +1427,13 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: EXP4-> (int | float) "(" EXP ")" | EXP5
+        
+            Metodo EXP4 -> Símbolo não terminal auxiliar 4 para expressoes.
+            Caso inicia com token int ou float, precisa de token (, depois chama EXP e volta para verificar token ). 
+            Caso contrario, chama EXP5.
+        */
         void EXP4() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenInt) {
@@ -1415,6 +1480,15 @@ public class Compilador {
             }
         }
 
+        /* 
+            Na gramática: EXP5->  "(" EXP ")" | id ["[" EXP "]"] | num
+        
+            Metodo EXP5 -> Símbolo não terminal auxiliar 5 para expressoes.
+            Caso inicia com token = (, executa EXP e fecha o parenteses com token = ).
+            Caso inicia com token identificador, pode opcionalmente ter tambem "[" EXP "]".
+            Por ultimo, pode ser tambem um valor. 
+            Else, erro.
+        */
         void EXP5() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenOpenPar) {
@@ -1458,6 +1532,14 @@ public class Compilador {
         }
     }
 
+    /* 
+        Metodo main
+        Inicia a tabela de simbolos e aloca as palavras reservadas com seus respectivos numeros de tokens.
+        Inicia um scanner e le o arquivo fonte por linha, acrescentando \n no final de cada uma.
+        Roda o analisador lexico uma vez para encontrar primeiro token.
+        Roda o analisador sintatico, iniciando do estado inicial.
+        Caso a compilacao obtenha sucesso, printa a mensagem de sucesso.
+    */
     public static void main(String[] args) {
 
         for (int i = 0; i < reservedWords.length; i++) {
