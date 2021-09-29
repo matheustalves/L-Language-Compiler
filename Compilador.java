@@ -1,8 +1,8 @@
 /* 
     *   Trabalho Prático - Compiladores 2021/2
     *   GRUPO 9
-    *   Bernardo Cerqueira de Lima      928061
-    *   Henrique Dornas Mendes          1201827
+    *   Bernardo Cerqueira de Lima      586568
+    *   Henrique Dornas Mendes          651252
     *   Matheus Teixeira Alves          636132
 */
 
@@ -218,14 +218,15 @@ public class Compilador {
                 lexeme = "";
             } else if (c == lineSeparator) {
                 lexeme = "";
+                lineCount++;
 
-                if (currentToken != null) {
-                    if (currentToken.token == tokenSemiColon || currentToken.token == tokenOpenBra
-                            || currentToken.token == tokenCloseBra)
-                        lineCount++;
-                } else {
-                    lineCount++;
-                }
+                // if (currentToken != null) {
+                //     if (currentToken.token == tokenSemiColon || currentToken.token == tokenOpenBra
+                //             || currentToken.token == tokenCloseBra)
+                //         lineCount++;
+                // } else {
+                //     lineCount++;
+                // }
             } else {
                 throwError("invalid_lexeme");
             }
@@ -538,6 +539,9 @@ public class Compilador {
 
             if (c == '#') {
                 throwError("unexpected_eof");
+            } else if (!Character.isDigit(c) && !isLetter(c)) {
+                lexeme += c;
+                throwError("invalid_lexeme");
             } else {
                 lexeme += c;
             }
@@ -614,6 +618,9 @@ public class Compilador {
             if (Character.isDigit(c)) {
                 lexeme += c;
                 nextState = 2;
+            } else if (c == '.') {
+                lexeme += c;
+                nextState = 3;
             } else if (c == 'x') {
                 lexeme += c;
             } else {
@@ -852,6 +859,7 @@ public class Compilador {
                 System.out.println("token nao esperado [" + currentToken.lexeme + "].");
             } else {
                 pauseCompiling = true;
+                lineCount--;
                 System.out.println(lineCount);
                 System.out.println("fim de arquivo nao esperado.");
             }
@@ -982,7 +990,7 @@ public class Compilador {
                 if (currentToken.token == tokenSemiColon) {
                     checkToken(tokenSemiColon);
                 } else {
-                    lineCount++;
+                    // lineCount++;
                     throwParserError();
                 }
             }
@@ -1085,7 +1093,7 @@ public class Compilador {
                             if (pauseCompiling)
                                 return;
                         } else {
-                            lineCount++;
+                            // lineCount++;
                             throwParserError();
                         }
                     } else
@@ -1146,7 +1154,7 @@ public class Compilador {
                                     if (pauseCompiling)
                                         return;
                                 } else {
-                                    lineCount++;
+                                    // lineCount++;
                                     throwParserError();
                                 }
                             } else
@@ -1175,7 +1183,7 @@ public class Compilador {
                                 if (pauseCompiling)
                                     return;
                             } else {
-                                lineCount++;
+                                // lineCount++;
                                 throwParserError();
                             }
                         } else
@@ -1200,7 +1208,7 @@ public class Compilador {
                                 if (pauseCompiling)
                                     return;
                             } else {
-                                lineCount++;
+                                // lineCount++;
                                 throwParserError();
                             }
                         } else
