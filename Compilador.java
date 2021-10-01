@@ -25,7 +25,7 @@ public class Compilador {
      * pauseCompiling   -> Pausa compilação ao encontrar erro 
      * fileStr          -> String que compoe arquivo fonte 
      * lexer, parser    -> Analisador Lexico e Sintático
-     * lineSeparator    -> Separador de linha dependendo do OS 
+     * lineSeparator    -> Separador de linha
      * Tokens           -> Tokens da linguagem
      */
     static Hashtable<String, Symbol> symbolTable = new Hashtable<String, Symbol>();
@@ -111,6 +111,9 @@ public class Compilador {
             lexeme          -> lexema da formação do token
             i               -> posição no arquivo fonte
             currentState    -> estado atual
+    
+        --- OBSERVAÇÃO ---
+        Utilizamos o caracter # como EOF.
     */
     static class Lexer {
         static String lexeme = "";
@@ -126,17 +129,17 @@ public class Compilador {
 
             System.out.println(lineCount);
 
-            // invalid character
+            // caracter invalido
             if (type == "invalid_char") {
                 System.out.println("caractere invalido.");
             }
-            // non identified lexeme
+            // lexema nao identificado
             else if (type == "invalid_lexeme") {
                 if (lexeme.charAt(lexeme.length() - 1) == lineSeparator || lexeme.charAt(lexeme.length() - 1) == ';')
                     lexeme = lexeme.substring(0, lexeme.length() - 1);
                 System.out.println("lexema nao identificado [" + lexeme + "].");
             }
-            // unexpected EOF
+            // EOF inesperado
             else if (type == "unexpected_eof") {
                 System.out.println("fim de arquivo nao esperado.");
             }
@@ -144,6 +147,8 @@ public class Compilador {
 
         /*  
             Método isValid -> Verifica se caracter é válido
+            
+            # é EOF
         */
         boolean isValid(char c) {
             if (Character.isDigit(c) || isLetter(c) || c == ' ' || c == '_' || c == '.' || c == ';' | c == ','
@@ -182,6 +187,9 @@ public class Compilador {
         int state0(char c) {
             int nextState = 0;
 
+            if (c == ' ')
+                return nextState;
+
             lexeme += c;
 
             if (isLetter(c) || c == '_') {
@@ -218,8 +226,6 @@ public class Compilador {
             } else if (c == ';') {
                 currentToken = new Token(lexeme, tokenSemiColon, "String");
                 nextState = 20;
-            } else if (c == ' ') {
-                lexeme = "";
             } else if (c == lineSeparator) {
                 lexeme = "";
                 lineCount++;
@@ -571,6 +577,7 @@ public class Compilador {
         /*  
             Estado 16 -> Trata de 0
             Caso c = digito, estado 2
+            else c = . , estado 3
             else c = x, estado 17
             else salva 0 e estado final
         */
@@ -612,7 +619,6 @@ public class Compilador {
             } else {
                 lexeme += c;
             }
-
             return nextState;
         }
 
