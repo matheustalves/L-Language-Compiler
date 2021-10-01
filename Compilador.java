@@ -10,6 +10,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Hashtable;
 import java.util.Scanner;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class Compilador {
 
@@ -120,21 +124,20 @@ public class Compilador {
             pauseCompiling = true;
             currentToken = new Token("ERRO", 666, "ERRO");
 
+            System.out.println(lineCount);
+
             // invalid character
             if (type == "invalid_char") {
-                System.out.println(lineCount);
                 System.out.println("caractere invalido.");
             }
             // non identified lexeme
             else if (type == "invalid_lexeme") {
                 if (lexeme.charAt(lexeme.length() - 1) == lineSeparator || lexeme.charAt(lexeme.length() - 1) == ';')
                     lexeme = lexeme.substring(0, lexeme.length() - 1);
-                System.out.println(lineCount);
                 System.out.println("lexema nao identificado [" + lexeme + "].");
             }
             // unexpected EOF
             else if (type == "unexpected_eof") {
-                System.out.println(lineCount);
                 System.out.println("fim de arquivo nao esperado.");
             }
         }
@@ -220,14 +223,6 @@ public class Compilador {
             } else if (c == lineSeparator) {
                 lexeme = "";
                 lineCount++;
-
-                // if (currentToken != null) {
-                //     if (currentToken.token == tokenSemiColon || currentToken.token == tokenOpenBra
-                //             || currentToken.token == tokenCloseBra)
-                //         lineCount++;
-                // } else {
-                //     lineCount++;
-                // }
             } else {
                 throwError("invalid_lexeme");
             }
@@ -254,23 +249,16 @@ public class Compilador {
                     Token token = new Token(lexeme, symbol.token, "String");
 
                     currentToken = token;
-
-                    // System.out.println(token.lexeme);
-
                 } else {
                     Symbol newSymbol = new Symbol(lexeme, tokenId);
                     symbolTable.put(lexeme, newSymbol);
 
                     Token token = new Token(lexeme, tokenId, "String");
                     currentToken = token;
-
-                    // System.out.println(token.lexeme);
                 }
-
                 nextState = 20;
                 i--;
             }
-
             return nextState;
         }
 
@@ -292,12 +280,9 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "Integer");
                 currentToken = token;
 
-                // System.out.println(token.lexeme);
-
                 nextState = 20;
                 i--;
             }
-
             return nextState;
         }
 
@@ -317,7 +302,6 @@ public class Compilador {
                 lexeme += c;
                 throwError("invalid_lexeme");
             }
-
             return nextState;
         }
 
@@ -339,12 +323,9 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "Float");
                 currentToken = token;
 
-                // System.out.println(token.lexeme);
-
                 nextState = 20;
                 i--;
             }
-
             return nextState;
         }
 
@@ -364,8 +345,6 @@ public class Compilador {
 
             Token token = new Token(lexeme, symbol.token, "String");
             currentToken = token;
-
-            // System.out.println(token.lexeme);
 
             return nextState;
         }
@@ -387,8 +366,6 @@ public class Compilador {
             Token token = new Token(lexeme, symbol.token, "String");
             currentToken = token;
 
-            // System.out.println(token.lexeme);
-
             return nextState;
         }
 
@@ -409,8 +386,6 @@ public class Compilador {
             Token token = new Token(lexeme, symbol.token, "String");
             currentToken = token;
 
-            // System.out.println(token.lexeme);
-
             return nextState;
         }
 
@@ -428,12 +403,9 @@ public class Compilador {
 
                 Token token = new Token(lexeme, symbol.token, "String");
                 currentToken = token;
-
-                // System.out.println(token.lexeme);
             } else {
                 throwError("invalid_lexeme");
             }
-
             return nextState;
         }
 
@@ -451,12 +423,9 @@ public class Compilador {
 
                 Token token = new Token(lexeme, symbol.token, "String");
                 currentToken = token;
-
-                // System.out.println(token.lexeme);
             } else {
                 throwError("invalid_lexeme");
             }
-
             return nextState;
         }
 
@@ -478,10 +447,7 @@ public class Compilador {
 
                 Token token = new Token(lexeme, symbol.token, "String");
                 currentToken = token;
-
-                // System.out.println(token.lexeme);
             }
-
             return nextState;
         }
 
@@ -569,10 +535,7 @@ public class Compilador {
 
                 Token token = new Token(lexeme, tokenValue, "Char");
                 currentToken = token;
-
-                // System.out.println(token.lexeme);
             }
-
             return nextState;
         }
 
@@ -597,13 +560,11 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "String");
                 currentToken = token;
 
-                // System.out.println(token.lexeme);
             } else {
                 lexeme += c;
                 if (lexeme.length() > 256)
                     throwError("invalid_lexeme");
             }
-
             return nextState;
         }
 
@@ -628,12 +589,9 @@ public class Compilador {
                 Token token = new Token(lexeme, tokenValue, "Integer");
                 currentToken = token;
 
-                // System.out.println(token.lexeme);
-
                 nextState = 20;
                 i--;
             }
-
             return nextState;
         }
 
@@ -677,10 +635,7 @@ public class Compilador {
 
                 Token token = new Token(lexeme, tokenValue, "Char");
                 currentToken = token;
-
-                // System.out.println(token.lexeme);
             }
-
             return nextState;
         }
 
@@ -695,8 +650,6 @@ public class Compilador {
 
             Token token = new Token(lexeme, symbol.token, "String");
             currentToken = token;
-
-            // System.out.println(token.lexeme);
 
             i--;
 
@@ -728,15 +681,9 @@ public class Compilador {
                         c = fileStr.charAt(i);
                         i++;
                     }
-
-                    if (c == '#') {
-                        throwError("invalid_char");
-                        break;
-                    }
                 } else {
                     // EOF
                     c = '#';
-                    // lineCount++;
                 }
 
                 if (isValid(c)) {
@@ -868,7 +815,6 @@ public class Compilador {
                 System.out.println("token nao esperado [" + currentToken.lexeme + "].");
             } else {
                 pauseCompiling = true;
-                lineCount--;
                 System.out.println(lineCount);
                 System.out.println("fim de arquivo nao esperado.");
             }
@@ -999,7 +945,6 @@ public class Compilador {
                 if (currentToken.token == tokenSemiColon) {
                     checkToken(tokenSemiColon);
                 } else {
-                    // lineCount++;
                     throwParserError();
                 }
             }
@@ -1102,7 +1047,6 @@ public class Compilador {
                             if (pauseCompiling)
                                 return;
                         } else {
-                            // lineCount++;
                             throwParserError();
                         }
                     } else
@@ -1127,11 +1071,6 @@ public class Compilador {
                     CMD_TYPE();
                     if (pauseCompiling)
                         return;
-                    // if (currentToken.token == tokenSemiColon) {
-                    //     checkToken(tokenSemiColon);
-                    //     if (pauseCompiling)
-                    //         return;
-                    // }
                     if (currentToken.token == tokenElse) {
                         checkToken(tokenElse);
                         if (pauseCompiling)
@@ -1140,8 +1079,6 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                     }
-                    // else
-                    //     throwParserError();
                 } else if (currentToken.token == tokenRead) {
                     checkToken(tokenRead);
                     if (pauseCompiling)
@@ -1163,7 +1100,6 @@ public class Compilador {
                                     if (pauseCompiling)
                                         return;
                                 } else {
-                                    // lineCount++;
                                     throwParserError();
                                 }
                             } else
@@ -1192,7 +1128,6 @@ public class Compilador {
                                 if (pauseCompiling)
                                     return;
                             } else {
-                                // lineCount++;
                                 throwParserError();
                             }
                         } else
@@ -1217,7 +1152,6 @@ public class Compilador {
                                 if (pauseCompiling)
                                     return;
                             } else {
-                                // lineCount++;
                                 throwParserError();
                             }
                         } else
@@ -1549,6 +1483,18 @@ public class Compilador {
         }
     }
 
+    static public String readAllCharsOneByOne(BufferedReader reader) throws IOException {
+        StringBuilder content = new StringBuilder();
+
+        int value;
+        while ((value = reader.read()) != -1) {
+            content.append((char) value);
+        }
+        content.append('#');
+
+        return content.toString();
+    }
+
     /* 
         Metodo main
         Inicia a tabela de simbolos e aloca as palavras reservadas com seus respectivos numeros de tokens.
@@ -1557,24 +1503,17 @@ public class Compilador {
         Roda o analisador sintatico, iniciando do estado inicial.
         Caso a compilacao obtenha sucesso, printa a mensagem de sucesso.
     */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         for (int i = 0; i < reservedWords.length; i++) {
             Symbol symbol = new Symbol(reservedWords[i], i + 1);
             symbolTable.put(reservedWords[i], symbol);
         }
 
-        // try {
-        //     File file = new File("programa.in");
-        //     Scanner scanner = new Scanner(file);
+        // BufferedReader br = new BufferedReader(new FileReader("programa.in"));
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-        Scanner scanner = new Scanner(System.in);
-
-        while (scanner.hasNextLine()) {
-            fileStr += scanner.nextLine() + lineSeparator;
-            // if (scanner.hasNextLine())
-            //     fileStr += lineSeparator;
-        }
+        fileStr = readAllCharsOneByOne(br);
 
         lexer.getLexeme(fileStr);
 
@@ -1582,11 +1521,5 @@ public class Compilador {
 
         if (!pauseCompiling && lineCount != 1)
             System.out.println(lineCount + " linhas compiladas.");
-
-        scanner.close();
-        // } catch (FileNotFoundException e) {
-        //     e.printStackTrace();
-        // }
     }
-
 }
