@@ -255,15 +255,19 @@ public class Compilador {
                     throwError("invalid_lexeme");
             } else {
                 Symbol symbol = symbolTable.get(lexeme);
+                Token token;
 
                 if (symbol != null) {
-                    Token token = new Token(lexeme, symbol.token, "ReservedWord");
-
-                    currentToken = token;
+                    if (symbol.token != tokenId) {
+                        token = new Token(lexeme, symbol.token, "ReservedWord");
+                    } else {
+                        token = new Token(lexeme, symbol.token, "Identifier");
+                    }
                 } else {
-                    Token token = new Token(lexeme, tokenId, "Identifier");
-                    currentToken = token;
+                    token = new Token(lexeme, tokenId, "Identifier");
                 }
+
+                currentToken = token;
                 nextState = 20;
                 i--;
             }
@@ -871,6 +875,9 @@ public class Compilador {
             }
         }
 
+        /* 
+            Metodo toSymbolTable -> Coloca identificador na tabela de simbolos.
+        */
         void toSymbolTable(String classification, String type, String lexeme) {
             Symbol newSymbol = new Symbol(lexeme, tokenId);
             newSymbol.classification = classification;
