@@ -6,13 +6,13 @@
     *   Matheus Teixeira Alves          636132
 */
 
-import java.io.File;
-import java.io.FileNotFoundException;
+// import java.io.File;
+// import java.io.FileNotFoundException;
 import java.util.Hashtable;
-import java.util.Scanner;
+// import java.util.Scanner;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
-import java.io.FileReader;
+// import java.io.FileReader;
 import java.io.IOException;
 
 public class Compilador {
@@ -28,6 +28,7 @@ public class Compilador {
      * lineSeparator    -> Separador de linha
      * Tokens           -> Tokens da linguagem
      */
+
     static Hashtable<String, Symbol> symbolTable = new Hashtable<String, Symbol>();
     static final String[] reservedWords = { "string", "const", "int", "char", "while", "if", "float", "else", "&&",
             "||", "!", "<-", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}",
@@ -83,10 +84,14 @@ public class Compilador {
     static class Symbol {
         String lexeme;
         int token;
+        String classification;
+        String type;
 
         Symbol(String lex, int tk) {
             lexeme = lex;
             token = tk;
+            classification = "undefined";
+            type = "undefined";
         }
     }
 
@@ -224,7 +229,7 @@ public class Compilador {
                 nextState = 20;
                 currentToken = new Token("EOF", 667, "EOF");
             } else if (c == ';') {
-                currentToken = new Token(lexeme, tokenSemiColon, "String");
+                currentToken = new Token(lexeme, tokenSemiColon, "ReservedWord");
                 nextState = 20;
             } else if (c == lineSeparator) {
                 lexeme = "";
@@ -252,14 +257,11 @@ public class Compilador {
                 Symbol symbol = symbolTable.get(lexeme);
 
                 if (symbol != null) {
-                    Token token = new Token(lexeme, symbol.token, "String");
+                    Token token = new Token(lexeme, symbol.token, "ReservedWord");
 
                     currentToken = token;
                 } else {
-                    Symbol newSymbol = new Symbol(lexeme, tokenId);
-                    symbolTable.put(lexeme, newSymbol);
-
-                    Token token = new Token(lexeme, tokenId, "String");
+                    Token token = new Token(lexeme, tokenId, "Identifier");
                     currentToken = token;
                 }
                 nextState = 20;
@@ -349,7 +351,7 @@ public class Compilador {
 
             Symbol symbol = symbolTable.get(lexeme);
 
-            Token token = new Token(lexeme, symbol.token, "String");
+            Token token = new Token(lexeme, symbol.token, "ReservedWord");
             currentToken = token;
 
             return nextState;
@@ -369,7 +371,7 @@ public class Compilador {
 
             Symbol symbol = symbolTable.get(lexeme);
 
-            Token token = new Token(lexeme, symbol.token, "String");
+            Token token = new Token(lexeme, symbol.token, "ReservedWord");
             currentToken = token;
 
             return nextState;
@@ -389,7 +391,7 @@ public class Compilador {
 
             Symbol symbol = symbolTable.get(lexeme);
 
-            Token token = new Token(lexeme, symbol.token, "String");
+            Token token = new Token(lexeme, symbol.token, "ReservedWord");
             currentToken = token;
 
             return nextState;
@@ -407,7 +409,7 @@ public class Compilador {
 
                 Symbol symbol = symbolTable.get(lexeme);
 
-                Token token = new Token(lexeme, symbol.token, "String");
+                Token token = new Token(lexeme, symbol.token, "ReservedWord");
                 currentToken = token;
             } else {
                 throwError("invalid_lexeme");
@@ -427,7 +429,7 @@ public class Compilador {
 
                 Symbol symbol = symbolTable.get(lexeme);
 
-                Token token = new Token(lexeme, symbol.token, "String");
+                Token token = new Token(lexeme, symbol.token, "ReservedWord");
                 currentToken = token;
             } else {
                 throwError("invalid_lexeme");
@@ -451,7 +453,7 @@ public class Compilador {
 
                 Symbol symbol = symbolTable.get(lexeme);
 
-                Token token = new Token(lexeme, symbol.token, "String");
+                Token token = new Token(lexeme, symbol.token, "ReservedWord");
                 currentToken = token;
             }
             return nextState;
@@ -654,7 +656,7 @@ public class Compilador {
 
             Symbol symbol = symbolTable.get(lexeme);
 
-            Token token = new Token(lexeme, symbol.token, "String");
+            Token token = new Token(lexeme, symbol.token, "ReservedWord");
             currentToken = token;
 
             i--;
@@ -808,6 +810,9 @@ public class Compilador {
             EXP5->     	"(" EXP ")" | id ["[" EXP "]"] | num
     */
     static class Parser {
+        String currentIdentifierLexeme = "";
+        String currentIdentifierClass = "";
+        String currentIdentifierType = "";
 
         /* 
             Metodo throwParserError -> Acusa erro sintático e pausa compilador.
@@ -827,6 +832,33 @@ public class Compilador {
         }
 
         /* 
+            Método throwIdentifierError -> Acusa erros relacionados a identificadores.
+            1- Se identificador nao foi declarado
+            2- Se identificador esta sendo declarado de novo
+            3- Se identificador possui classe incompativel
+            4- Se tipo do identificador é incompativel
+        */
+        void throwIdentifierError(String errorType) {
+            if (errorType == "id_not_declared") {
+                pauseCompiling = true;
+                System.out.println(lineCount);
+                System.out.println("identificador nao declarado [" + currentToken.lexeme + "].");
+            } else if (errorType == "id_already_declared") {
+                pauseCompiling = true;
+                System.out.println(lineCount);
+                System.out.println("identificador ja declarado [" + currentToken.lexeme + "].");
+            } else if (errorType == "id_incompatible_class") {
+                pauseCompiling = true;
+                System.out.println(lineCount);
+                System.out.println("classe de identificador incompativel [" + currentToken.lexeme + "].");
+            } else {
+                pauseCompiling = true;
+                System.out.println(lineCount);
+                System.out.println("tipos incompativeis.");
+            }
+        }
+
+        /* 
             Metodo checkToken (CasaToken) -> Verifica se token atual é o token esperado.
             Caso iguais, roda analisador léxico para pegar próximo token.
             Caso diferentes, erro.
@@ -837,6 +869,23 @@ public class Compilador {
             else {
                 throwParserError();
             }
+        }
+
+        void toSymbolTable(String classification, String type, String lexeme) {
+            Symbol newSymbol = new Symbol(lexeme, tokenId);
+            newSymbol.classification = classification;
+            newSymbol.type = type;
+            symbolTable.put(lexeme, newSymbol);
+        }
+
+        /* 
+            Metodo identifierIsDeclared -> Verifica se identificador ja foi declarado.
+        */
+        boolean identifierIsDeclared(Token token) {
+            Symbol symbol = symbolTable.get(token.lexeme);
+            if (symbol != null)
+                return true;
+            return false;
         }
 
         /* 
@@ -867,6 +916,8 @@ public class Compilador {
         void DECL() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenStr) {
+                    currentIdentifierClass = "var";
+                    currentIdentifierType = "String";
                     checkToken(tokenStr);
                     if (pauseCompiling)
                         return;
@@ -882,10 +933,16 @@ public class Compilador {
                             return;
                     }
                 } else if (currentToken.token == tokenConst) {
+                    currentIdentifierClass = "const";
                     checkToken(tokenConst);
                     if (pauseCompiling)
                         return;
                     if (currentToken.token == tokenId) {
+                        if (identifierIsDeclared(currentToken)) {
+                            throwIdentifierError("id_already_declared");
+                            return;
+                        }
+                        currentIdentifierLexeme = currentToken.lexeme;
                         checkToken(tokenId);
                         if (pauseCompiling)
                             return;
@@ -896,11 +953,14 @@ public class Compilador {
                             DECL_TYPE();
                             if (pauseCompiling)
                                 return;
+                            toSymbolTable(currentIdentifierClass, currentIdentifierType, currentIdentifierLexeme);
                         } else
                             throwParserError();
                     } else
                         throwParserError();
                 } else if (currentToken.token == tokenInt) {
+                    currentIdentifierClass = "var";
+                    currentIdentifierType = "Integer";
                     checkToken(tokenInt);
                     if (pauseCompiling)
                         return;
@@ -916,6 +976,8 @@ public class Compilador {
                             return;
                     }
                 } else if (currentToken.token == tokenChar) {
+                    currentIdentifierClass = "var";
+                    currentIdentifierType = "Char";
                     checkToken(tokenChar);
                     if (pauseCompiling)
                         return;
@@ -931,6 +993,8 @@ public class Compilador {
                             return;
                     }
                 } else if (currentToken.token == tokenFloat) {
+                    currentIdentifierClass = "var";
+                    currentIdentifierType = "Float";
                     checkToken(tokenFloat);
                     if (pauseCompiling)
                         return;
@@ -965,6 +1029,14 @@ public class Compilador {
         void DECL1() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenId) {
+                    if (identifierIsDeclared(currentToken)) {
+                        throwIdentifierError("id_already_declared");
+                        return;
+                    }
+
+                    currentIdentifierLexeme = currentToken.lexeme;
+                    toSymbolTable(currentIdentifierClass, currentIdentifierType, currentIdentifierLexeme);
+
                     checkToken(tokenId);
                     if (pauseCompiling)
                         return;
@@ -994,6 +1066,7 @@ public class Compilador {
                         return;
                 }
                 if (currentToken.token == tokenValue) {
+                    currentIdentifierType = currentToken.type;
                     checkToken(tokenValue);
                     if (pauseCompiling)
                         return;
@@ -1024,6 +1097,16 @@ public class Compilador {
         void COMMAND() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenId) {
+                    if (!identifierIsDeclared(currentToken)) {
+                        throwIdentifierError("id_not_declared");
+                        return;
+                    }
+
+                    if (symbolTable.get(currentToken.lexeme).classification != "var") {
+                        throwIdentifierError("id_incompatible_class");
+                        return;
+                    }
+
                     checkToken(tokenId);
                     if (pauseCompiling)
                         return;
@@ -1094,6 +1177,10 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                         if (currentToken.token == tokenId) {
+                            if (!identifierIsDeclared(currentToken)) {
+                                throwIdentifierError("id_not_declared");
+                                return;
+                            }
                             checkToken(tokenId);
                             if (pauseCompiling)
                                 return;
@@ -1462,6 +1549,10 @@ public class Compilador {
                     } else
                         throwParserError();
                 } else if (currentToken.token == tokenId) {
+                    if (!identifierIsDeclared(currentToken)) {
+                        throwIdentifierError("id_not_declared");
+                        return;
+                    }
                     checkToken(tokenId);
                     if (pauseCompiling)
                         return;
