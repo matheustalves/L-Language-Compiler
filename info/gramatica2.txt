@@ -1,0 +1,26 @@
+INÍCIO-> 	{D | C} eof
+
+DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1} ;	|
+				const id = TIPO_DECL;
+
+DECL1-> 		id [<- TIPO_DECL ]
+TIPO_DECL-> 	[-]num | string | hexa | caractere
+
+
+COMANDO->	id  ["[" {so se id for string} EXP {numerico_int} "]"] <- EXP {verificar tipo id};		  |
+			while EXP {logico} TIPO_CMD				            |
+			if EXP {logico} TIPO_CMD [else TIPO_CMD]				|
+			readln "(" id ")";				            |
+			(write | writeln) "(" LISTA_EXP ")";		|
+			;
+
+TIPO_CMD->	COMANDO | "{" {COMANDO}+ "}"
+LISTA_EXP->	EXP {, EXP}
+OPERADOR->    	= | != | < | > | <= | >= 
+
+EXP-> 		EXP1 { {verificar se eh string} OPERADOR {isBoolean = true}  EXP1 {mesmo tipo da primeira expressao} }
+EXP1->		[-] EXP2 { (+ | - | "||") EXP2 }
+EXP2->		EXP3 { ("*" | && | / | div | mod) EXP3 }
+EXP3->		{!} EXP4
+EXP4->		(int | float) "(" EXP ")" | EXP5
+EXP5->     	"(" EXP ")" | id ["[" {so se for string} EXP "]"] | valor

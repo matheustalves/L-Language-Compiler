@@ -22,4 +22,4 @@ EXP1->		[-] EXP2 { (+ | - | "||") EXP2 }
 EXP2->		EXP3 { ("*" | && | / | div | mod) EXP3 }
 EXP3->		{!} EXP4
 EXP4->		(int | float) "(" EXP ")" | EXP5
-EXP5->     	"(" EXP ")" | id ["[" EXP "]"] | num
+EXP5->     	"(" EXP ")" | id ["[" EXP "]"] | valor
