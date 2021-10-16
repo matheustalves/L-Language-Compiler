@@ -789,10 +789,10 @@ public class Compilador {
     
             INÍCIO-> 	{D | C} eof
         
-            DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1};	|
+            DECLARAÇÃO-> 	(int | float | string | char) DECL_B {,DECL_B};	|
                             const id = TIPO_DECL;
         
-            DECL1-> 		id [<- TIPO_DECL ]
+            DECL_B-> 		id [<- TIPO_DECL ]
             TIPO_DECL-> 	[-]num | string | hexa | caractere
         
             COMANDO->	id ["[" EXP "]"] <- EXP;                    |
@@ -806,12 +806,12 @@ public class Compilador {
             LISTA_EXP->	    EXP {, EXP}
             OPERADOR->    	= | != | < | > | <= | >=
         
-            EXP-> 		EXP1 {OPERADOR EXP1}
-            EXP1->		[-] EXP2 { (+ | - | "||") EXP2 }
-            EXP2->		EXP3 { ("*" | && | / | div | mod) EXP3 }
-            EXP3->		{!} EXP4
-            EXP4->		(int | float) "(" EXP ")" | EXP5
-            EXP5->     	"(" EXP ")" | id ["[" EXP "]"] | num
+            EXP-> 		EXP_B {OPERADOR EXP_B}
+            EXP_B->		[-] EXP_C { (+ | - | "||") EXP_C }
+            EXP_C->		EXP_D { ("*" | && | / | div | mod) EXP_D }
+            EXP_D->		{!} EXP_E
+            EXP_E->		(int | float) "(" EXP ")" | EXP_F
+            EXP_F->     	"(" EXP ")" | id ["[" EXP "]"] | num
     */
     static class Parser {
         String currentIdentifierLexeme = "";
@@ -918,7 +918,7 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: INÍCIO-> 	{D | C} eof
+            Na gramática: INÍCIO-> 	{DECL_A | COMANDO} eof
         
             Metodo START -> Símbolo não terminal inicial da gramática. 
             Aceita declaração ou comando até EOF ou erro.
@@ -927,7 +927,7 @@ public class Compilador {
             while (currentToken.token != 667 && !pauseCompiling) {
                 if (currentToken.token == tokenStr || currentToken.token == tokenConst || currentToken.token == tokenInt
                         || currentToken.token == tokenChar || currentToken.token == tokenFloat) {
-                    DECL();
+                    DECL_A();
                 } else
                     COMMAND();
             }
@@ -935,14 +935,14 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: DECLARAÇÃO-> 	(int | float | string | char) DECL1 {,DECL1};	|
-                                        const id = TIPO_DECL;
+            Na gramática: DECL_A-> 	(int | float | string | char) DECL_B {,DECL_B};	|
+                                    const id = TIPO_DECL;
         
-            Metodo DECL -> Símbolo não terminal de Declaração da gramática. 
-            Caso inicio com (int | float | string | char), vai para DECL1 e pode rodar ,DECL1 0 ou + vezes depois.
+            Metodo DECL_A -> Símbolo não terminal de Declaração da gramática. 
+            Caso inicio com (int | float | string | char), vai para DECL_B e pode rodar ,DECL_B 0 ou + vezes depois.
             Caso inicio com const, proximos tokens são um identificador, token de igual e vai para TIPO_DECL.
         */
-        void DECL() {
+        void DECL_A() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenStr) {
                     currentIdentifierClass = "var";
@@ -950,14 +950,14 @@ public class Compilador {
                     checkToken(tokenStr);
                     if (pauseCompiling)
                         return;
-                    DECL1();
+                    DECL_B();
                     if (pauseCompiling)
                         return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
-                        DECL1();
+                        DECL_B();
                         if (pauseCompiling)
                             return;
                     }
@@ -994,14 +994,14 @@ public class Compilador {
                     checkToken(tokenInt);
                     if (pauseCompiling)
                         return;
-                    DECL1();
+                    DECL_B();
                     if (pauseCompiling)
                         return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
-                        DECL1();
+                        DECL_B();
                         if (pauseCompiling)
                             return;
                     }
@@ -1011,14 +1011,14 @@ public class Compilador {
                     checkToken(tokenChar);
                     if (pauseCompiling)
                         return;
-                    DECL1();
+                    DECL_B();
                     if (pauseCompiling)
                         return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
-                        DECL1();
+                        DECL_B();
                         if (pauseCompiling)
                             return;
                     }
@@ -1028,14 +1028,14 @@ public class Compilador {
                     checkToken(tokenFloat);
                     if (pauseCompiling)
                         return;
-                    DECL1();
+                    DECL_B();
                     if (pauseCompiling)
                         return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
-                        DECL1();
+                        DECL_B();
                         if (pauseCompiling)
                             return;
                     }
@@ -1051,12 +1051,12 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: DECL1-> 	id [<- TIPO_DECL ]
+            Na gramática: DECL_B-> 	id [<- TIPO_DECL ]
         
-            Metodo DECL1 -> Símbolo não terminal auxiliar 1 para Declaração
+            Metodo DECL_B -> Símbolo não terminal auxiliar 1 para Declaração
             Le token identificador e opcionalmente pode ter uma atribuição <- TIPO_DECL
         */
-        void DECL1() {
+        void DECL_B() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenId) {
                     if (identifierIsDeclared(currentToken)) {
@@ -1118,18 +1118,18 @@ public class Compilador {
 
         /* 
             Na gramática:
-            COMANDO->	id ["[" EXP "]"] <- EXP;		            |
-        	            while EXP TIPO_CMD				            |
-                        if EXP TIPO_CMD [else TIPO_CMD]	            |
+            COMANDO->	id ["[" EXP_A "]"] <- EXP_A;		            |
+        	            while EXP_A TIPO_CMD				            |
+                        if EXP_A TIPO_CMD [else TIPO_CMD]	            |
                         readln "(" id ")";				            |
                         (write | writeln) "(" LISTA_EXP ")";		|
                         ;
         
             Metodo COMANDO -> Símbolo não terminal para Comandos da linguagem
         
-            1. Caso leia um token identificador, opcionalmente podera ler [EXP]. Em seguida, sera necessario um token de atribuicao, vai chamar EXP e finalmente um token de ponto e virgula.
-            2. Caso leia um token while, sera chamado EXP e depois TIPO_CMD.
-            3. Caso leia um token if, sera chamado EXP e depois TIPO_CMD. Opcionalmente pode-se ter um token else seguido de uma chamada TIPO_CMD.
+            1. Caso leia um token identificador, opcionalmente podera ler [EXP_A]. Em seguida, sera necessario um token de atribuicao, vai chamar EXP_A e finalmente um token de ponto e virgula.
+            2. Caso leia um token while, sera chamado EXP_A e depois TIPO_CMD.
+            3. Caso leia um token if, sera chamado EXP_A e depois TIPO_CMD. Opcionalmente pode-se ter um token else seguido de uma chamada TIPO_CMD.
             4. Caso leia um token readln, deverao aparecer os tokens (identificador), seguido de token ponto e virgula.
             5. Caso leia token write ou writeln, sera chamado LISTA_EXP dentro de tokens ( e ), seguido de token ponto e virgula.
             6. Caso leia token ponto e virgula, so chama o CasaToken mesmo.
@@ -1167,7 +1167,7 @@ public class Compilador {
                             return;
 
                         expArgs = new EXP_args();
-                        EXP(expArgs);
+                        EXP_A(expArgs);
 
                         if (pauseCompiling)
                             return;
@@ -1190,7 +1190,7 @@ public class Compilador {
                                 return;
 
                             expArgs = new EXP_args();
-                            EXP(expArgs);
+                            EXP_A(expArgs);
 
                             if (pauseCompiling)
                                 return;
@@ -1215,7 +1215,7 @@ public class Compilador {
                             return;
 
                         expArgs = new EXP_args();
-                        EXP(expArgs);
+                        EXP_A(expArgs);
 
                         if (pauseCompiling)
                             return;
@@ -1243,7 +1243,7 @@ public class Compilador {
                         return;
 
                     expArgs = new EXP_args();
-                    EXP(expArgs);
+                    EXP_A(expArgs);
                     if (pauseCompiling)
                         return;
 
@@ -1261,7 +1261,7 @@ public class Compilador {
                         return;
 
                     expArgs = new EXP_args();
-                    EXP(expArgs);
+                    EXP_A(expArgs);
                     if (pauseCompiling)
                         return;
 
@@ -1413,14 +1413,14 @@ public class Compilador {
         void EXP_LIST() {
             if (!pauseCompiling) {
                 EXP_args expArgs = new EXP_args();
-                EXP(expArgs);
+                EXP_A(expArgs);
                 if (pauseCompiling)
                     return;
                 while (currentToken.token == tokenComma) {
                     checkToken(tokenComma);
                     if (pauseCompiling)
                         return;
-                    EXP(expArgs);
+                    EXP_A(expArgs);
                     if (pauseCompiling)
                         return;
                 }
@@ -1472,14 +1472,14 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP-> EXP1 {OPERADOR EXP1}
+            Na gramática: EXP-> EXP_B {OPERADOR EXP_B}
         
             Metodo EXP -> Símbolo não terminal para expressoes.
-            Chama metodo EXP1 e pode rodar OPERADOR EXP1 opcionalmente, quantas vezes quiser.
+            Chama metodo EXP_B e pode rodar OPERADOR EXP_B opcionalmente, quantas vezes quiser.
         */
-        void EXP(EXP_args expArgs) {
+        void EXP_A(EXP_args expArgs) {
             if (!pauseCompiling) {
-                EXP1(expArgs);
+                EXP_B(expArgs);
                 if (pauseCompiling)
                     return;
                 while (currentToken.token == tokenEqual || currentToken.token == tokenDif
@@ -1492,7 +1492,7 @@ public class Compilador {
                     OPERATOR(expArgs);
                     if (pauseCompiling)
                         return;
-                    EXP1(expArgs);
+                    EXP_B(expArgs);
                     if (pauseCompiling)
                         return;
                 }
@@ -1500,19 +1500,19 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP1-> [-] EXP2 { (+ | - | "||") EXP2 }
+            Na gramática: EXP_B-> [-] EXP_C { (+ | - | "||") EXP_C }
         
-            Metodo EXP1 -> Símbolo não terminal auxiliar 1 para expressoes.
-            Opcionalmente pode iniciar com token de menos. Chama EXP2 e pode opcionalmente rodar (+ | - | "||") EXP2, quantas vezes quiser.
+            Metodo EXP_B -> Símbolo não terminal auxiliar 1 para expressoes.
+            Opcionalmente pode iniciar com token de menos. Chama EXP_C e pode opcionalmente rodar (+ | - | "||") EXP_C, quantas vezes quiser.
         */
-        void EXP1(EXP_args expArgs) {
+        void EXP_B(EXP_args expArgs) {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenMinus) {
                     checkToken(tokenMinus);
                     if (pauseCompiling)
                         return;
                 }
-                EXP2(expArgs);
+                EXP_C(expArgs);
                 if (pauseCompiling)
                     return;
                 while (currentToken.token == tokenPlus || currentToken.token == tokenMinus
@@ -1531,7 +1531,7 @@ public class Compilador {
                             return;
                     } else
                         throwParserError();
-                    EXP2(expArgs);
+                    EXP_C(expArgs);
                     if (pauseCompiling)
                         return;
                 }
@@ -1539,14 +1539,14 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP2-> EXP3 { ("*" | && | / | div | mod) EXP3 }
+            Na gramática: EXP_C-> EXP_D { ("*" | && | / | div | mod) EXP_D }
         
-            Metodo EXP2 -> Símbolo não terminal auxiliar 2 para expressoes.
-            Chama EXP3 e pode opcionalmente rodar ("*" | && | / | div | mod) EXP3, quantas vezes quiser.
+            Metodo EXP_C -> Símbolo não terminal auxiliar 2 para expressoes.
+            Chama EXP_D e pode opcionalmente rodar ("*" | && | / | div | mod) EXP_D, quantas vezes quiser.
         */
-        void EXP2(EXP_args expArgs) {
+        void EXP_C(EXP_args expArgs) {
             if (!pauseCompiling) {
-                EXP3(expArgs);
+                EXP_D(expArgs);
                 if (pauseCompiling)
                     return;
                 while (currentToken.token == tokenMult || currentToken.token == tokenAnd
@@ -1569,7 +1569,7 @@ public class Compilador {
                             return;
                     } else
                         throwParserError();
-                    EXP3(expArgs);
+                    EXP_D(expArgs);
                     if (pauseCompiling)
                         return;
                 }
@@ -1577,32 +1577,32 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP3-> {!} EXP4
+            Na gramática: EXP_D-> {!} EXP_E
         
-            Metodo EXP3 -> Símbolo não terminal auxiliar 3 para expressoes.
-            Pode iniciar com token !, e enquanto o proximo for igual a !, continua nesse loop. Depois chama EXP4.
+            Metodo EXP_D -> Símbolo não terminal auxiliar 3 para expressoes.
+            Pode iniciar com token !, e enquanto o proximo for igual a !, continua nesse loop. Depois chama EXP_E.
         */
-        void EXP3(EXP_args expArgs) {
+        void EXP_D(EXP_args expArgs) {
             if (!pauseCompiling) {
                 while (currentToken.token == tokenNot) {
                     checkToken(tokenNot);
                     if (pauseCompiling)
                         return;
                 }
-                EXP4(expArgs);
+                EXP_E(expArgs);
                 if (pauseCompiling)
                     return;
             }
         }
 
         /* 
-            Na gramática: EXP4-> (int | float) "(" EXP ")" | EXP5
+            Na gramática: EXP_E-> (int | float) "(" EXP_A ")" | EXP_F
         
-            Metodo EXP4 -> Símbolo não terminal auxiliar 4 para expressoes.
-            Caso inicia com token int ou float, precisa de token (, depois chama EXP e volta para verificar token ). 
-            Caso contrario, chama EXP5.
+            Metodo EXP_E -> Símbolo não terminal auxiliar 4 para expressoes.
+            Caso inicia com token int ou float, precisa de token (, depois chama EXP_A e volta para verificar token ). 
+            Caso contrario, chama EXP_F.
         */
-        void EXP4(EXP_args expArgs) {
+        void EXP_E(EXP_args expArgs) {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenInt) {
                     checkToken(tokenInt);
@@ -1612,7 +1612,7 @@ public class Compilador {
                         checkToken(tokenOpenPar);
                         if (pauseCompiling)
                             return;
-                        EXP(expArgs);
+                        EXP_A(expArgs);
                         if (pauseCompiling)
                             return;
                         if (currentToken.token == tokenClosePar) {
@@ -1631,7 +1631,7 @@ public class Compilador {
                         checkToken(tokenOpenPar);
                         if (pauseCompiling)
                             return;
-                        EXP(expArgs);
+                        EXP_A(expArgs);
                         if (currentToken.token == tokenClosePar) {
                             checkToken(tokenClosePar);
                             if (pauseCompiling)
@@ -1641,7 +1641,7 @@ public class Compilador {
                     } else
                         throwParserError();
                 } else {
-                    EXP5(expArgs);
+                    EXP_F(expArgs);
                     if (pauseCompiling)
                         return;
                 }
@@ -1649,15 +1649,15 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP5->  "(" EXP ")" | id ["[" EXP "]"] | num
+            Na gramática: EXP_F->  "(" EXP ")" | id ["[" EXP "]"] | num
         
-            Metodo EXP5 -> Símbolo não terminal auxiliar 5 para expressoes.
+            Metodo EXP_F -> Símbolo não terminal auxiliar 5 para expressoes.
             Caso inicia com token = (, executa EXP e fecha o parenteses com token = ).
             Caso inicia com token identificador, pode opcionalmente ter tambem "[" EXP "]".
             Por ultimo, pode ser tambem um valor. 
             Else, erro.
         */
-        void EXP5(EXP_args expArgs) {
+        void EXP_F(EXP_args expArgs) {
             if (!pauseCompiling) {
                 EXP_args expArgs1 = new EXP_args();
 
@@ -1667,7 +1667,7 @@ public class Compilador {
                         return;
 
                     expArgs1 = new EXP_args();
-                    EXP(expArgs1);
+                    EXP_A(expArgs1);
                     if (pauseCompiling)
                         return;
 
@@ -1709,7 +1709,7 @@ public class Compilador {
                             return;
 
                         expArgs1 = new EXP_args();
-                        EXP(expArgs1);
+                        EXP_A(expArgs1);
 
                         if (pauseCompiling)
                             return;
