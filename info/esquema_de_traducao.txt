@@ -3,10 +3,7 @@ INÍCIO-> 	{DECL_A | COMANDO} eof
 DECL_A-> 	(int | float | string | char) DECL_B {,DECL_B} ;	|
 			const id (u) = [- (z0)] valor (z1) (z2) (z3);
 
-DECL_B-> 		id [<- [-] valor ]
-
-//TIPO_DECL-> 	[-]num | string | hexa | caractere
-//não pode ter token diferente para cada tipo de declaração: token constante e token valor, analisador léxico difere pelo formato
+DECL_B-> 		id [<- [- (z0)] valor (z1) (z4) (z5) ]
 
 COMANDO->	id ["[" EXP_A "]"] <- EXP_A;		    	|
 			while EXP_A TIPO_CMD				        |
@@ -50,11 +47,22 @@ Regras fora de ordem:
 		(EXP_B1.tipo = float & EXP_B2.tipo = integer) |
 		(EXP_B1.tipo = integer & EXP_B2.tipo = float) |
 		(EXP_B1.tipo = float & EXP_B2.tipo = float)) then ERRO}
-//lei de deMorgan !(A&B) = (!A|!B) e !(A|B) = (!A&!B)
 (x2): {EXP_A.tipo := bool} 
 (x3): {EXP_A.tipo := EXP_B1.tipo} 
 (z0): {minus = True}
 (z1): {if !(minus & (valor.tipo = integer | valor.tipo = float)) then ERRO}
 (z2): {id.simbolo.tipo := valor.tipo_constante}
 (z3): {id.simbolo.classe := constante}
+(z4): {id.simbolo.tipo := valor.tipo_variavel}
+(z5): {id.simbolo.classe := variavel}
 (u): {if id.simbolo.classe != null then ERRO_id_declarado}
+
+
+// Duvidas:
+1. Implementação da regra (x2)
+2. Pode repetir (z0) e (z1) para variavel? Em DECL_B e EXP_C
+3. tipo_constante?
+
+Mudado na gramática:
+* Removi TIPO_DECL-> 	[-]num | string | hexa | caractere
+Não pode ter token diferente para cada tipo de declaração: token constante e token valor, analisador léxico difere pelo formato
