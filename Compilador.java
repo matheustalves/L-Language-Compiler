@@ -896,6 +896,8 @@ public class Compilador {
         }
 
         class EXP_args {
+            String type;
+
             boolean isBoolean;
             boolean isInt;
             boolean isFloat;
@@ -909,6 +911,7 @@ public class Compilador {
             String stringResult;
 
             EXP_args() {
+                type = "";
                 isBoolean = false;
                 isInt = false;
                 isFloat = false;
@@ -944,26 +947,26 @@ public class Compilador {
         */
         void DECL_A() {
             if (!pauseCompiling) {
+                String idType = "";
                 if (currentToken.token == tokenStr) {
-                    currentIdentifierClass = "var";
-                    currentIdentifierType = "String";
+                    idType = "String";
                     checkToken(tokenStr);
                     if (pauseCompiling)
                         return;
-                    DECL_B();
+                    DECL_B(idType);
                     if (pauseCompiling)
                         return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
-                        DECL_B();
+                        DECL_B(idType);
                         if (pauseCompiling)
                             return;
                     }
                 } else if (currentToken.token == tokenConst) {
-                    currentIdentifierClass = "const";
-                    currentIdentifierType = "Const";
+                    boolean minus = false;
+                    String idLexeme = "";
                     checkToken(tokenConst);
                     if (pauseCompiling)
                         return;
@@ -972,7 +975,7 @@ public class Compilador {
                             throwIdentifierError("id_already_declared");
                             return;
                         }
-                        currentIdentifierLexeme = currentToken.lexeme;
+                        idLexeme = currentToken.lexeme;
                         checkToken(tokenId);
                         if (pauseCompiling)
                             return;
@@ -980,62 +983,75 @@ public class Compilador {
                             checkToken(tokenEqual);
                             if (pauseCompiling)
                                 return;
-                            DECL_TYPE();
+                            if (currentToken.token == tokenMinus) {
+                                checkToken(tokenMinus);
+                                minus = true;
+                                if (pauseCompiling)
+                                    return;
+                            }
+                            if (currentToken.token == tokenValue) {
+                                if (minus && !(currentToken.type == "Integer" || currentToken.type == "Float")) {
+                                    throwIdentifierError("incompatible_types");
+                                    return;
+                                }
+                                idType = currentToken.type;
+                                checkToken(tokenValue);
+                                if (pauseCompiling)
+                                    return;
+                            } else
+                                throwParserError();
                             if (pauseCompiling)
                                 return;
-                            toSymbolTable(currentIdentifierClass, currentIdentifierType, currentIdentifierLexeme);
+                            toSymbolTable("const", idType, idLexeme);
                         } else
                             throwParserError();
                     } else
                         throwParserError();
                 } else if (currentToken.token == tokenInt) {
-                    currentIdentifierClass = "var";
-                    currentIdentifierType = "Integer";
+                    idType = "Integer";
                     checkToken(tokenInt);
                     if (pauseCompiling)
                         return;
-                    DECL_B();
+                    DECL_B(idType);
                     if (pauseCompiling)
                         return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
-                        DECL_B();
+                        DECL_B(idType);
                         if (pauseCompiling)
                             return;
                     }
                 } else if (currentToken.token == tokenChar) {
-                    currentIdentifierClass = "var";
-                    currentIdentifierType = "Char";
+                    idType = "Char";
                     checkToken(tokenChar);
                     if (pauseCompiling)
                         return;
-                    DECL_B();
+                    DECL_B(idType);
                     if (pauseCompiling)
                         return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
-                        DECL_B();
+                        DECL_B(idType);
                         if (pauseCompiling)
                             return;
                     }
                 } else if (currentToken.token == tokenFloat) {
-                    currentIdentifierClass = "var";
-                    currentIdentifierType = "Float";
+                    idType = "Float";
                     checkToken(tokenFloat);
                     if (pauseCompiling)
                         return;
-                    DECL_B();
+                    DECL_B(idType);
                     if (pauseCompiling)
                         return;
                     while (currentToken.token == tokenComma) {
                         checkToken(tokenComma);
                         if (pauseCompiling)
                             return;
-                        DECL_B();
+                        DECL_B(idType);
                         if (pauseCompiling)
                             return;
                     }
@@ -1056,16 +1072,16 @@ public class Compilador {
             Metodo DECL_B -> Símbolo não terminal auxiliar 1 para Declaração
             Le token identificador e opcionalmente pode ter uma atribuição <- TIPO_DECL
         */
-        void DECL_B() {
+        void DECL_B(String idType) {
             if (!pauseCompiling) {
+                boolean minus = false;
                 if (currentToken.token == tokenId) {
                     if (identifierIsDeclared(currentToken)) {
                         throwIdentifierError("id_already_declared");
                         return;
                     }
 
-                    currentIdentifierLexeme = currentToken.lexeme;
-                    toSymbolTable(currentIdentifierClass, currentIdentifierType, currentIdentifierLexeme);
+                    toSymbolTable("var", idType, currentToken.lexeme);
 
                     checkToken(tokenId);
                     if (pauseCompiling)
@@ -1074,45 +1090,34 @@ public class Compilador {
                         checkToken(tokenAtrib);
                         if (pauseCompiling)
                             return;
-                        DECL_TYPE();
+                        if (currentToken.token == tokenMinus) {
+                            checkToken(tokenMinus);
+                            minus = true;
+                            if (pauseCompiling)
+                                return;
+                        }
+                        if (currentToken.token == tokenValue) {
+                            if (minus && !(currentToken.type == "Integer" || currentToken.type == "Float")) {
+                                throwIdentifierError("incompatible_types");
+                                return;
+                            }
+                            if ((idType == "Integer" && currentToken.type != "Integer")
+                                    || (idType == "Float"
+                                            && (currentToken.type != "Float" && currentToken.type != "Integer"))
+                                    || (idType == "String" && currentToken.type != "String")
+                                    || (idType == "Char" && currentToken.type != "Char")) {
+                                throwIdentifierError("incompatible_types");
+                                return;
+                            }
+                            checkToken(tokenValue);
+                            if (pauseCompiling)
+                                return;
+                        } else
+                            throwParserError();
                         if (pauseCompiling)
                             return;
                     }
                 }
-            }
-        }
-
-        /* 
-            Na gramática: TIPO_DECL-> 	[-]num | string | hexa | caractere
-        
-            Metodo TIPO_DECL -> Símbolo não terminal para valores de variáveis de Declaração
-            Lê opcionalmente um menos e depois é necessário um valor válido (num | string | hexa | caractere)
-        */
-        void DECL_TYPE() {
-            if (!pauseCompiling) {
-                if (currentToken.token == tokenMinus) {
-                    checkToken(tokenMinus);
-                    if (pauseCompiling)
-                        return;
-                }
-                if (currentToken.token == tokenValue) {
-                    if (currentIdentifierType == "Const") {
-                        currentIdentifierType = currentToken.type;
-                    } else {
-                        if ((currentIdentifierType == "Integer" && currentToken.type != "Integer")
-                                || (currentIdentifierType == "Float"
-                                        && (currentToken.type != "Float" && currentToken.type != "Integer"))
-                                || (currentIdentifierType == "String" && currentToken.type != "String")
-                                || (currentIdentifierType == "Char" && currentToken.type != "Char")) {
-                            throwIdentifierError("incompatible_types");
-                            return;
-                        }
-                    }
-                    checkToken(tokenValue);
-                    if (pauseCompiling)
-                        return;
-                } else
-                    throwParserError();
             }
         }
 
@@ -1602,9 +1607,11 @@ public class Compilador {
             Caso inicia com token int ou float, precisa de token (, depois chama EXP_A e volta para verificar token ). 
             Caso contrario, chama EXP_F.
         */
-        void EXP_E(EXP_args expArgs) {
+        void EXP_E(EXP_args expArgsE) {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenInt) {
+                    expArgsE.type = "Integer";
+
                     checkToken(tokenInt);
                     if (pauseCompiling)
                         return;
@@ -1612,9 +1619,17 @@ public class Compilador {
                         checkToken(tokenOpenPar);
                         if (pauseCompiling)
                             return;
-                        EXP_A(expArgs);
+
+                        EXP_args expArgsA = new EXP_args();
+                        EXP_A(expArgsA);
                         if (pauseCompiling)
                             return;
+
+                        if (expArgsA.type != "Integer" && expArgsA.type != "Float") {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+
                         if (currentToken.token == tokenClosePar) {
                             checkToken(tokenClosePar);
                             if (pauseCompiling)
@@ -1624,6 +1639,8 @@ public class Compilador {
                     } else
                         throwParserError();
                 } else if (currentToken.token == tokenFloat) {
+                    expArgsE.type = "Float";
+
                     checkToken(tokenFloat);
                     if (pauseCompiling)
                         return;
@@ -1631,7 +1648,15 @@ public class Compilador {
                         checkToken(tokenOpenPar);
                         if (pauseCompiling)
                             return;
-                        EXP_A(expArgs);
+
+                        EXP_args expArgsA = new EXP_args();
+                        EXP_A(expArgsA);
+
+                        if (expArgsA.type != "Float") {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+
                         if (currentToken.token == tokenClosePar) {
                             checkToken(tokenClosePar);
                             if (pauseCompiling)
@@ -1641,9 +1666,12 @@ public class Compilador {
                     } else
                         throwParserError();
                 } else {
-                    EXP_F(expArgs);
+                    EXP_args expArgsF = new EXP_args();
+                    EXP_F(expArgsF);
                     if (pauseCompiling)
                         return;
+
+                    expArgsE.type = expArgsF.type;
                 }
             }
         }
@@ -1657,19 +1685,19 @@ public class Compilador {
             Por ultimo, pode ser tambem um valor. 
             Else, erro.
         */
-        void EXP_F(EXP_args expArgs) {
+        void EXP_F(EXP_args expArgsF) {
             if (!pauseCompiling) {
-                EXP_args expArgs1 = new EXP_args();
-
                 if (currentToken.token == tokenOpenPar) {
                     checkToken(tokenOpenPar);
                     if (pauseCompiling)
                         return;
 
-                    expArgs1 = new EXP_args();
-                    EXP_A(expArgs1);
+                    EXP_args expArgsA1 = new EXP_args();
+                    EXP_A(expArgsA1);
                     if (pauseCompiling)
                         return;
+
+                    expArgsF.type = expArgsA1.type;
 
                     if (currentToken.token == tokenClosePar) {
                         checkToken(tokenClosePar);
@@ -1685,14 +1713,7 @@ public class Compilador {
 
                     currentIdentifierType = symbolTable.get(currentToken.lexeme).type;
 
-                    if (currentIdentifierType == "Integer")
-                        expArgs.isInt = true;
-                    else if (currentIdentifierType == "Float")
-                        expArgs.isFloat = true;
-                    else if (currentIdentifierType == "Char")
-                        expArgs.isChar = true;
-                    else if (currentIdentifierType == "String")
-                        expArgs.isString = true;
+                    expArgsF.type = currentIdentifierType;
 
                     checkToken(tokenId);
                     if (pauseCompiling)
@@ -1708,19 +1729,18 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
 
-                        expArgs1 = new EXP_args();
-                        EXP_A(expArgs1);
+                        EXP_args expArgsA2 = new EXP_args();
+                        EXP_A(expArgsA2);
 
                         if (pauseCompiling)
                             return;
 
-                        if (!expArgs1.isInt) {
+                        if (!expArgsA2.isInt) {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
 
-                        expArgs.isChar = true;
-                        expArgs.isString = false;
+                        expArgsF.type = "Char";
 
                         if (currentToken.token == tokenCloseSq) {
                             checkToken(tokenCloseSq);
@@ -1730,19 +1750,8 @@ public class Compilador {
                             throwParserError();
                     }
                 } else if (currentToken.token == tokenValue) {
-                    if (currentToken.type == "Integer") {
-                        expArgs.isInt = true;
-                        expArgs.intResult = Integer.parseInt(currentToken.lexeme);
-                    } else if (currentToken.type == "Float") {
-                        expArgs.isFloat = true;
-                        expArgs.floatResult = Float.parseFloat(currentToken.lexeme);
-                    } else if (currentToken.type == "Char") {
-                        expArgs.isChar = true;
-                        expArgs.charResult = currentToken.lexeme;
-                    } else if (currentToken.type == "String") {
-                        expArgs.isString = true;
-                        expArgs.stringResult = currentToken.lexeme;
-                    }
+                    expArgsF.type = currentToken.type;
+
                     checkToken(tokenValue);
                     if (pauseCompiling)
                         return;

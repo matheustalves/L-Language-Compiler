@@ -3,7 +3,7 @@ INÍCIO-> 	{DECL_A | COMANDO} eof
 DECL_A-> 	(int | float | string | char) DECL_B {,DECL_B} ;	|
 			const id = valor;
 
-DECL_B-> 		id [<- valor ]
+DECL_B-> 		id [<- [-] valor ]
 
 //Removi TIPO_DECL-> 	[-]num | string | hexa | caractere
 //não pode ter token diferente para cada tipo de declaração: token constante e token valor, analisador léxico difere pelo formato

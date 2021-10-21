@@ -23,16 +23,16 @@ EXP_D->		{! (11) } EXP_E (12) (13)
 EXP_E->		(int (9) | float (10) ) "(" EXP_A (8) ")" | EXP_F (7)
 EXP_F->     "(" EXP_A1 ")" (6)  | id (2)(3) ["[" EXP_A2 (4)(5) "]"] | valor (1)
 
-(1): {EXP_F.tipo := valor.tipo_constante}
-(2): {if id.simbolo.classe = null then ERRO}
-(3): {EXP_F.tipo := id.simbolo.tipo}
-(4): {if (EXP_A2.tipo != integer | id.simbolo.tipo != string) then ERRO}
-(5): {EXP_F.tipo := char}
-(6): {EXP_F.tipo := EXP_A1.tipo}
-(7): {EXP_E.tipo := EXP_F.tipo}
-(8): {if !(EXP_A.tipo = integer | EXP_A.tipo = float) then ERRO}
-(9): {EXP_E.tipo := integer}
-(10): {EXP_E.tipo := float}
+XXX (1): {EXP_F.tipo := valor.tipo}
+XXX (2): {if id.simbolo.classe = null then ERRO}
+XXX (3): {EXP_F.tipo := id.simbolo.tipo}
+XXX (4): {if (EXP_A2.tipo != integer | id.simbolo.tipo != string) then ERRO}
+XXX (5): {EXP_F.tipo := char}
+XXX (6): {EXP_F.tipo := EXP_A1.tipo}
+XXX (7): {EXP_E.tipo := EXP_F.tipo}
+XXX (8): {if !(EXP_A.tipo = integer | EXP_A.tipo = float) then ERRO}
+XXX (9): {EXP_E.tipo := integer}
+XXX (10): {EXP_E.tipo := float}
 (11): {houve_negacao = True}
 (12): {if (houve_negacao & EXP_E.tipo != bool) then ERRO}
 (13): {EXP_D.tipo := EXP_E.tipo}
@@ -49,20 +49,16 @@ Regras fora de ordem:
 		(EXP_B1.tipo = float & EXP_B2.tipo = float)) then ERRO}
 (x2): {EXP_A.tipo := bool} 
 (x3): {EXP_A.tipo := EXP_B1.tipo} 
-(z0): {minus = True}
-(z1): {if !(minus & (valor.tipo = integer | valor.tipo = float)) then ERRO}
-(z2): {id.simbolo.tipo := valor.tipo_constante}
-(z3): {id.simbolo.classe := constante}
-(z4): {id.simbolo.tipo := valor.tipo_variavel}
-(z5): {id.simbolo.classe := variavel}
-(u): {if id.simbolo.classe != null then ERRO_id_declarado}
+XXX (z0): {minus = True}
+XXX (z1): {if (minus & !(valor.tipo = integer | valor.tipo = float)) then ERRO}
+XXX (z2): {id.simbolo.tipo := valor.tipo_constante}
+XXX (z3): {id.simbolo.classe := constante}
+XXX (z4): {id.simbolo.tipo := valor.tipo_variavel}
+XXX (z5): {id.simbolo.classe := variavel}
+XXX (u): {if id.simbolo.classe != null then ERRO_id_declarado}
 
 
 // Duvidas:
 1. Implementação da regra (x2)
 2. Pode repetir (z0) e (z1) para variavel? Em DECL_B e EXP_C
 3. tipo_constante?
-
-Mudado na gramática:
-* Removi TIPO_DECL-> 	[-]num | string | hexa | caractere
-Não pode ter token diferente para cada tipo de declaração: token constante e token valor, analisador léxico difere pelo formato
