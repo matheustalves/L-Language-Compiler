@@ -5,10 +5,10 @@ DECL_A-> 	(int | float | string | char) DECL_B {,DECL_B} ;	|
 
 DECL_B-> 		id [<- [- (z0)] valor (z1) (z4) (z5) ]
 
-COMANDO->	id ["[" EXP_A "]"] <- EXP_A;		    	|
-			while EXP_A TIPO_CMD				        |
-			if EXP_A TIPO_CMD [else TIPO_CMD]			|
-			readln "(" id ")";				            |
+COMANDO->	id (2) (14) ["[" (15) EXP_A1 (4) "]"] <- EXP_A2 (16);		  |
+			while EXP_A (17) TIPO_CMD				        |
+			if EXP_A (17) TIPO_CMD [else TIPO_CMD]			|
+			readln "(" id (2) ")";				            |
 			(write | writeln) "(" LISTA_EXP ")";		|
 			;
 
@@ -33,22 +33,25 @@ XXX (7): {EXP_E.tipo := EXP_F.tipo}
 XXX (8): {if !(EXP_A.tipo = integer | EXP_A.tipo = float) then ERRO}
 XXX (9): {EXP_E.tipo := integer}
 XXX (10): {EXP_E.tipo := float}
-(11): {houve_negacao = True}
-(12): {if (houve_negacao & EXP_E.tipo != bool) then ERRO}
-(13): {EXP_D.tipo := EXP_E.tipo}
-
+XXX (11): {houve_negacao = True}
+XXX (12): {if (houve_negacao & EXP_E.tipo != bool) then ERRO}
+XXX (13): {EXP_D.tipo := EXP_E.tipo}
+XXX (14): {if id.simbolo.classe != "var" then ERRO}
+XXX (15): {isStringIndex = true}
+XXX (16): {if ((isStringIndex & EXP_A2.tipo != char) || (!isStringIndex & EXP_A2.tipo != id.simbolo.tipo)) then ERRO}
+XXX (17): {if EXP_A.tipo != bool then ERRO}
 
 Regras fora de ordem:
-(x): {OPERADOR.tipo := EXP_B1.tipo}
-(y): {if OPERADOR.tipo != (string|int|float) then ERRO}
-(z): {if OPERADOR.tipo != (int|float) then ERRO}
-(x1): {if !((EXP_B1.tipo = string & EXP_B2.tipo = string) | 
+XXX (x): {OPERADOR.tipo := EXP_B1.tipo}
+XXX (y): {if OPERADOR.tipo != (string|int|float|char) then ERRO}
+XXX (z): {if OPERADOR.tipo != (int|float|char) then ERRO}
+XXX (x1): {if !((EXP_B1.tipo = string & EXP_B2.tipo = string) | 
 		(EXP_B1.tipo = integer & EXP_B2.tipo = integer) |
 		(EXP_B1.tipo = float & EXP_B2.tipo = integer) |
 		(EXP_B1.tipo = integer & EXP_B2.tipo = float) |
 		(EXP_B1.tipo = float & EXP_B2.tipo = float)) then ERRO}
-(x2): {EXP_A.tipo := bool} 
-(x3): {EXP_A.tipo := EXP_B1.tipo} 
+XXX (x2): {EXP_A.tipo := bool} 
+XXX (x3): {EXP_A.tipo := EXP_B1.tipo} 
 XXX (z0): {minus = True}
 XXX (z1): {if (minus & !(valor.tipo = integer | valor.tipo = float)) then ERRO}
 XXX (z2): {id.simbolo.tipo := valor.tipo_constante}

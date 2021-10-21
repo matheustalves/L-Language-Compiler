@@ -700,68 +700,68 @@ public class Compilador {
 
                 if (isValid(c)) {
                     switch (currentState) {
-                        case 0:
-                            currentState = state0(c);
-                            break;
-                        case 1:
-                            currentState = state1(c);
-                            break;
-                        case 2:
-                            currentState = state2(c);
-                            break;
-                        case 3:
-                            currentState = state3(c);
-                            break;
-                        case 4:
-                            currentState = state4(c);
-                            break;
-                        case 5:
-                            currentState = state5(c);
-                            break;
-                        case 6:
-                            currentState = state6(c);
-                            break;
-                        case 7:
-                            currentState = state7(c);
-                            break;
-                        case 8:
-                            currentState = state8(c);
-                            break;
-                        case 9:
-                            currentState = state9(c);
-                            break;
-                        case 10:
-                            currentState = state10(c);
-                            break;
-                        case 11:
-                            currentState = state11(c);
-                            break;
-                        case 12:
-                            currentState = state12(c);
-                            break;
-                        case 13:
-                            currentState = state13(c);
-                            break;
-                        case 14:
-                            currentState = state14(c);
-                            break;
-                        case 15:
-                            currentState = state15(c);
-                            break;
-                        case 16:
-                            currentState = state16(c);
-                            break;
-                        case 17:
-                            currentState = state17(c);
-                            break;
-                        case 18:
-                            currentState = state18(c);
-                            break;
-                        case 19:
-                            currentState = state19(c);
-                            break;
-                        case 20:
-                            break;
+                    case 0:
+                        currentState = state0(c);
+                        break;
+                    case 1:
+                        currentState = state1(c);
+                        break;
+                    case 2:
+                        currentState = state2(c);
+                        break;
+                    case 3:
+                        currentState = state3(c);
+                        break;
+                    case 4:
+                        currentState = state4(c);
+                        break;
+                    case 5:
+                        currentState = state5(c);
+                        break;
+                    case 6:
+                        currentState = state6(c);
+                        break;
+                    case 7:
+                        currentState = state7(c);
+                        break;
+                    case 8:
+                        currentState = state8(c);
+                        break;
+                    case 9:
+                        currentState = state9(c);
+                        break;
+                    case 10:
+                        currentState = state10(c);
+                        break;
+                    case 11:
+                        currentState = state11(c);
+                        break;
+                    case 12:
+                        currentState = state12(c);
+                        break;
+                    case 13:
+                        currentState = state13(c);
+                        break;
+                    case 14:
+                        currentState = state14(c);
+                        break;
+                    case 15:
+                        currentState = state15(c);
+                        break;
+                    case 16:
+                        currentState = state16(c);
+                        break;
+                    case 17:
+                        currentState = state17(c);
+                        break;
+                    case 18:
+                        currentState = state18(c);
+                        break;
+                    case 19:
+                        currentState = state19(c);
+                        break;
+                    case 20:
+                        break;
                     }
                 } else {
                     throwError("invalid_char");
@@ -898,25 +898,8 @@ public class Compilador {
         class EXP_args {
             String type;
 
-            boolean isBoolean;
-            boolean isInt;
-            boolean isFloat;
-            boolean isChar;
-            boolean isString;
-
-            boolean booleanResult;
-            int intResult;
-            float floatResult;
-            String charResult;
-            String stringResult;
-
             EXP_args() {
                 type = "";
-                isBoolean = false;
-                isInt = false;
-                isFloat = false;
-                isChar = false;
-                isString = false;
             }
         }
 
@@ -1142,9 +1125,9 @@ public class Compilador {
         */
         void COMMAND() {
             if (!pauseCompiling) {
-                EXP_args expArgs = new EXP_args();
-
                 if (currentToken.token == tokenId) {
+                    boolean isStringIndex = false;
+
                     if (!identifierIsDeclared(currentToken)) {
                         throwIdentifierError("id_not_declared");
                         return;
@@ -1167,17 +1150,19 @@ public class Compilador {
                             return;
                         }
 
+                        isStringIndex = true;
+
                         checkToken(tokenOpenSq);
                         if (pauseCompiling)
                             return;
 
-                        expArgs = new EXP_args();
-                        EXP_A(expArgs);
+                        EXP_args expArgsA1 = new EXP_args();
+                        EXP_A(expArgsA1);
 
                         if (pauseCompiling)
                             return;
 
-                        if (!expArgs.isInt) {
+                        if (expArgsA1.type != "Integer") {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
@@ -1189,46 +1174,21 @@ public class Compilador {
                         } else
                             throwParserError();
 
-                        if (currentToken.token == tokenAtrib) {
-                            checkToken(tokenAtrib);
-                            if (pauseCompiling)
-                                return;
+                    }
 
-                            expArgs = new EXP_args();
-                            EXP_A(expArgs);
-
-                            if (pauseCompiling)
-                                return;
-
-                            if (!expArgs.isChar) {
-                                throwIdentifierError("incompatible_types");
-                                return;
-                            }
-
-                            if (currentToken.token == tokenSemiColon) {
-                                checkToken(tokenSemiColon);
-                                if (pauseCompiling)
-                                    return;
-                            } else {
-                                throwParserError();
-                            }
-                        } else
-                            throwParserError();
-                    } else if (currentToken.token == tokenAtrib) {
+                    if (currentToken.token == tokenAtrib) {
                         checkToken(tokenAtrib);
                         if (pauseCompiling)
                             return;
 
-                        expArgs = new EXP_args();
-                        EXP_A(expArgs);
+                        EXP_args expArgsA2 = new EXP_args();
+                        EXP_A(expArgsA2);
 
                         if (pauseCompiling)
                             return;
 
-                        if ((currentIdentifierType == "Integer" && !expArgs.isInt)
-                                || (currentIdentifierType == "Float" && !expArgs.isFloat)
-                                || (currentIdentifierType == "Char" && !expArgs.isChar)
-                                || (currentIdentifierType == "String" && !expArgs.isString)) {
+                        if ((isStringIndex && expArgsA2.type != "Char")
+                                || (!isStringIndex && expArgsA2.type != currentIdentifierType)) {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
@@ -1247,12 +1207,12 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
-                    expArgs = new EXP_args();
-                    EXP_A(expArgs);
+                    EXP_args expArgsA = new EXP_args();
+                    EXP_A(expArgsA);
                     if (pauseCompiling)
                         return;
 
-                    if (!expArgs.isBoolean) {
+                    if (expArgsA.type != "Boolean") {
                         throwIdentifierError("incompatible_types");
                         return;
                     }
@@ -1265,12 +1225,12 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
-                    expArgs = new EXP_args();
-                    EXP_A(expArgs);
+                    EXP_args expArgsA = new EXP_args();
+                    EXP_A(expArgsA);
                     if (pauseCompiling)
                         return;
 
-                    if (!expArgs.isBoolean) {
+                    if (expArgsA.type != "Boolean") {
                         throwIdentifierError("incompatible_types");
                         return;
                     }
@@ -1439,35 +1399,54 @@ public class Compilador {
             Caso token = (= | != | < | > | <= | >=), continua
             Caso seja diferente, erro
         */
-        void OPERATOR(EXP_args expArgs) {
+        void OPERATOR(EXP_args operatorArgs) {
             if (!pauseCompiling) {
-                expArgs.isBoolean = true;
-                expArgs.isInt = false;
-                expArgs.isFloat = false;
-                expArgs.isChar = false;
-                expArgs.isString = false;
-
                 if (currentToken.token == tokenEqual) {
+                    if (operatorArgs.type != "String" && operatorArgs.type != "Integer" && operatorArgs.type != "Float"
+                            && operatorArgs.type != "Char") {
+                        throwIdentifierError("incompatible_types");
+                        return;
+                    }
                     checkToken(tokenEqual);
                     if (pauseCompiling)
                         return;
                 } else if (currentToken.token == tokenDif) {
+                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
+                        throwIdentifierError("incompatible_types");
+                        return;
+                    }
                     checkToken(tokenDif);
                     if (pauseCompiling)
                         return;
                 } else if (currentToken.token == tokenLess) {
+                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
+                        throwIdentifierError("incompatible_types");
+                        return;
+                    }
                     checkToken(tokenLess);
                     if (pauseCompiling)
                         return;
                 } else if (currentToken.token == tokenGtr) {
+                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
+                        throwIdentifierError("incompatible_types");
+                        return;
+                    }
                     checkToken(tokenGtr);
                     if (pauseCompiling)
                         return;
                 } else if (currentToken.token == tokenLessEqual) {
+                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
+                        throwIdentifierError("incompatible_types");
+                        return;
+                    }
                     checkToken(tokenLessEqual);
                     if (pauseCompiling)
                         return;
                 } else if (currentToken.token == tokenGtrEqual) {
+                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
+                        throwIdentifierError("incompatible_types");
+                        return;
+                    }
                     checkToken(tokenGtrEqual);
                     if (pauseCompiling)
                         return;
@@ -1482,24 +1461,40 @@ public class Compilador {
             Metodo EXP -> Símbolo não terminal para expressoes.
             Chama metodo EXP_B e pode rodar OPERADOR EXP_B opcionalmente, quantas vezes quiser.
         */
-        void EXP_A(EXP_args expArgs) {
+        void EXP_A(EXP_args expArgsA) {
             if (!pauseCompiling) {
-                EXP_B(expArgs);
+                EXP_args expArgsB1 = new EXP_args();
+                EXP_B(expArgsB1);
                 if (pauseCompiling)
                     return;
-                while (currentToken.token == tokenEqual || currentToken.token == tokenDif
+
+                expArgsA.type = expArgsB1.type;
+
+                if (currentToken.token == tokenEqual || currentToken.token == tokenDif
                         || currentToken.token == tokenLess || currentToken.token == tokenGtr
                         || currentToken.token == tokenLessEqual || currentToken.token == tokenGtrEqual) {
-                    if (expArgs.isString && currentToken.token != tokenEqual) {
+
+                    EXP_args operatorArgs = new EXP_args();
+                    operatorArgs.type = expArgsB1.type;
+
+                    OPERATOR(operatorArgs);
+                    if (pauseCompiling)
+                        return;
+
+                    EXP_args expArgsB2 = new EXP_args();
+                    EXP_B(expArgsB2);
+                    if (pauseCompiling)
+                        return;
+
+                    if (((expArgsB1.type == "Integer" || expArgsB1.type == "Float")
+                            && (expArgsB2.type != "Integer" && expArgsB2.type != "Float"))
+                            || (expArgsB1.type == "Char" && expArgsB2.type != "Char")
+                            || (expArgsB1.type == "String" && expArgsB2.type != "String")) {
                         throwIdentifierError("incompatible_types");
                         return;
                     }
-                    OPERATOR(expArgs);
-                    if (pauseCompiling)
-                        return;
-                    EXP_B(expArgs);
-                    if (pauseCompiling)
-                        return;
+
+                    expArgsA.type = "Boolean";
                 }
             }
         }
@@ -1587,16 +1582,26 @@ public class Compilador {
             Metodo EXP_D -> Símbolo não terminal auxiliar 3 para expressoes.
             Pode iniciar com token !, e enquanto o proximo for igual a !, continua nesse loop. Depois chama EXP_E.
         */
-        void EXP_D(EXP_args expArgs) {
+        void EXP_D(EXP_args expArgsD) {
             if (!pauseCompiling) {
+                boolean not = false;
                 while (currentToken.token == tokenNot) {
+                    not = true;
                     checkToken(tokenNot);
                     if (pauseCompiling)
                         return;
                 }
-                EXP_E(expArgs);
+
+                EXP_args expArgsE = new EXP_args();
+                EXP_E(expArgsE);
                 if (pauseCompiling)
                     return;
+
+                if (not && expArgsE.type != "Boolean") {
+                    throwIdentifierError("incompatible_types");
+                    return;
+                }
+                expArgsD.type = expArgsE.type;
             }
         }
 
@@ -1735,7 +1740,7 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
 
-                        if (!expArgsA2.isInt) {
+                        if (expArgsA2.type != "Integer") {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
