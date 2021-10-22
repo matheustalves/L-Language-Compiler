@@ -1,24 +1,26 @@
 INÍCIO-> 	{DECL_A | COMANDO} eof
 
-DECL_A-> 	(int | float | string | char) DECL_B {,DECL_B} ;	|
-			const id (u) = [- (z0)] valor (z1) (z2) (z3);
+DECL_A-> 	(int | float | string | char) (45) DECL_B1 {, (46) DECL_B2} ;	|
+			const id (38) = [- (31)] valor (39) (40) (41);
 
-DECL_B-> 		id [<- [- (z0)] valor (z1) (z4) (z5) ]
+DECL_B-> 		id (38) [<- [- (31)] valor (39) (42) ] (43)
 
-COMANDO->	id (2) (14) ["[" (15) EXP_A1 (4) "]"] <- EXP_A2 (16);		  |
-			while EXP_A (17) TIPO_CMD				        |
-			if EXP_A (17) TIPO_CMD [else TIPO_CMD]			|
+COMANDO->	id (2) (14) ["[" (15) EXP_A1 (44) "]"] <- EXP_A2 (16);		  |
+			while EXP_A3 (17) TIPO_CMD				        |
+			if EXP_A4 (18) TIPO_CMD [else TIPO_CMD]			|
 			readln "(" id (2) ")";				            |
 			(write | writeln) "(" LISTA_EXP ")";		|
 			;
 
-TIPO_CMD->	COMANDO | "{" {COMANDO}+ "}"
-LISTA_EXP->	EXP_A {, EXP_A}
-OPERADOR->    	= (y)| != (z) | < (z)| > (z)| <= (z)| >= (z)
 
-EXP_A-> 	EXP_B1 (x3) [(x) OPERADOR EXP_B2 (x1) (x2)]
-EXP_B->		[-] EXP_C { (+ | - | "||") EXP_C }
-EXP_C->		EXP_D { ("*" | && | / | div | mod) EXP_D }
+
+TIPO_CMD->	COMANDO | "{" {COMANDO} "}"
+LISTA_EXP->	EXP_A1 (a1) {, EXP_A2 (a2)}
+OPERADOR->    	= (36)| != (37) | < (37)| > (37)| <= (37)| >= (37)
+
+EXP_A-> 	EXP_B1 (32) [(33) OPERADOR EXP_B2 (34) (35)]
+EXP_B->		[- (31)] EXP_C1 (26) (27) { (+ | - | "||") EXP_C2 (28) (29) (30)}
+EXP_C->		EXP_D1 (20) { ("*" | && | / | div | mod) EXP_D2 (21) (22) (23) (24) (25)} 
 EXP_D->		{! (11) } EXP_E (12) (13)
 EXP_E->		(int (9) | float (10) ) "(" EXP_A (8) ")" | EXP_F (7)
 EXP_F->     "(" EXP_A1 ")" (6)  | id (2)(3) ["[" EXP_A2 (4)(5) "]"] | valor (1)
@@ -33,35 +35,57 @@ XXX (7): {EXP_E.tipo := EXP_F.tipo}
 XXX (8): {if !(EXP_A.tipo = integer | EXP_A.tipo = float) then ERRO}
 XXX (9): {EXP_E.tipo := integer}
 XXX (10): {EXP_E.tipo := float}
-XXX (11): {houve_negacao = True}
+XXX (11): {houve_negacao := True}
 XXX (12): {if (houve_negacao & EXP_E.tipo != bool) then ERRO}
 XXX (13): {EXP_D.tipo := EXP_E.tipo}
-XXX (14): {if id.simbolo.classe != "var" then ERRO}
+XXX (14): {if id.simbolo.classe != variavel then ERRO}
 XXX (15): {isStringIndex = true}
-XXX (16): {if ((isStringIndex & EXP_A2.tipo != char) || (!isStringIndex & EXP_A2.tipo != id.simbolo.tipo)) then ERRO}
-XXX (17): {if EXP_A.tipo != bool then ERRO}
-
-Regras fora de ordem:
-XXX (x): {OPERADOR.tipo := EXP_B1.tipo}
-XXX (y): {if OPERADOR.tipo != (string|int|float|char) then ERRO}
-XXX (z): {if OPERADOR.tipo != (int|float|char) then ERRO}
-XXX (x1): {if !((EXP_B1.tipo = string & EXP_B2.tipo = string) | 
+XXX (16): {if ((isStringIndex & EXP_A2.tipo != char) | (!isStringIndex & EXP_A2.tipo != id.simbolo.tipo)) then ERRO}
+(17): {if EXP_A3.tipo != bool then ERRO}
+(18): {if EXP_A4.tipo != bool then ERRO}
+(19): {if EXP_D1.tipo = float | } ? verificar tipo de float * int 
+(20): {EXP_C.tipo := EXP_D1.tipo}
+(21): {if (operador = "*") then if !((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D1.tipo = integer | EXP_D2.tipo = float)) then ERRO;
+		else if (EXP_D1.tipo = float | EXP_D2.tipo = float) then EXP_C.tipo = float else EXP_C.tipo = integer}
+(22): {if (operador = /) then if !((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D1.tipo = integer | EXP_D2.tipo = float)) then ERRO;
+		else if (EXP_D1.tipo = float | EXP_D2.tipo = float) then EXP_C.tipo = float else EXP_C.tipo = integer}
+(23): {if (operador = div) then if !((EXP_D1.tipo = integer & EXP_D2.tipo = integer) then ERRO}
+(23): {if (operador = mod) then if !((EXP_D1.tipo = integer & EXP_D2.tipo = integer) then ERRO}
+(25): {if (operador = &&) then if !((EXP_D1.tipo = boolean & EXP_D2.tipo = boolean) then ERRO}
+(26): {if (minus & !(EXP_C1.tipo = integer | EXP_C2.tipo = float)) then ERRO}
+(27): {EXP_B.tipo := EXP_C1.tipo}
+(28): {if (operador = +) then if !((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_C1.tipo = integer | EXP_C2.tipo = float)) then ERRO;
+		else if (EXP_C1.tipo = float | EXP_C2.tipo = float) then EXP_B.tipo = float else EXP_B.tipo = integer}
+(29): {if (operador = -) then if !((EXP_C1.tipo = integer | EXP_C1.tipo = float) & (EXP_C1.tipo = integer | EXP_C2.tipo = float)) then ERRO;
+		else if (EXP_C1.tipo = float | EXP_C2.tipo = float) then EXP_B.tipo = float else EXP_B.tipo = integer}
+(30): {if (operador = "||") then if !((EXP_D1.tipo = boolean & EXP_D2.tipo = boolean) then ERRO}
+(31): {minus = True}
+XXX (32): {EXP_A.tipo := EXP_B1.tipo} 
+XXX (33): {OPERADOR.tipo := EXP_B1.tipo}
+XXX (34): {if !((EXP_B1.tipo = string & EXP_B2.tipo = string) |
+		(EXP_B1.tipo = char & EXP_B2.tipo = char) |
 		(EXP_B1.tipo = integer & EXP_B2.tipo = integer) |
 		(EXP_B1.tipo = float & EXP_B2.tipo = integer) |
 		(EXP_B1.tipo = integer & EXP_B2.tipo = float) |
 		(EXP_B1.tipo = float & EXP_B2.tipo = float)) then ERRO}
-XXX (x2): {EXP_A.tipo := bool} 
-XXX (x3): {EXP_A.tipo := EXP_B1.tipo} 
-XXX (z0): {minus = True}
-XXX (z1): {if (minus & !(valor.tipo = integer | valor.tipo = float)) then ERRO}
-XXX (z2): {id.simbolo.tipo := valor.tipo_constante}
-XXX (z3): {id.simbolo.classe := constante}
-XXX (z4): {id.simbolo.tipo := valor.tipo_variavel}
-XXX (z5): {id.simbolo.classe := variavel}
-XXX (u): {if id.simbolo.classe != null then ERRO_id_declarado}
+XXX (35): {EXP_A.tipo := bool}
+XXX (36): {if OPERADOR.tipo != (string|int|float|char) then ERRO}
+XXX (37): {if OPERADOR.tipo != (int|float|char) then ERRO}
+(38): {if id.simbolo.classe != null then ERRO_id_declarado}
+XXX (39): {if (minus & !(valor.tipo = integer | valor.tipo = float)) then ERRO}
+XXX (40): {id.simbolo.tipo := valor.tipo_constante}
+XXX (41): {id.simbolo.classe := constante}
+(42): {id.simbolo.classe := variavel}
+(43): {id.simbolo.tipo := DECL_B.tipo}
+(44): {if (EXP_A1.tipo != integer | id.simbolo.tipo != string) then ERRO}
+(45): {DECL_B1.tipo := prev_tipo}
+(46): {DECL_B2.tipo := prev_tipo}
 
+Regras fora de ordem:
+
+(a1): {if EXP_A1.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
+(a2): {if EXP_A2.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
+ 
 
 // Duvidas:
-1. Implementação da regra (x2)
-2. Pode repetir (z0) e (z1) para variavel? Em DECL_B e EXP_C
-3. tipo_constante?
+1. Por que "*" e "||" são os únicos operadores em aspas?
