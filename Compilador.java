@@ -814,10 +814,6 @@ public class Compilador {
             EXP_F->     	"(" EXP ")" | id ["[" EXP "]"] | num
     */
     static class Parser {
-        String currentIdentifierLexeme = "";
-        String currentIdentifierClass = "";
-        String currentIdentifierType = "";
-
         /* 
             Metodo throwParserError -> Acusa erro sintático e pausa compilador.
             Caso 667 (EOF), fim de arquivo nao esperado.
@@ -1138,7 +1134,7 @@ public class Compilador {
                         return;
                     }
 
-                    currentIdentifierType = symbolTable.get(currentToken.lexeme).type;
+                    String currentIdentifierType = symbolTable.get(currentToken.lexeme).type;
 
                     checkToken(tokenId);
                     if (pauseCompiling)
@@ -1207,12 +1203,12 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
-                    EXP_args expArgsA = new EXP_args();
-                    EXP_A(expArgsA);
+                    EXP_args expArgsA3 = new EXP_args();
+                    EXP_A(expArgsA3);
                     if (pauseCompiling)
                         return;
 
-                    if (expArgsA.type != "Boolean") {
+                    if (expArgsA3.type != "Boolean") {
                         throwIdentifierError("incompatible_types");
                         return;
                     }
@@ -1225,12 +1221,12 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
-                    EXP_args expArgsA = new EXP_args();
-                    EXP_A(expArgsA);
+                    EXP_args expArgsA4 = new EXP_args();
+                    EXP_A(expArgsA4);
                     if (pauseCompiling)
                         return;
 
-                    if (expArgsA.type != "Boolean") {
+                    if (expArgsA4.type != "Boolean") {
                         throwIdentifierError("incompatible_types");
                         return;
                     }
@@ -1505,18 +1501,31 @@ public class Compilador {
             Metodo EXP_B -> Símbolo não terminal auxiliar 1 para expressoes.
             Opcionalmente pode iniciar com token de menos. Chama EXP_C e pode opcionalmente rodar (+ | - | "||") EXP_C, quantas vezes quiser.
         */
-        void EXP_B(EXP_args expArgs) {
+        void EXP_B(EXP_args expArgsB) {
             if (!pauseCompiling) {
+                boolean minus = false;
                 if (currentToken.token == tokenMinus) {
                     checkToken(tokenMinus);
                     if (pauseCompiling)
                         return;
+                    minus = true;
                 }
-                EXP_C(expArgs);
+
+                EXP_args expArgsC1 = new EXP_args();
+                EXP_C(expArgsC1);
                 if (pauseCompiling)
                     return;
+
+                if (minus && !(expArgsC1.type == "Integer" || expArgsC1.type == "Float")) {
+                    throwIdentifierError("incompatible_types");
+                    return;
+                }
+
+                expArgsB.type = expArgsC1.type;
+
                 while (currentToken.token == tokenPlus || currentToken.token == tokenMinus
                         || currentToken.token == tokenOr) {
+                    int operator = currentToken.token;
                     if (currentToken.token == tokenPlus) {
                         checkToken(tokenPlus);
                         if (pauseCompiling)
@@ -1531,9 +1540,38 @@ public class Compilador {
                             return;
                     } else
                         throwParserError();
-                    EXP_C(expArgs);
+
+                    EXP_args expArgsC2 = new EXP_args();
+                    EXP_C(expArgsC2);
                     if (pauseCompiling)
                         return;
+
+                    if (operator == tokenPlus) {
+                        if (((expArgsC1.type == "Integer" || expArgsC1.type == "Float")
+                                && (expArgsC2.type != "Integer" && expArgsC2.type != "Float"))) {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        } else if (expArgsC1.type == "Float" || expArgsC2.type == "Float") {
+                            expArgsB.type = "Float";
+                        } else {
+                            expArgsB.type = "Integer";
+                        }
+                    } else if (operator == tokenMinus) {
+                        if (((expArgsC1.type == "Integer" || expArgsC1.type == "Float")
+                                && (expArgsC2.type != "Integer" && expArgsC2.type != "Float"))) {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        } else if (expArgsC1.type == "Float" || expArgsC2.type == "Float") {
+                            expArgsB.type = "Float";
+                        } else {
+                            expArgsB.type = "Integer";
+                        }
+                    } else if (operator == tokenOr) {
+                        if (!(expArgsC1.type == "Boolean" && expArgsC2.type == "Boolean")) {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                    }
                 }
             }
         }
@@ -1544,13 +1582,20 @@ public class Compilador {
             Metodo EXP_C -> Símbolo não terminal auxiliar 2 para expressoes.
             Chama EXP_D e pode opcionalmente rodar ("*" | && | / | div | mod) EXP_D, quantas vezes quiser.
         */
-        void EXP_C(EXP_args expArgs) {
+        void EXP_C(EXP_args expArgsC) {
             if (!pauseCompiling) {
-                EXP_D(expArgs);
+                EXP_args expArgsD1 = new EXP_args();
+                EXP_D(expArgsD1);
                 if (pauseCompiling)
                     return;
+
+                expArgsC.type = expArgsD1.type;
+
                 while (currentToken.token == tokenMult || currentToken.token == tokenAnd
-                        || currentToken.token == tokenDiv || currentToken.token == tokenMod) {
+                        || currentToken.token == tokenDiv || currentToken.token == tokenDiv2
+                        || currentToken.token == tokenMod) {
+                    int operator = currentToken.token;
+
                     if (currentToken.token == tokenMult) {
                         checkToken(tokenMult);
                         if (pauseCompiling)
@@ -1563,15 +1608,58 @@ public class Compilador {
                         checkToken(tokenDiv);
                         if (pauseCompiling)
                             return;
+                    } else if (currentToken.token == tokenDiv2) {
+                        checkToken(tokenDiv2);
+                        if (pauseCompiling)
+                            return;
                     } else if (currentToken.token == tokenMod) {
                         checkToken(tokenMod);
                         if (pauseCompiling)
                             return;
                     } else
                         throwParserError();
-                    EXP_D(expArgs);
+
+                    EXP_args expArgsD2 = new EXP_args();
+                    EXP_D(expArgsD2);
                     if (pauseCompiling)
                         return;
+
+                    if (operator == tokenMult) {
+                        if (((expArgsD1.type == "Integer" || expArgsD1.type == "Float")
+                                && (expArgsD2.type != "Integer" && expArgsD2.type != "Float"))) {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        } else if (expArgsD1.type == "Float" || expArgsD2.type == "Float") {
+                            expArgsC.type = "Float";
+                        } else {
+                            expArgsC.type = "Integer";
+                        }
+                    } else if (operator == tokenDiv) {
+                        if (((expArgsD1.type == "Integer" || expArgsD1.type == "Float")
+                                && (expArgsD2.type != "Integer" && expArgsD2.type != "Float"))) {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        } else if (expArgsD1.type == "Float" || expArgsD2.type == "Float") {
+                            expArgsC.type = "Float";
+                        } else {
+                            expArgsC.type = "Integer";
+                        }
+                    } else if (operator == tokenDiv2) {
+                        if (!(expArgsD1.type == "Integer" && expArgsD2.type == "Integer")) {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                    } else if (operator == tokenMod) {
+                        if (!(expArgsD1.type == "Integer" && expArgsD2.type == "Integer")) {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                    } else if (operator == tokenAnd) {
+                        if (!(expArgsD1.type == "Boolean" && expArgsD2.type == "Boolean")) {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                    }
                 }
             }
         }
@@ -1716,7 +1804,7 @@ public class Compilador {
                         return;
                     }
 
-                    currentIdentifierType = symbolTable.get(currentToken.lexeme).type;
+                    String currentIdentifierType = symbolTable.get(currentToken.lexeme).type;
 
                     expArgsF.type = currentIdentifierType;
 
