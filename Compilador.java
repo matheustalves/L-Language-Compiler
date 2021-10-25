@@ -12,6 +12,8 @@ import java.util.Hashtable;
 // import java.util.Scanner;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 // import java.io.FileReader;
 import java.io.IOException;
 
@@ -41,6 +43,7 @@ public class Compilador {
     static Parser parser = new Parser();
     static Token currentToken = null;
     static char lineSeparator = '\n';
+    static int posMem = 10000;
 
     static final int tokenId = 0;
     static final int tokenStr = 1;
@@ -84,6 +87,7 @@ public class Compilador {
     static class Symbol {
         String lexeme;
         int token;
+        int addr;
         String classification;
         String type;
 
@@ -814,6 +818,19 @@ public class Compilador {
             EXP_F->     	"(" EXP ")" | id ["[" EXP "]"] | num
     */
     static class Parser {
+        static int currentSection = 0; // .data = 0 , .text = 1
+        static BufferedWriter writer;
+        static {
+            try {
+                writer = new BufferedWriter(new FileWriter("arq.asm"));
+                writer.write("section .data ; sessao de dados\n");
+                writer.write("M: ; rotulo de inicio da sessao de dados\n");
+                writer.write("resb 10000h ; reserva de temporarios\n");
+            } catch (final IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+
         /* 
             Metodo throwParserError -> Acusa erro sintático e pausa compilador.
             Caso 667 (EOF), fim de arquivo nao esperado.
@@ -871,14 +888,11 @@ public class Compilador {
             }
         }
 
-        /* 
-            Metodo toSymbolTable -> Coloca identificador na tabela de simbolos.
-        */
-        void toSymbolTable(String classification, String type, String lexeme) {
-            Symbol newSymbol = new Symbol(lexeme, tokenId);
-            newSymbol.classification = classification;
-            newSymbol.type = type;
-            symbolTable.put(lexeme, newSymbol);
+        void updatePosMem(String type) {
+            if (type == "Char")
+                posMem += 1;
+            else if (type == "Integer" || type == "Float")
+                posMem += 4;
         }
 
         /* 
@@ -889,6 +903,27 @@ public class Compilador {
             if (symbol != null)
                 return true;
             return false;
+        }
+
+        void attributionToMemory(Symbol symbol, String value) throws IOException {
+            if (symbol.classification == "var") {
+                if (symbol.type == "Char") {
+                    writer.write("mov al, " + value + " ; alocando char em registrador\n");
+                    writer.write("mov [M+" + symbol.addr + "], al ; adicionando valor a endereco do id: "
+                            + symbol.lexeme + "\n");
+                } else if (symbol.type == "Integer") {
+                    writer.write("mov eax, " + value + " ; alocando inteiro em registrador\n");
+                    writer.write("mov [M+" + symbol.addr + "], eax ; adicionando valor a endereco do id: "
+                            + symbol.lexeme + "\n");
+                } else if (symbol.type == "Float") {
+                    writer.write("movss eax, " + value + " ; alocando float em registrador\n");
+                    writer.write("mov [M+" + symbol.addr + "], eax ; adicionando valor a endereco do id: "
+                            + symbol.lexeme + "\n");
+                }
+            } else if (symbol.classification == "const") {
+
+            }
+
         }
 
         class EXP_args {
@@ -905,15 +940,30 @@ public class Compilador {
             Metodo START -> Símbolo não terminal inicial da gramática. 
             Aceita declaração ou comando até EOF ou erro.
         */
-        void START() {
+        void START() throws IOException {
             while (currentToken.token != 667 && !pauseCompiling) {
                 if (currentToken.token == tokenStr || currentToken.token == tokenConst || currentToken.token == tokenInt
                         || currentToken.token == tokenChar || currentToken.token == tokenFloat) {
+                    if (currentSection != 0) {
+                        writer.write("section .data ; sessao de dados\n");
+                        writer.write("M: ; rotulo de inicio da sessao de dados\n");
+                    }
+                    currentSection = 0;
                     DECL_A();
-                } else
+                } else {
+                    if (currentSection != 1) {
+                        writer.write("section .text ; sessao de codigo\n");
+                        writer.write("global _start ; Ponto inicial do programa\n");
+                        writer.write("_start: ; Inicio do programa\n");
+                    }
+                    currentSection = 1;
                     COMMAND();
+                }
             }
-
+            writer.write("mov rax, 60 ; Chamada de saida\n");
+            writer.write("mov rdi, 0 ; Codigo de saida sem erros\n");
+            writer.write("syscall ; Chama o kernel\n");
+            writer.close();
         }
 
         /* 
@@ -974,6 +1024,20 @@ public class Compilador {
                                     return;
                                 }
                                 idType = currentToken.type;
+
+                                Symbol currentSymbol = new Symbol(idLexeme, tokenId);
+                                currentSymbol.addr = posMem;
+                                currentSymbol.classification = "const";
+                                currentSymbol.type = idType;
+                                symbolTable.put(currentSymbol.lexeme, currentSymbol);
+                                updatePosMem(idType);
+
+                                try {
+                                    attributionToMemory(currentSymbol, currentToken.lexeme);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+
                                 checkToken(tokenValue);
                                 if (pauseCompiling)
                                     return;
@@ -981,7 +1045,6 @@ public class Compilador {
                                 throwParserError();
                             if (pauseCompiling)
                                 return;
-                            toSymbolTable("const", idType, idLexeme);
                         } else
                             throwParserError();
                     } else
@@ -1060,11 +1123,18 @@ public class Compilador {
                         return;
                     }
 
-                    toSymbolTable("var", idType, currentToken.lexeme);
+                    Symbol currentSymbol = new Symbol(currentToken.lexeme, tokenId);
+                    currentSymbol.addr = posMem;
+                    currentSymbol.classification = "var";
+                    currentSymbol.type = idType;
+                    symbolTable.put(currentSymbol.lexeme, currentSymbol);
+
+                    updatePosMem(idType);
 
                     checkToken(tokenId);
                     if (pauseCompiling)
                         return;
+
                     if (currentToken.token == tokenAtrib) {
                         checkToken(tokenAtrib);
                         if (pauseCompiling)
@@ -1080,6 +1150,7 @@ public class Compilador {
                                 throwIdentifierError("incompatible_types");
                                 return;
                             }
+
                             if ((idType == "Integer" && currentToken.type != "Integer")
                                     || (idType == "Float"
                                             && (currentToken.type != "Float" && currentToken.type != "Integer"))
@@ -1088,6 +1159,13 @@ public class Compilador {
                                 throwIdentifierError("incompatible_types");
                                 return;
                             }
+
+                            try {
+                                attributionToMemory(currentSymbol, currentToken.lexeme);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
                             checkToken(tokenValue);
                             if (pauseCompiling)
                                 return;
@@ -1134,14 +1212,14 @@ public class Compilador {
                         return;
                     }
 
-                    String currentIdentifierType = symbolTable.get(currentToken.lexeme).type;
+                    Symbol currentSymbol = symbolTable.get(currentToken.lexeme);
 
                     checkToken(tokenId);
                     if (pauseCompiling)
                         return;
 
                     if (currentToken.token == tokenOpenSq) {
-                        if (currentIdentifierType != "String") {
+                        if (currentSymbol.type != "String") {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
@@ -1184,9 +1262,15 @@ public class Compilador {
                             return;
 
                         if ((isStringIndex && expArgsA2.type != "Char")
-                                || (!isStringIndex && expArgsA2.type != currentIdentifierType)) {
+                                || (!isStringIndex && expArgsA2.type != currentSymbol.type)) {
                             throwIdentifierError("incompatible_types");
                             return;
+                        }
+
+                        try {
+                            attributionToMemory(currentSymbol, "result_expA2");
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
 
                         if (currentToken.token == tokenSemiColon) {
@@ -1812,16 +1896,16 @@ public class Compilador {
                         return;
                     }
 
-                    String currentIdentifierType = symbolTable.get(currentToken.lexeme).type;
+                    Symbol currentSymbol = symbolTable.get(currentToken.lexeme);
 
-                    expArgsF.type = currentIdentifierType;
+                    expArgsF.type = currentSymbol.type;
 
                     checkToken(tokenId);
                     if (pauseCompiling)
                         return;
 
                     if (currentToken.token == tokenOpenSq) {
-                        if (currentIdentifierType != "String") {
+                        if (currentSymbol.type != "String") {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
