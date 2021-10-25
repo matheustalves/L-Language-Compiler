@@ -905,6 +905,26 @@ public class Compilador {
             return false;
         }
 
+        void declarationToMemory(Symbol symbol, boolean hasValue, String value) throws IOException {
+            if (hasValue) {
+                if (symbol.type == "Char") {
+                    writer.write("db " + value + " ; char em " + posMem + "h\n");
+                } else if (symbol.type == "Integer") {
+                    writer.write("dd " + value + " ; inteiro em " + posMem + "h\n");
+                } else if (symbol.type == "Float") {
+                    writer.write("dd " + value + " ; float em " + posMem + "h\n");
+                }
+            } else {
+                if (symbol.type == "Char") {
+                    writer.write("resb 1 ; char em " + posMem + "h\n");
+                } else if (symbol.type == "Integer") {
+                    writer.write("resd 1 ; inteiro em " + posMem + "h\n");
+                } else if (symbol.type == "Float") {
+                    writer.write("resd 1 ; float em " + posMem + "h\n");
+                }
+            }
+        }
+
         void attributionToMemory(Symbol symbol, String value) throws IOException {
             if (symbol.classification == "var") {
                 if (symbol.type == "Char") {
@@ -1030,13 +1050,14 @@ public class Compilador {
                                 currentSymbol.classification = "const";
                                 currentSymbol.type = idType;
                                 symbolTable.put(currentSymbol.lexeme, currentSymbol);
-                                updatePosMem(idType);
 
                                 try {
-                                    attributionToMemory(currentSymbol, currentToken.lexeme);
+                                    declarationToMemory(currentSymbol, true, currentToken.lexeme);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
+
+                                updatePosMem(idType);
 
                                 checkToken(tokenValue);
                                 if (pauseCompiling)
@@ -1117,6 +1138,8 @@ public class Compilador {
         void DECL_B(String idType) {
             if (!pauseCompiling) {
                 boolean minus = false;
+                boolean hasValue = false;
+                String value = "";
                 if (currentToken.token == tokenId) {
                     if (identifierIsDeclared(currentToken)) {
                         throwIdentifierError("id_already_declared");
@@ -1128,8 +1151,6 @@ public class Compilador {
                     currentSymbol.classification = "var";
                     currentSymbol.type = idType;
                     symbolTable.put(currentSymbol.lexeme, currentSymbol);
-
-                    updatePosMem(idType);
 
                     checkToken(tokenId);
                     if (pauseCompiling)
@@ -1160,11 +1181,8 @@ public class Compilador {
                                 return;
                             }
 
-                            try {
-                                attributionToMemory(currentSymbol, currentToken.lexeme);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            hasValue = true;
+                            value = currentToken.lexeme;
 
                             checkToken(tokenValue);
                             if (pauseCompiling)
@@ -1174,6 +1192,14 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                     }
+
+                    try {
+                        declarationToMemory(currentSymbol, hasValue, value);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    updatePosMem(idType);
                 }
             }
         }
