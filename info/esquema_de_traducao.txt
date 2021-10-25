@@ -43,18 +43,18 @@ XXX (17): {if EXP_A3.tipo != bool then ERRO}
 XXX (18): {if EXP_A4.tipo != bool then ERRO}
 (19): {if EXP_D1.tipo = float | } ? verificar tipo de float * int 
 XXX (20): {EXP_C.tipo := EXP_D1.tipo}
-XXX (21): {if (operador = "*") then if !((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D2.tipo = integer | EXP_D2.tipo = float)) then ERRO;
+XXX (21): {if (operador = "*") then if (!((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D2.tipo = integer | EXP_D2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float)) then ERRO;
 		else if (EXP_D1.tipo = float | EXP_D2.tipo = float) then EXP_C.tipo = float else EXP_C.tipo = integer}
-XXX (22): {if (operador = /) then if !((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D2.tipo = integer | EXP_D2.tipo = float)) then ERRO;
+XXX (22): {if (operador = /) then if (!((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D2.tipo = integer | EXP_D2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float))  then ERRO;
 		else if (EXP_D1.tipo = float | EXP_D2.tipo = float) then EXP_C.tipo = float else EXP_C.tipo = integer}
 XXX (23): {if (operador = div) then if !((EXP_D1.tipo = integer & EXP_D2.tipo = integer) then ERRO}
 XXX (24): {if (operador = mod) then if !((EXP_D1.tipo = integer & EXP_D2.tipo = integer) then ERRO}
 XXX (25): {if (operador = &&) then if !((EXP_D1.tipo = boolean & EXP_D2.tipo = boolean) then ERRO}
 XXX (26): {if (minus & !(EXP_C1.tipo = integer | EXP_C2.tipo = float)) then ERRO}
 XXX (27): {EXP_B.tipo := EXP_C1.tipo}
-XXX (28): {if (operador = +) then if !((EXP_C1.tipo = integer | EXP_C1.tipo = float) & (EXP_C2.tipo = integer | EXP_C2.tipo = float)) then ERRO;
+XXX (28): {if (operador = +) then if (!((EXP_C1.tipo = integer | EXP_C1.tipo = float) & (EXP_C2.tipo = integer | EXP_C2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float)))  then ERRO;
 		else if (EXP_C1.tipo = float | EXP_C2.tipo = float) then EXP_B.tipo = float else EXP_B.tipo = integer}
-XXX (29): {if (operador = -) then if !((EXP_C1.tipo = integer | EXP_C1.tipo = float) & (EXP_C2.tipo = integer | EXP_C2.tipo = float)) then ERRO;
+XXX (29): {if (operador = -) then if (!((EXP_C1.tipo = integer | EXP_C1.tipo = float) & (EXP_C2.tipo = integer | EXP_C2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float))) then ERRO;
 		else if (EXP_C1.tipo = float | EXP_C2.tipo = float) then EXP_B.tipo = float else EXP_B.tipo = integer}
 XXX (30): {if (operador = "||") then if !((EXP_C1.tipo = boolean & EXP_C2.tipo = boolean) then ERRO}
 XXX (31): {minus = True}

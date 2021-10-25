@@ -1547,8 +1547,10 @@ public class Compilador {
                         return;
 
                     if (operator == tokenPlus) {
-                        if (((expArgsC1.type == "Integer" || expArgsC1.type == "Float")
-                                && (expArgsC2.type != "Integer" && expArgsC2.type != "Float"))) {
+                        if ((expArgsC1.type != "Integer" && expArgsC1.type != "Float")
+                                || (expArgsC2.type != "Integer" && expArgsC2.type != "Float")
+                                || ((expArgsC1.type == "Integer" || expArgsC1.type == "Float")
+                                        && (expArgsC2.type != "Integer" && expArgsC2.type != "Float"))) {
                             throwIdentifierError("incompatible_types");
                             return;
                         } else if (expArgsC1.type == "Float" || expArgsC2.type == "Float") {
@@ -1557,8 +1559,10 @@ public class Compilador {
                             expArgsB.type = "Integer";
                         }
                     } else if (operator == tokenMinus) {
-                        if (((expArgsC1.type == "Integer" || expArgsC1.type == "Float")
-                                && (expArgsC2.type != "Integer" && expArgsC2.type != "Float"))) {
+                        if ((expArgsC1.type != "Integer" && expArgsC1.type != "Float")
+                                || (expArgsC2.type != "Integer" && expArgsC2.type != "Float")
+                                || ((expArgsC1.type == "Integer" || expArgsC1.type == "Float")
+                                        && (expArgsC2.type != "Integer" && expArgsC2.type != "Float"))) {
                             throwIdentifierError("incompatible_types");
                             return;
                         } else if (expArgsC1.type == "Float" || expArgsC2.type == "Float") {
@@ -1625,8 +1629,10 @@ public class Compilador {
                         return;
 
                     if (operator == tokenMult) {
-                        if (((expArgsD1.type == "Integer" || expArgsD1.type == "Float")
-                                && (expArgsD2.type != "Integer" && expArgsD2.type != "Float"))) {
+                        if ((expArgsD1.type != "Integer" && expArgsD1.type != "Float")
+                                || (expArgsD2.type != "Integer" && expArgsD2.type != "Float")
+                                || ((expArgsD1.type == "Integer" || expArgsD1.type == "Float")
+                                        && (expArgsD2.type != "Integer" && expArgsD2.type != "Float"))) {
                             throwIdentifierError("incompatible_types");
                             return;
                         } else if (expArgsD1.type == "Float" || expArgsD2.type == "Float") {
@@ -1635,8 +1641,10 @@ public class Compilador {
                             expArgsC.type = "Integer";
                         }
                     } else if (operator == tokenDiv) {
-                        if (((expArgsD1.type == "Integer" || expArgsD1.type == "Float")
-                                && (expArgsD2.type != "Integer" && expArgsD2.type != "Float"))) {
+                        if ((expArgsD1.type != "Integer" && expArgsD1.type != "Float")
+                                || (expArgsD2.type != "Integer" && expArgsD2.type != "Float")
+                                || ((expArgsD1.type == "Integer" || expArgsD1.type == "Float")
+                                        && (expArgsD2.type != "Integer" && expArgsD2.type != "Float"))) {
                             throwIdentifierError("incompatible_types");
                             return;
                         } else if (expArgsD1.type == "Float" || expArgsD2.type == "Float") {
@@ -1745,7 +1753,7 @@ public class Compilador {
                         EXP_args expArgsA = new EXP_args();
                         EXP_A(expArgsA);
 
-                        if (expArgsA.type != "Float") {
+                        if (expArgsA.type != "Integer" && expArgsA.type != "Float") {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
