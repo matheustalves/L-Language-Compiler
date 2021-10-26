@@ -1655,8 +1655,30 @@ public class Compilador {
                     return;
                 }
 
+                if (minus) {
+                    expArgsB.addr = tempCounter;
+                    updateTempCounter(expArgsC1.type, 0);
+                    try {
+                        if (expArgsC1.type == "Integer") {
+                            writer.write(
+                                    "\tmov eax, [M+" + expArgsC1.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write("\tneg eax ; negando valor de registrador\n");
+                            writer.write("\tmov [M+" + expArgsB.addr + "], eax ; alocando valor negado na memoria\n");
+                        } else {
+                            // writer.write(
+                            //         "\tmovss eax, [M+" + expArgsC1.addr + "] ; alocando valor em end. a registrador\n");
+                            // writer.write("\tmovss ebx, -1")
+                            // writer.write("\tmulss eax, -1 ; multiplicando registrador por -1\n");
+                            // writer.write("\tmovss [M+" + expArgsB.addr + "], eax ; alocando valor negado na memoria\n");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    expArgsB.addr = expArgsC1.addr;
+                }
+
                 expArgsB.type = expArgsC1.type;
-                expArgsB.addr = expArgsC1.addr;
 
                 while (currentToken.token == tokenPlus || currentToken.token == tokenMinus
                         || currentToken.token == tokenOr) {
@@ -1734,6 +1756,7 @@ public class Compilador {
                 while (currentToken.token == tokenMult || currentToken.token == tokenAnd
                         || currentToken.token == tokenDiv || currentToken.token == tokenDiv2
                         || currentToken.token == tokenMod) {
+
                     int operator = currentToken.token;
 
                     if (currentToken.token == tokenMult) {
@@ -1773,8 +1796,67 @@ public class Compilador {
                             return;
                         } else if (expArgsD1.type == "Float" || expArgsD2.type == "Float") {
                             expArgsC.type = "Float";
+
+                            if (expArgsD1.type == "Float") {
+                                try {
+                                    writer.write("\tmovss xmm0, [" + expArgsC.addr
+                                            + "] ; alocando valor em end. a registrador\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                try {
+                                    writer.write("\tmov rax, [" + expArgsC.addr
+                                            + "] ; alocando valor em end. a registrador\n");
+                                    writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            if (expArgsD2.type == "Float") {
+                                try {
+                                    writer.write("\tmovss xmm1, [" + expArgsD2.addr
+                                            + "] ; alocando valor em end. a registrador\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                try {
+                                    writer.write("\tmov rbx, [" + expArgsD2.addr
+                                            + "] ; alocando valor em end. a registrador\n");
+                                    writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            try {
+                                writer.write("\tmulss xmm0, xmm1 ; xmm0 * xmm1\n");
+                                expArgsC.addr = tempCounter;
+                                updateTempCounter(expArgsC.type, 0);
+                                writer.write("\tmovss [" + expArgsC.addr
+                                        + "], xmm0 ; aloca resultado da mult. em endereco\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
                         } else {
                             expArgsC.type = "Integer";
+
+                            try {
+                                writer.write(
+                                        "\tmov eax, [" + expArgsC.addr + "] ; alocando valor em end. a registrador\n");
+                                writer.write(
+                                        "\tmov ebx, [" + expArgsD2.addr + "] ; alocando valor em end. a registrador\n");
+                                writer.write("\timul ebx ; eax * ebx\n");
+                                expArgsC.addr = tempCounter;
+                                updateTempCounter(expArgsC.type, 0);
+                                writer.write("\tmov [" + expArgsC.addr
+                                        + "], edx:eax ; aloca resultado da mult. em endereco\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     } else if (operator == tokenDiv) {
                         if ((expArgsD1.type != "Integer" && expArgsD1.type != "Float")
@@ -1793,15 +1875,53 @@ public class Compilador {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
+
+                        try {
+                            writer.write("\tmov eax, [" + expArgsC.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write(
+                                    "\tmov ebx, [" + expArgsD2.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write("\tidiv ebx ; eax div ebx\n");
+                            expArgsC.addr = tempCounter;
+                            updateTempCounter(expArgsC.type, 0);
+                            writer.write("\tmov [" + expArgsC.addr + "], eax ; aloca quociente da div. em endereco\n");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
                     } else if (operator == tokenMod) {
                         if (!(expArgsD1.type == "Integer" && expArgsD2.type == "Integer")) {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
+
+                        try {
+                            writer.write("\tmov eax, [" + expArgsC.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write(
+                                    "\tmov ebx, [" + expArgsD2.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write("\tidiv ebx ; eax divisao ebx\n");
+                            expArgsC.addr = tempCounter;
+                            updateTempCounter(expArgsC.type, 0);
+                            writer.write("\tmov [" + expArgsC.addr + "], edx ; aloca resto da div. em endereco\n");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     } else if (operator == tokenAnd) {
                         if (!(expArgsD1.type == "Boolean" && expArgsD2.type == "Boolean")) {
                             throwIdentifierError("incompatible_types");
                             return;
+                        }
+
+                        try {
+                            writer.write("\tmov eax, [" + expArgsC.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write(
+                                    "\tmov ebx, [" + expArgsD2.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write("\timul ebx ; eax AND ebx\n");
+                            expArgsC.addr = tempCounter;
+                            updateTempCounter(expArgsC.type, 0);
+                            writer.write(
+                                    "\tmov [" + expArgsC.addr + "], edx:eax ; aloca resultado do AND em endereco\n");
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
                     }
                 }
