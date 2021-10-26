@@ -43,7 +43,6 @@ public class Compilador {
     static Parser parser = new Parser();
     static Token currentToken = null;
     static char lineSeparator = '\n';
-    static int posMem = 10000;
 
     static final int tokenId = 0;
     static final int tokenStr = 1;
@@ -570,7 +569,7 @@ public class Compilador {
             } else if (c == '#') {
                 throwError("unexpected_eof");
             } else if (c == '\"') {
-                lexeme += "0" + c;
+                lexeme += c;
                 nextState = 20;
 
                 Token token = new Token(lexeme, tokenValue, "String");
@@ -818,6 +817,8 @@ public class Compilador {
             EXP_F->     	"(" EXP ")" | id ["[" EXP "]"] | num
     */
     static class Parser {
+        static int posMem = 0x10000;
+        static int tempCounter = 0x0;
         static int currentSection = 0; // .data = 0 , .text = 1
         static BufferedWriter writer;
         static {
@@ -825,10 +826,14 @@ public class Compilador {
                 writer = new BufferedWriter(new FileWriter("arq.asm"));
                 writer.write("section .data ; sessao de dados\n");
                 writer.write("M: ; rotulo de inicio da sessao de dados\n");
-                writer.write("resb 10000h ; reserva de temporarios\n");
+                writer.write("\tresb 10000h ; reserva de temporarios\n");
             } catch (final IOException exception) {
                 exception.printStackTrace();
             }
+        }
+
+        static void write(String str) throws IOException {
+            writer.write(str);
         }
 
         /* 
@@ -888,11 +893,24 @@ public class Compilador {
             }
         }
 
-        void updatePosMem(String type) {
+        void updatePosMem(String type, int strSize) {
             if (type == "Char")
                 posMem += 1;
             else if (type == "Integer" || type == "Float")
                 posMem += 4;
+            else if (type == "String") {
+                posMem += strSize + 1;
+            }
+        }
+
+        void updateTempCounter(String type, int strSize) {
+            if (type == "Char")
+                tempCounter += 1;
+            else if (type == "Integer" || type == "Float")
+                tempCounter += 4;
+            else if (type == "String") {
+                tempCounter += strSize + 1;
+            }
         }
 
         /* 
@@ -908,49 +926,50 @@ public class Compilador {
         void declarationToMemory(Symbol symbol, boolean hasValue, String value) throws IOException {
             if (hasValue) {
                 if (symbol.type == "Char") {
-                    writer.write("db " + value + " ; char em " + posMem + "h\n");
+                    writer.write("\tdb " + value + " ; char em " + posMem + "\n");
                 } else if (symbol.type == "Integer") {
-                    writer.write("dd " + value + " ; inteiro em " + posMem + "h\n");
+                    writer.write("\tdd " + value + " ; inteiro em " + posMem + "\n");
                 } else if (symbol.type == "Float") {
-                    writer.write("dd " + value + " ; float em " + posMem + "h\n");
+                    writer.write("\tdd " + value + " ; float em " + posMem + "\n");
+                } else if (symbol.type == "String") {
+                    writer.write("\tdb " + value + ", 0 ; string em " + posMem + "\n");
                 }
             } else {
                 if (symbol.type == "Char") {
-                    writer.write("resb 1 ; char em " + posMem + "h\n");
+                    writer.write("\tresb 1 ; char em " + posMem + "\n");
                 } else if (symbol.type == "Integer") {
-                    writer.write("resd 1 ; inteiro em " + posMem + "h\n");
+                    writer.write("\tresd 1 ; inteiro em " + posMem + "\n");
                 } else if (symbol.type == "Float") {
-                    writer.write("resd 1 ; float em " + posMem + "h\n");
+                    writer.write("\tresd 1 ; float em " + posMem + "\n");
+                } else if (symbol.type == "String") {
+                    writer.write("\tresb 256 ; string em " + posMem + "\n");
                 }
             }
         }
 
         void attributionToMemory(Symbol symbol, String value) throws IOException {
-            if (symbol.classification == "var") {
-                if (symbol.type == "Char") {
-                    writer.write("mov al, " + value + " ; alocando char em registrador\n");
-                    writer.write("mov [M+" + symbol.addr + "], al ; adicionando valor a endereco do id: "
-                            + symbol.lexeme + "\n");
-                } else if (symbol.type == "Integer") {
-                    writer.write("mov eax, " + value + " ; alocando inteiro em registrador\n");
-                    writer.write("mov [M+" + symbol.addr + "], eax ; adicionando valor a endereco do id: "
-                            + symbol.lexeme + "\n");
-                } else if (symbol.type == "Float") {
-                    writer.write("movss eax, " + value + " ; alocando float em registrador\n");
-                    writer.write("mov [M+" + symbol.addr + "], eax ; adicionando valor a endereco do id: "
-                            + symbol.lexeme + "\n");
-                }
-            } else if (symbol.classification == "const") {
-
+            if (symbol.type == "Char") {
+                writer.write("\tmov al, " + value + " ; alocando char em registrador\n");
+                writer.write("\tmov [M+" + symbol.addr + "], al ; adicionando valor a endereco do id: " + symbol.lexeme
+                        + "\n");
+            } else if (symbol.type == "Integer") {
+                writer.write("\tmov eax, " + value + " ; alocando inteiro em registrador\n");
+                writer.write("\tmov [M+" + symbol.addr + "], eax ; adicionando valor a endereco do id: " + symbol.lexeme
+                        + "\n");
+            } else if (symbol.type == "Float") {
+                writer.write("\tmovss eax, " + value + " ; alocando float em registrador\n");
+                writer.write("\tmov [M+" + symbol.addr + "], eax ; adicionando valor a endereco do id: " + symbol.lexeme
+                        + "\n");
             }
-
         }
 
         class EXP_args {
             String type;
+            int addr;
 
             EXP_args() {
                 type = "";
+                addr = 0;
             }
         }
 
@@ -966,7 +985,6 @@ public class Compilador {
                         || currentToken.token == tokenChar || currentToken.token == tokenFloat) {
                     if (currentSection != 0) {
                         writer.write("section .data ; sessao de dados\n");
-                        writer.write("M: ; rotulo de inicio da sessao de dados\n");
                     }
                     currentSection = 0;
                     DECL_A();
@@ -980,8 +998,8 @@ public class Compilador {
                     COMMAND();
                 }
             }
-            writer.write("mov rax, 60 ; Chamada de saida\n");
-            writer.write("mov rdi, 0 ; Codigo de saida sem erros\n");
+            writer.write("\tmov rax, 60 ; Chamada de saida\n");
+            writer.write("\tmov rdi, 0 ; Codigo de saida sem erros\n");
             writer.write("syscall ; Chama o kernel\n");
             writer.close();
         }
@@ -1057,7 +1075,7 @@ public class Compilador {
                                     e.printStackTrace();
                                 }
 
-                                updatePosMem(idType);
+                                updatePosMem(idType, currentToken.lexeme.length());
 
                                 checkToken(tokenValue);
                                 if (pauseCompiling)
@@ -1199,7 +1217,10 @@ public class Compilador {
                         e.printStackTrace();
                     }
 
-                    updatePosMem(idType);
+                    if (hasValue)
+                        updatePosMem(idType, value.length());
+                    else
+                        updatePosMem(idType, 255);
                 }
             }
         }
@@ -1256,6 +1277,7 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
 
+                        tempCounter = 0;
                         EXP_args expArgsA1 = new EXP_args();
                         EXP_A(expArgsA1);
 
@@ -1281,6 +1303,7 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
 
+                        tempCounter = 0;
                         EXP_args expArgsA2 = new EXP_args();
                         EXP_A(expArgsA2);
 
@@ -1294,7 +1317,7 @@ public class Compilador {
                         }
 
                         try {
-                            attributionToMemory(currentSymbol, "result_expA2");
+                            attributionToMemory(currentSymbol, "[" + expArgsA2.addr + "]");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -1575,6 +1598,7 @@ public class Compilador {
                     return;
 
                 expArgsA.type = expArgsB1.type;
+                expArgsA.addr = expArgsB1.addr;
 
                 if (currentToken.token == tokenEqual || currentToken.token == tokenDif
                         || currentToken.token == tokenLess || currentToken.token == tokenGtr
@@ -1632,6 +1656,7 @@ public class Compilador {
                 }
 
                 expArgsB.type = expArgsC1.type;
+                expArgsB.addr = expArgsC1.addr;
 
                 while (currentToken.token == tokenPlus || currentToken.token == tokenMinus
                         || currentToken.token == tokenOr) {
@@ -1704,6 +1729,7 @@ public class Compilador {
                     return;
 
                 expArgsC.type = expArgsD1.type;
+                expArgsC.addr = expArgsD1.addr;
 
                 while (currentToken.token == tokenMult || currentToken.token == tokenAnd
                         || currentToken.token == tokenDiv || currentToken.token == tokenDiv2
@@ -1808,6 +1834,7 @@ public class Compilador {
                     return;
                 }
                 expArgsD.type = expArgsE.type;
+                expArgsD.addr = expArgsE.addr;
             }
         }
 
@@ -1883,6 +1910,7 @@ public class Compilador {
                         return;
 
                     expArgsE.type = expArgsF.type;
+                    expArgsE.addr = expArgsF.addr;
                 }
             }
         }
@@ -1962,6 +1990,46 @@ public class Compilador {
                     }
                 } else if (currentToken.token == tokenValue) {
                     expArgsF.type = currentToken.type;
+
+                    if (currentToken.type == "Float" || currentToken.type == "String") {
+                        try {
+                            writer.write("section .data\n");
+                            if (currentToken.type == "Float") {
+                                writer.write("\tdd " + currentToken.lexeme + " ; declarando valor na area de dados\n");
+                            } else if (currentToken.type == "String") {
+                                writer.write(
+                                        "\tdb " + currentToken.lexeme + ", 0 ; declarando valor na area de dados\n");
+                            }
+                            writer.write("section .text\n");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        expArgsF.addr = posMem;
+                        updatePosMem(currentToken.type, currentToken.lexeme.length());
+
+                    } else {
+                        expArgsF.addr = tempCounter;
+                        updateTempCounter(currentToken.type, currentToken.lexeme.length());
+
+                        if (currentToken.type == "Integer") {
+                            try {
+                                writer.write("\tmov eax, " + currentToken.lexeme + " ; imediato para registrador\n");
+                                writer.write("\tmov [M+" + expArgsF.addr
+                                        + "], eax ; alocando valor do registrador no endereco\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        } else if (currentToken.type == "Char") {
+                            try {
+                                writer.write("\tmov al, " + currentToken.lexeme + " ; imediato para registrador\n");
+                                writer.write("\tmov [M+" + expArgsF.addr
+                                        + "], al ; alocando valor do registrador no endereco\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
 
                     checkToken(tokenValue);
                     if (pauseCompiling)

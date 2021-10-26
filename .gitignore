@@ -1,3 +1,9 @@
 private_tests/
 test.in
 arq.asm
+Compilador.class
+Compilador$Lexer.class
+Compilador$Parser.class
+Compilador$Parser$EXP_args.class
+Compilador$Symbol.class
+Compilador$Token.class
