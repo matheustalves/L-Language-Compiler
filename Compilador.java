@@ -896,7 +896,7 @@ public class Compilador {
         void updatePosMem(String type, int strSize) {
             if (type == "Char")
                 posMem += 1;
-            else if (type == "Integer" || type == "Float")
+            else if (type == "Integer" || type == "Float" || type == "Boolean")
                 posMem += 4;
             else if (type == "String") {
                 posMem += strSize + 1;
@@ -906,7 +906,7 @@ public class Compilador {
         void updateTempCounter(String type, int strSize) {
             if (type == "Char")
                 tempCounter += 1;
-            else if (type == "Integer" || type == "Float")
+            else if (type == "Integer" || type == "Float" || type == "Boolean")
                 tempCounter += 4;
             else if (type == "String") {
                 tempCounter += strSize + 1;
@@ -1818,7 +1818,11 @@ public class Compilador {
             if (!pauseCompiling) {
                 boolean not = false;
                 while (currentToken.token == tokenNot) {
-                    not = true;
+                    if (!not)
+                        not = true;
+                    else
+                        not = false;
+
                     checkToken(tokenNot);
                     if (pauseCompiling)
                         return;
@@ -1833,8 +1837,24 @@ public class Compilador {
                     throwIdentifierError("incompatible_types");
                     return;
                 }
+
                 expArgsD.type = expArgsE.type;
-                expArgsD.addr = expArgsE.addr;
+
+                if (not) {
+                    expArgsD.addr = tempCounter;
+                    updateTempCounter(expArgsE.type, 0);
+                    try {
+                        writer.write("\tmov eax, [M+" + expArgsE.addr + "] ; alocando valor em end. a registrador\n");
+                        writer.write("\tneg eax ; negando conteudo de registrador\n");
+                        writer.write("\tadd eax, 1 ; finalizando not logico\n");
+                        writer.write("\tmov [M+" + expArgsD.addr + "], eax ; atualizando valor em end. com negacao\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    expArgsD.addr = expArgsE.addr;
+                }
+
             }
         }
 
@@ -1937,6 +1957,7 @@ public class Compilador {
                         return;
 
                     expArgsF.type = expArgsA1.type;
+                    expArgsF.addr = expArgsA1.addr;
 
                     if (currentToken.token == tokenClosePar) {
                         checkToken(tokenClosePar);
@@ -1953,6 +1974,7 @@ public class Compilador {
                     Symbol currentSymbol = symbolTable.get(currentToken.lexeme);
 
                     expArgsF.type = currentSymbol.type;
+                    expArgsF.addr = currentSymbol.addr;
 
                     checkToken(tokenId);
                     if (pauseCompiling)
