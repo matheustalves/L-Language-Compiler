@@ -7,7 +7,7 @@
 Com um arquivo .in, digite no terminal:
 
 ```
-javac Compilador.java -encoding UTF-8 && java Compilador < <arquivo>.in
+javac Compilador.java -encoding UTF-8 && java Compilador <arquivo>.in
 ```
 
 Caso receba o aviso:
