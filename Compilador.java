@@ -960,12 +960,12 @@ public class Compilador {
         }
 
 //mod write
-        EXP_args convertIntegerToString(){
+        void convertIntegerToString(EXP_args expArgs){
             try {
 //colocar endereço
-                writer.write("\tmov eax, [qword M+" +  + "] ;inteiro a ser convertido\n");
+                writer.write("\tmov eax, [qword M+" + expArgs.addr + "] ;inteiro a ser convertido\n");
 //colocar endereço
-                writer.write("\tmov rsi, M+" +  + ";end. string ou temp.\n");
+                writer.write("\tmov rsi, M+" + tempCounter + ";end. string ou temp.\n");
                 writer.write("\tmov rcx, 0    ;contador pilha\n");
                 writer.write("\tmov rdi, 0    ;tam. string convertido\n");
                 writer.write("\tcmp eax, 0    ;verifica sinal \n");
@@ -999,54 +999,15 @@ public class Compilador {
             } catch (IOException e) {
                 e.printStackTrace();
             }                        
-/*
-mov eax, [qword M+Exp.end]  ;inteiro a ser 
-;convertido
-mov rsi, M+buffer.end  ;end. string ou temp. 
-mov rcx, 0    ;contador pilha 
-mov rdi, 0    ;tam. string convertido 
-cmp eax, 0    ;verifica sinal 
-jge Rot0    ;salta se número positivo 
-mov bl, ‘-‘   ;senão, escreve sinal – 
-mov [rsi], bl 
-add rsi, 1    ;incrementa índice 
-add rdi, 1    ;incrementa tamanho 
-neg eax     ;toma módulo do número 
 
-Rot0: 
-mov ebx, 10   ;divisor 
-
-Rot1: 
-add rcx, 1    ;incrementa contador 
-cdq      ;estende edx:eax p/ div. 
-idiv ebx       ;divide edx;eax por ebx 
-push dx     ;empilha valor do resto 
-cmp eax, 0    ;verifica se quoc. é 0 
-jne Rot1    ;se não é 0, continua 
-
-add rdi,rcx   ;atualiza tam. string 
-
-;agora, desemp. os valores e escreve o string 
-
-Rot2: 
-pop dx     ;desempilha valor 
-add dl, ‘0’   ;transforma em caractere 
-mov [rsi], dl    ;escreve caractere 
-add rsi, 1    ;incrementa base 
-sub rcx, 1    ;decrementa contador 
-cmp rcx, 0    ;verifica pilha vazia 
-jne Rot2    ;se não pilha vazia, loop 
-
-;executa interrupção de saída 
-*/
         }
 
-        EXP_args convertFloatToString(EXP_args expArgs){
+        void convertFloatToString(EXP_args expArgs){
             try {
 //colocar endereço
                 writer.write("\tmov xmm0, [qword M+" + expArgs.addr + "] ;real a ser convertido\n");
 //colocar endereço
-                writer.write("\tmov rsi, M+" +  + ";end. temporário\n");
+                writer.write("\tmov rsi, M+" + tempCounter + ";end. temporário\n");
                 writer.write("\tmov rcx, 0    ;contador pilha\n");
                 writer.write("\tmov rdi, 6    ;precisao 6 casas compart\n");
                 writer.write("\tmov rbx, 10    ;divisor\n");
@@ -1104,98 +1065,21 @@ jne Rot2    ;se não pilha vazia, loop
                 writer.write("\tmov [rsi], dl    ;escreve caractere\n");
                 writer.write("\tmov rdx, rsi   ;calc tam str convertido\n");
 //colocar endereço
-                writer.write("\tmov rbx, M+" + + "\n");
+                writer.write("\tmov rbx, M+" + tempCounter + "\n");
                 writer.write("\tsub rdx, rbx      ;tam=rsi-M-buffer.end\n");
 //colocar endereço
-                writer.write("\tmov rsi, M+" +  + "; endereço do buffer\n\n");
+                writer.write("\tmov rsi, M+" + tempCounter + "; endereço do buffer\n\n");
+                updateTempCounter(expArgs.type, 0);
                 writer.write("\t;executa interrupção de saída. rsi e rdx já foram calculados então usar só as instruções para a chamada do kernel.\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }                        
-/*
-mov xmm0, [qword M+Exp.end] ;real a ser 
-;convertido 
-mov rsi, M+buffer.end  ;end. temporário 
-mov rcx, 0    ;contador pilha 
-mov rdi, 6    ;precisao 6 casas compart 
-mov rbx, 10    ;divisor 
-cvtsi2ss xmm2, rbx  ;divisor real 
-subss xmm1, xmm1  ;zera registrador 
-comiss xmm0, xmm1   ;verifica sinal 
-jae Rot0    ;salta se número positivo 
-mov dl, ‘-‘   ;senão, escreve sinal – 
-mov [rsi], dl 
-mov rdx, -1      ;Carrega -1 em RDX 
-cvtsi2ss xmm1, rdx  ;Converte para real 
-mulss xmm0, xmm1   ;Toma módulo 
-add rsi, 1    ;incrementa índice 
 
-Rot0: 
-roundss xmm1, xmm0, 0b0011 ;parte inteira xmm1  
-subss xmm0, xmm1      ;parte frac xmm0 
-cvtss2si rax, xmm1       ;convertido para int                                    
-
-;converte parte inteira que está em rax 
-
-Rot1: 
-add rcx, 1    ;incrementa contador 
-cdq      ;estende edx:eax p/ div. 
-idiv ebx       ;divide edx;eax por ebx 
-push dx     ;empilha valor do resto 
-cmp eax, 0    ;verifica se quoc. é 0 
-jne Rot1    ;se não é 0, continua 
-
-sub rdi, rcx   ;decrementa precisao 
-
-;agora, desemp valores e escreve parte int 
-
-Rot2: 
-pop dx     ;desempilha valor 
-add dl, ‘0’   ;transforma em caractere 
-mov [rsi], dl    ;escreve caractere 
-add rsi, 1    ;incrementa base 
-sub rcx, 1    ;decrementa contador 
-cmp rcx, 0    ;verifica pilha vazia 
-jne Rot2    ;se não pilha vazia, loop 
-
-mov dl, ‘.’    ;escreve ponto decimal 
-mov [rsi], dl    
-add rsi, 1    ;incrementa base 
-
-;converte parte fracionaria que está em xmm0 
-
-Rot3: 
-cmp rdi, 0    ;verifica precisao 
-jle Rot4    ;terminou precisao ? 
-mulss xmm0,xmm2  ;desloca para esquerda 
-roundss xmm1,xmm0,0b0011 ;parte inteira xmm1  
-subss xmm0,xmm1    ;atualiza xmm0 
-cvtss2si rdx, xmm1    ;convertido para int                                    
-add dl, ‘0’   ;transforma em caractere 
-mov [rsi], dl    ;escreve caractere 
-add rsi, 1    ;incrementa base 
-sub rdi, 1    ;decrementa precisao 
-jmp Rot3 
-
-; impressão 
-
-Rot4: 
-mov dl, 0     ;fim string, opcional 
-mov [rsi], dl    ;escreve caractere 
-mov rdx, rsi   ;calc tam str convertido 
-mov rbx, M+buffer.end  
-sub rdx, rbx      ;tam=rsi-M-buffer.end 
-mov rsi, M+buffer.end ; endereço do buffer 
-
-;executa interrupção de saída. rsi e rdx já 
-foram calculados então usar só as instruções 
-para a chamada do kernel. 
-*/
 //mod write fim
         }
 
 
-        void tradutionWrite (EXP_args expArgs){
+        void translationWrite (EXP_args expArgs){
 // mod write exp_a
             if(expArgs.type != "Boolean"){
                 if(expArgs.type == "Integer"){
@@ -1206,11 +1090,17 @@ para a chamada do kernel.
                 }
             }
             try {
-                writer.write("\tmov rsi, M+" + posMem + " ; alocando posicao da string\n");
-                writer.write("\tmov rdx, " + currentToken.lexeme.length() + "; definindo tamanho da string \n");
-                updatePosMem("String", currentToken.lexeme.length());
+                writer.write("\tmov rsi, M+" + expArgs.addr + " ; recebendo posicao da string\n");
+                writer.write("\tmov rdx, rsi ; rdx = rsi\n");
+                writer.write("Rot0: \n");
+                writer.write("\tmov al, [rdx] ; al pega o primeiro caractere da string \n");
+                writer.write("\tadd rdx, 1 ; incrementa rdx\n");
+                writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
+                writer.write("\tjne Rot0\n");
+                writer.write("\tsub rdx, M+ "+ (expArgs.addr-1) +" ; removendo offset (byte 0) do endereço\n");
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
                 writer.write("\tmov rdi, 1 ; saida para tela\n");
+                writer.write("\tsyscall\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -1218,36 +1108,26 @@ para a chamada do kernel.
         }
 
 
-        void tradutionWriteln (){
-            if(expArgs.type != "Boolean"){
-                if(expArgs.type == "Integer"){
-
-                }
-                else if(expArgs.type == "Float"){
-
-                }
-            }
-            //implementar \n
+        void translationWriteln (EXP_args expArgs){
             try {
-                writer.write("\tmov rsi, [M+" +  + "] ; alocando posicao da string\n");
-                writer.write("\tmov rdx, [" +  + "; definindo tamanho da string \n");
-                writer.write("\tmov rax, 1 ; chamada para saida\n");
-                writer.write("\tmov rdi, 1 ; saida para tela\n");
+                translationWrite(expArgs);
+                writer.write("section .data\n");
+                writer.write("\tdb \"\\n\" ; passa um linebreak\n");
+                writer.write("section .text\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
 
         }
 
         class EXP_args {
             String type;
             int addr;
-            int size;
 
             EXP_args() {
                 type = "";
                 addr = 0;
-                size = 0;
             }
         }
 
@@ -1788,7 +1668,7 @@ para a chamada do kernel.
                 EXP_A(expArgsA1);
 //modwrite
 
-//chamar tradutionwrite
+//chamar translationwrite
 
                 if (pauseCompiling)
                     return;
