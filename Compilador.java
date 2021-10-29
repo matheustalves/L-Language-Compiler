@@ -1018,9 +1018,7 @@ public class Compilador {
             int rot_e = setRot();
 
             try {
-//colocar endereço
                 writer.write("\tmov xmm0, [qword M+" + expArgs.addr + "] ;real a ser convertido\n");
-//colocar endereço
                 writer.write("\tmov rsi, M+" + tempCounter + ";end. temporário\n");
                 writer.write("\tmov rcx, 0    ;contador pilha\n");
                 writer.write("\tmov rdi, 6    ;precisao 6 casas compart\n");
@@ -1078,18 +1076,14 @@ public class Compilador {
                 writer.write("\tmov dl, 0     ;fim string, opcional\n");
                 writer.write("\tmov [rsi], dl    ;escreve caractere\n");
                 writer.write("\tmov rdx, rsi   ;calc tam str convertido\n");
-//colocar endereço
                 writer.write("\tmov rbx, M+" + tempCounter + "\n");
                 writer.write("\tsub rdx, rbx      ;tam=rsi-M-buffer.end\n");
-//colocar endereço
                 writer.write("\tmov rsi, M+" + tempCounter + "; endereço do buffer\n\n");
                 updateTempCounter(expArgs.type, 0);
                 writer.write("\t;executa interrupção de saída. rsi e rdx já foram calculados então usar só as instruções para a chamada do kernel.\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }                        
-
-//mod write fim
         }
 
         void translationWrite (EXP_args expArgs){
@@ -1121,9 +1115,8 @@ public class Compilador {
 
         }
 
-        void translationWriteln (EXP_args expArgs){
+        void translationWriteln (){
             try {
-                translationWrite(expArgs);
                 writer.write("section .data\n");
                 writer.write("\tdb \"\\n\" ; passa um linebreak\n");
                 writer.write("section .text\n");
@@ -1614,6 +1607,7 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                         EXP_LIST();
+                        translationWriteln();
                         if (currentToken.token == tokenClosePar) {
                             checkToken(tokenClosePar);
                             if (pauseCompiling)
@@ -1679,6 +1673,7 @@ public class Compilador {
             if (!pauseCompiling) {
                 EXP_args expArgsA1 = new EXP_args();
                 EXP_A(expArgsA1);
+                translationWrite(expArgsA1);
                 if (pauseCompiling)
                     return;
                 while (currentToken.token == tokenComma) {
@@ -1687,6 +1682,7 @@ public class Compilador {
                         return;
                     EXP_args expArgsA2 = new EXP_args();
                     EXP_A(expArgsA2);
+                    translationWrite(expArgsA2);
                     if (pauseCompiling)
                         return;
                 }
