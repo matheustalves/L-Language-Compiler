@@ -1001,6 +1001,7 @@ public class Compilador {
                 writer.write("\tsub rcx, 1    ;decrementa contador\n");
                 writer.write("\tcmp rcx, 0    ;verifica pilha vazia\n");
                 writer.write("\tjne Rot"+ rot_c +"    ;se não pilha vazia, loop\n\n");
+                updateTempCounter(expArgs.type, 0);
                 writer.write("\t;executa interrupção de saída\n");
                 writer.write("\t\n");
 
@@ -1086,7 +1087,7 @@ public class Compilador {
             }                        
         }
 
-        void translationWrite (EXP_args expArgs){
+        void translationWrite (EXP_args expArgs, int endereco){
             int rot = setRot();
 
             if(expArgs.type != "Boolean"){
@@ -1098,14 +1099,14 @@ public class Compilador {
                 }
             }
             try {
-                writer.write("\tmov rsi, M+" + expArgs.addr + " ; recebendo posicao da string\n");
+                writer.write("\tmov rsi, M+" + (expArgs.addr-(2*endereco)) + " ; recebendo posicao da string\n");
                 writer.write("\tmov rdx, rsi ; rdx = rsi\n");
                 writer.write("Rot"+ rot +": \n");
                 writer.write("\tmov al, [rdx] ; al pega o primeiro caractere da string \n");
                 writer.write("\tadd rdx, 1 ; incrementa rdx\n");
                 writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
                 writer.write("\tjne Rot"+ rot +"\n");
-                writer.write("\tsub rdx, M+ "+ (expArgs.addr-1) +" ; removendo offset (byte 0) do endereço\n");
+                writer.write("\tsub rdx, M+ "+ (expArgs.addr-((2*endereco)-1)) +" ; removendo offset (byte 0) do endereço\n");
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
                 writer.write("\tmov rdi, 1 ; saida para tela\n");
                 writer.write("\tsyscall\n");
@@ -1673,16 +1674,18 @@ public class Compilador {
             if (!pauseCompiling) {
                 EXP_args expArgsA1 = new EXP_args();
                 EXP_A(expArgsA1);
-                translationWrite(expArgsA1);
+		int endereco = 0;
+                translationWrite(expArgsA1, endereco);
                 if (pauseCompiling)
                     return;
                 while (currentToken.token == tokenComma) {
+		    endereco++;
                     checkToken(tokenComma);
                     if (pauseCompiling)
                         return;
                     EXP_args expArgsA2 = new EXP_args();
                     EXP_A(expArgsA2);
-                    translationWrite(expArgsA2);
+                    translationWrite(expArgsA2, endereco);
                     if (pauseCompiling)
                         return;
                 }
