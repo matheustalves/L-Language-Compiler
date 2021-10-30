@@ -960,58 +960,58 @@ public class Compilador {
             }
         }
 
-        int setRot(){
+        int setRot() {
             int current_rot = rotCounter;
             rotCounter = rotCounter + 1;
 
             return current_rot;
         }
 
-        void convertIntegerToString(EXP_args expArgs){
+        void convertIntegerToString(EXP_args expArgs) {
             int rot_a = setRot();
             int rot_b = setRot();
             int rot_c = setRot();
             try {
-                writer.write("\tmov eax, [qword M+" + expArgs.addr + "] ;inteiro a ser convertido\n");
-                writer.write("\tmov rsi, M+" + tempCounter + ";end. string ou temp.\n");
-                writer.write("\tmov rcx, 0    ;contador pilha\n");
-                writer.write("\tmov rdi, 0    ;tam. string convertido\n");
-                writer.write("\tcmp eax, 0    ;verifica sinal \n");
-                writer.write("\tjge Rot"+ rot_a +"    ;salta se número positivo \n");
-                writer.write("\tmov bl, ‘-‘   ;senão, escreve sinal –\n");
+                writer.write("\tmov eax, [M+" + expArgs.addr + "] ; inteiro a ser convertido\n");
+                writer.write("\tmov rsi, M+" + tempCounter + "; end. string ou temp.\n");
+                writer.write("\tmov rcx, 0 ; contador pilha\n");
+                writer.write("\tmov rdi, 0 ; tam. string convertido\n");
+                writer.write("\tcmp eax, 0 ; verifica sinal\n");
+                writer.write("\tjge Rot" + rot_a + " ; salta se numero positivo\n");
+                writer.write("\tmov bl, ‘-‘ ; senao, escreve sinal –\n");
                 writer.write("\tmov [rsi], bl\n");
-                writer.write("\tadd rsi, 1    ;incrementa índice\n");
-                writer.write("\tneg eax     ;toma módulo do número\n\n");
-                writer.write("Rot"+ rot_a +":\n");
-                writer.write("\tmov ebx, 10   ;divisor\n\n");
-                writer.write("Rot"+ rot_b +"\n");
-                writer.write("\tadd rcx, 1    ;incrementa contador\n");
-                writer.write("\tcdq      ;estende edx:eax p/ div.\n");
-                writer.write("\tidiv ebx       ;divide edx;eax por ebx\n");
-                writer.write("\tpush dx     ;empilha valor do resto\n");
-                writer.write("\tcmp eax, 0    ;verifica se quoc. é 0\n");
-                writer.write("\tjne Rot"+ rot_b +"    ;se não é 0, continua\n\n");
-                writer.write("\tadd rdi,rcx   ;atualiza tam. string\n\n");
-                writer.write("\t;agora, desemp. os valores e escreve o string\n\n");
-                writer.write("Rot"+ rot_c +":\n");
-                writer.write("\tpop dx     ;desempilha valor\n");
-                writer.write("\tadd dl, ‘0’   ;transforma em caractere\n");
-                writer.write("\tmov [rsi], dl    ;escreve caractere\n");
-                writer.write("\tadd rsi, 1    ;incrementa base\n");
-                writer.write("\tsub rcx, 1    ;decrementa contador\n");
-                writer.write("\tcmp rcx, 0    ;verifica pilha vazia\n");
-                writer.write("\tjne Rot"+ rot_c +"    ;se não pilha vazia, loop\n\n");
+                writer.write("\tadd rsi, 1 ; incrementa indice\n");
+                writer.write("\tneg eax ; toma modulo do numero\n\n");
+                writer.write("Rot" + rot_a + ":\n");
+                writer.write("\tmov ebx, 10 ; divisor\n\n");
+                writer.write("Rot" + rot_b + "\n");
+                writer.write("\tadd rcx, 1 ; incrementa contador\n");
+                writer.write("\tcdq ; estende edx:eax p/ div.\n");
+                writer.write("\tidiv ebx ; divide edx;eax por ebx\n");
+                writer.write("\tpush dx ; empilha valor do resto\n");
+                writer.write("\tcmp eax, 0 ; verifica se quoc. eh 0\n");
+                writer.write("\tjne Rot" + rot_b + " ; se nao eh 0, continua\n\n");
+                writer.write("\tadd rdi,rcx ; atualiza tam. string\n\n");
+                writer.write("\t; desempilha os valores e escreve o string\n\n");
+                writer.write("Rot" + rot_c + ":\n");
+                writer.write("\tpop dx ; desempilha valor\n");
+                writer.write("\tadd dl, ‘0’ ; transforma em caractere\n");
+                writer.write("\tmov [rsi], dl ; escreve caractere\n");
+                writer.write("\tadd rsi, 1 ; incrementa base\n");
+                writer.write("\tsub rcx, 1 ; decrementa contador\n");
+                writer.write("\tcmp rcx, 0 ; verifica pilha vazia\n");
+                writer.write("\tjne Rot" + rot_c + " ; se nao pilha vazia, loop\n\n");
                 updateTempCounter(expArgs.type, 0);
-                writer.write("\t;executa interrupção de saída\n");
+                writer.write("\t; executa interrupcao de saida\n");
                 writer.write("\t\n");
 
             } catch (IOException e) {
                 e.printStackTrace();
-            }                        
+            }
 
         }
 
-        void convertFloatToString(EXP_args expArgs){
+        void convertFloatToString(EXP_args expArgs) {
             int rot_a = setRot();
             int rot_b = setRot();
             int rot_c = setRot();
@@ -1019,94 +1019,96 @@ public class Compilador {
             int rot_e = setRot();
 
             try {
-                writer.write("\tmov xmm0, [qword M+" + expArgs.addr + "] ;real a ser convertido\n");
-                writer.write("\tmov rsi, M+" + tempCounter + ";end. temporário\n");
-                writer.write("\tmov rcx, 0    ;contador pilha\n");
-                writer.write("\tmov rdi, 6    ;precisao 6 casas compart\n");
-                writer.write("\tmov rbx, 10    ;divisor\n");
-                writer.write("\tcvtsi2ss xmm2, rbx  ;divisor real\n");
-                writer.write("\tsubss xmm1, xmm1  ;zera registrador\n");
-                writer.write("\tcomiss xmm0, xmm1   ;verifica sinal\n");
-                writer.write("\tjae Rot"+ rot_a +"  ;salta (rot_a) se número positivo\n");
-                writer.write("\tmov dl, ‘-‘   ;senão, escreve sinal –\n");
+                writer.write("\tmov xmm0, [M+" + expArgs.addr + "] ; real a ser convertido\n");
+                writer.write("\tmov rsi, M+" + tempCounter + "; end. temporario\n");
+                writer.write("\tmov rcx, 0 ; contador pilha\n");
+                writer.write("\tmov rdi, 6 ; precisao 6 casas compart\n");
+                writer.write("\tmov rbx, 10 ; divisor\n");
+                writer.write("\tcvtsi2ss xmm2, rbx ; divisor real\n");
+                writer.write("\tsubss xmm1, xmm1 ; zera registrador\n");
+                writer.write("\tcomiss xmm0, xmm1 ; verifica sinal\n");
+                writer.write("\tjae Rot" + rot_a + " ; salta (rot_a) se numero positivo\n");
+                writer.write("\tmov dl, ‘-‘ ; senao, escreve sinal –\n");
                 writer.write("\tmov [rsi], dl\n");
-                writer.write("\tmov rdx, -1      ;Carrega -1 em RDX\n");
-                writer.write("\tcvtsi2ss xmm1, rdx  ;Converte para real\n");
-                writer.write("\tmulss xmm0, xmm1   ;Toma módulo\n");
-                writer.write("\tadd rsi, 1    ;incrementa índice\n\n");
-                writer.write("Rot"+ rot_a +":\n");
-                writer.write("\troundss xmm1, xmm0, 0b0011 ;parte inteira xmm1\n");
-                writer.write("\tsubss xmm0, xmm1      ;parte frac xmm0\n");
-                writer.write("\tcvtss2si rax, xmm1       ;convertido para int\n\n");
-                writer.write("\t;converte parte inteira que está em rax\n\n");
-                writer.write("Rot"+ rot_b +":\n");
-                writer.write("\tadd rcx, 1    ;incrementa contador\n");
-                writer.write("\tcdq      ;estende edx:eax p/ div.\n");
-                writer.write("\tidiv ebx       ;divide edx;eax por ebx\n");
-                writer.write("\tpush dx     ;empilha valor do resto\n");
-                writer.write("\tcmp eax, 0    ;verifica se quoc. é 0\n");
-                writer.write("\tjne "+ rot_b +"    ;se não é 0, continua, else rot_b\n\n");
-                writer.write("\tsub rdi, rcx   ;decrementa precisao\n\n");
-                writer.write("\t;agora, desemp valores e escreve parte int\n\n");
-                writer.write("Rot"+ rot_c +":\n");
-                writer.write("\tpop dx     ;desempilha valor\n");
-                writer.write("\tadd dl, ‘0’   ;transforma em caractere\n");
-                writer.write("\tmov [rsi], dl    ;escreve caractere\n");
-                writer.write("\tadd rsi, 1    ;incrementa base\n");
-                writer.write("\tsub rcx, 1    ;decrementa contador\n");
-                writer.write("\tcmp rcx, 0    ;verifica pilha vazia\n");
-                writer.write("\tjne Rot"+ rot_c +"    ;se não pilha vazia, loop, else rot_c\n\n");
-                writer.write("\tmov dl, ‘.’    ;escreve ponto decimal\n");
+                writer.write("\tmov rdx, -1 ; carrega -1 em RDX\n");
+                writer.write("\tcvtsi2ss xmm1, rdx ; converte para real\n");
+                writer.write("\tmulss xmm0, xmm1 ; Toma modulo\n");
+                writer.write("\tadd rsi, 1 ; incrementa indice\n\n");
+                writer.write("Rot" + rot_a + ":\n");
+                writer.write("\troundss xmm1, xmm0, 0b0011 ; parte inteira xmm1\n");
+                writer.write("\tsubss xmm0, xmm1 ; parte fracionaria xmm0\n");
+                writer.write("\tcvtss2si rax, xmm1 ; convertido para int\n\n");
+                writer.write("\t;converte parte inteira que esta em rax\n\n");
+                writer.write("Rot" + rot_b + ":\n");
+                writer.write("\tadd rcx, 1 ; incrementa contador\n");
+                writer.write("\tcdq ; estende edx:eax p/ div.\n");
+                writer.write("\tidiv ebx ; divide edx;eax por ebx\n");
+                writer.write("\tpush dx ; empilha valor do resto\n");
+                writer.write("\tcmp eax, 0 ; verifica se quoc. eh 0\n");
+                writer.write("\tjne " + rot_b + " ; se nao eh 0, continua, else rot_b\n\n");
+                writer.write("\tsub rdi, rcx ; decrementa precisao\n\n");
+                writer.write("\t; desempilha valores e escreve parte int\n\n");
+                writer.write("Rot" + rot_c + ":\n");
+                writer.write("\tpop dx ; desempilha valor\n");
+                writer.write("\tadd dl, ‘0’ ; transforma em caractere\n");
+                writer.write("\tmov [rsi], dl ; escreve caractere\n");
+                writer.write("\tadd rsi, 1 ; incrementa base\n");
+                writer.write("\tsub rcx, 1 ; decrementa contador\n");
+                writer.write("\tcmp rcx, 0 ; verifica pilha vazia\n");
+                writer.write("\tjne Rot" + rot_c + " ; se nao pilha vazia, loop, else rot_c\n\n");
+                writer.write("\tmov dl, ‘.’ ; escreve ponto decimal\n");
                 writer.write("\tmov [rsi], dl\n");
-                writer.write("\tadd rsi, 1    ;incrementa base\n\n");
-                writer.write("\t;converte parte fracionaria que está em xmm0\n\n");
-                writer.write("Rot"+ rot_d +":\n");
-                writer.write("\tcmp rdi, 0    ;verifica precisao\n");
-                writer.write("\tjle Rot"+ rot_e +"    ;terminou precisao ?, else rot_e\n");
-                writer.write("\tmulss xmm0,xmm2  ;desloca para esquerda\n");
-                writer.write("\troundss xmm1,xmm0,0b0011 ;parte inteira xmm1\n");
-                writer.write("\tsubss xmm0,xmm1    ;atualiza xmm0\n");
-                writer.write("\tcvtss2si rdx, xmm1    ;convertido para int\n");
-                writer.write("\tadd dl, ‘0’   ;transforma em caractere\n");
-                writer.write("\tmov [rsi], dl    ;escreve caractere\n");
-                writer.write("\tadd rsi, 1    ;incrementa base\n");
-                writer.write("\tsub rdi, 1    ;decrementa precisao\n");
-                writer.write("\tjmp Rot"+ rot_d +"\n\n");
-                writer.write("\t; impressão\n\n");
-                writer.write("Rot"+ rot_e +":\n");
-                writer.write("\tmov dl, 0     ;fim string, opcional\n");
-                writer.write("\tmov [rsi], dl    ;escreve caractere\n");
-                writer.write("\tmov rdx, rsi   ;calc tam str convertido\n");
+                writer.write("\tadd rsi, 1 ; incrementa base\n\n");
+                writer.write("\t; converte parte fracionaria que esta em xmm0\n\n");
+                writer.write("Rot" + rot_d + ":\n");
+                writer.write("\tcmp rdi, 0 ; verifica precisao\n");
+                writer.write("\tjle Rot" + rot_e + " ; terminou precisao ?, else rot_e\n");
+                writer.write("\tmulss xmm0,xmm2  ; desloca para esquerda\n");
+                writer.write("\troundss xmm1,xmm0,0b0011 ; parte inteira xmm1\n");
+                writer.write("\tsubss xmm0,xmm1    ; atualiza xmm0\n");
+                writer.write("\tcvtss2si rdx, xmm1 ; convertido para int\n");
+                writer.write("\tadd dl, ‘0’ ; transforma em caractere\n");
+                writer.write("\tmov [rsi], dl ; escreve caractere\n");
+                writer.write("\tadd rsi, 1 ; incrementa base\n");
+                writer.write("\tsub rdi, 1 ; decrementa precisao\n");
+                writer.write("\tjmp Rot" + rot_d + "\n\n");
+                writer.write("\t; impressao\n\n");
+                writer.write("Rot" + rot_e + ":\n");
+                writer.write("\tmov dl, 0 ; fim string, opcional\n");
+                writer.write("\tmov [rsi], dl ; escreve caractere\n");
+                writer.write("\tmov rdx, rsi ; calc tam str convertido\n");
                 writer.write("\tmov rbx, M+" + tempCounter + "\n");
-                writer.write("\tsub rdx, rbx      ;tam=rsi-M-buffer.end\n");
-                writer.write("\tmov rsi, M+" + tempCounter + "; endereço do buffer\n\n");
+                writer.write("\tsub rdx, rbx ; tam=rsi-M-buffer.end\n");
+                writer.write("\tmov rsi, M+" + tempCounter + "; endereco do buffer\n\n");
                 updateTempCounter(expArgs.type, 0);
-                writer.write("\t;executa interrupção de saída. rsi e rdx já foram calculados então usar só as instruções para a chamada do kernel.\n");
+                writer.write(
+                        "\t; executa interrupcao de saida. rsi e rdx ja foram calculados entao usar so as instrucoes para a chamada do kernel.\n");
             } catch (IOException e) {
                 e.printStackTrace();
-            }                        
+            }
         }
 
-        void translationWrite (EXP_args expArgs, int endereco){
+        void translationWrite(EXP_args expArgs, int endereco) {
             int rot = setRot();
 
-            if(expArgs.type != "Boolean"){
-                if(expArgs.type == "Integer"){
+            if (expArgs.type != "Boolean") {
+                if (expArgs.type == "Integer") {
                     convertIntegerToString(expArgs);
-                }
-                else if(expArgs.type == "Float"){
+                } else if (expArgs.type == "Float") {
                     convertFloatToString(expArgs);
                 }
             }
             try {
-                writer.write("\tmov rsi, M+" + (expArgs.addr-(2*endereco)) + " ; recebendo posicao da string\n");
+                writer.write("\tmov rsi, M+" + (expArgs.addr - (2 * endereco))
+                        + " ; registrador recebe endereco da string\n");
                 writer.write("\tmov rdx, rsi ; rdx = rsi\n");
-                writer.write("Rot"+ rot +": \n");
-                writer.write("\tmov al, [rdx] ; al pega o primeiro caractere da string \n");
+                writer.write("Rot" + rot + ": \n");
+                writer.write("\tmov al, [rdx] ; registrador recebe primeiro caractere da string \n");
                 writer.write("\tadd rdx, 1 ; incrementa rdx\n");
                 writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
-                writer.write("\tjne Rot"+ rot +"\n");
-                writer.write("\tsub rdx, M+ "+ (expArgs.addr-((2*endereco)-1)) +" ; removendo offset (byte 0) do endereço\n");
+                writer.write("\tjne Rot" + rot + "\n");
+                writer.write("\tsub rdx, M+ " + (expArgs.addr - ((2 * endereco) - 1))
+                        + " ; removendo offset (byte 0) do endereco\n");
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
                 writer.write("\tmov rdi, 1 ; saida para tela\n");
                 writer.write("\tsyscall\n");
@@ -1116,7 +1118,7 @@ public class Compilador {
 
         }
 
-        void translationWriteln (){
+        void translationWriteln() {
             try {
                 writer.write("section .data\n");
                 writer.write("\tdb \"\\n\" ; passa um linebreak\n");
@@ -1124,7 +1126,6 @@ public class Compilador {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
 
         }
 
@@ -1419,12 +1420,12 @@ public class Compilador {
                         return;
                     }
 
-                    if (symbolTable.get(currentToken.lexeme).classification != "var") {
+                    Symbol currentSymbol = symbolTable.get(currentToken.lexeme);
+
+                    if (currentSymbol.classification != "var") {
                         throwIdentifierError("id_incompatible_class");
                         return;
                     }
-
-                    Symbol currentSymbol = symbolTable.get(currentToken.lexeme);
 
                     checkToken(tokenId);
                     if (pauseCompiling)
@@ -1476,8 +1477,8 @@ public class Compilador {
                             return;
 
                         if ((isStringIndex && expArgsA2.type != "Char")
-                                || (!isStringIndex && (!(expArgsA2.type == "Integer" && currentSymbol.type == "Float") &&
-                                expArgsA2.type != currentSymbol.type))) {
+                                || (!isStringIndex && (!(expArgsA2.type == "Integer" && currentSymbol.type == "Float")
+                                        && expArgsA2.type != currentSymbol.type))) {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
@@ -1502,6 +1503,7 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
+                    tempCounter = 0;
                     EXP_args expArgsA3 = new EXP_args();
                     EXP_A(expArgsA3);
                     if (pauseCompiling)
@@ -1520,6 +1522,7 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
+                    tempCounter = 0;
                     EXP_args expArgsA4 = new EXP_args();
                     EXP_A(expArgsA4);
                     if (pauseCompiling)
@@ -1677,22 +1680,28 @@ public class Compilador {
         */
         void EXP_LIST() {
             if (!pauseCompiling) {
+                tempCounter = 0;
                 EXP_args expArgsA1 = new EXP_args();
                 EXP_A(expArgsA1);
-		int endereco = 0;
-                translationWrite(expArgsA1, endereco);
                 if (pauseCompiling)
                     return;
+
+                int endereco = 0;
+                translationWrite(expArgsA1, endereco);
+
                 while (currentToken.token == tokenComma) {
-		    endereco++;
                     checkToken(tokenComma);
                     if (pauseCompiling)
                         return;
+
+                    tempCounter = 0;
                     EXP_args expArgsA2 = new EXP_args();
                     EXP_A(expArgsA2);
-                    translationWrite(expArgsA2, endereco);
                     if (pauseCompiling)
                         return;
+
+                    endereco++;
+                    translationWrite(expArgsA2, endereco);
                 }
             }
         }
