@@ -8,7 +8,7 @@ DECL_B-> 		id (38) [<- [- (31)] valor (39) (42) ] (43)
 COMANDO->	id (2) (14) ["[" (15) EXP_A1 (44) "]"] <- EXP_A2 (16);		  |
 			while EXP_A3 (17) TIPO_CMD				        |
 			if EXP_A4 (18) TIPO_CMD [else TIPO_CMD]			|
-			readln "(" id (2) ")";				            |
+			readln "(" id (2) (47)")";				            |
 			(write | writeln) "(" LISTA_EXP ")";		|
 			;
 
@@ -38,7 +38,9 @@ XXX (12): {if (houve_negacao & EXP_E.tipo != bool) then ERRO}
 XXX (13): {EXP_D.tipo := EXP_E.tipo}
 XXX (14): {if id.simbolo.classe != variavel then ERRO}
 XXX (15): {isStringIndex = true}
-XXX (16): {if ((isStringIndex & EXP_A2.tipo != char) | (!isStringIndex & EXP_A2.tipo != id.simbolo.tipo)) then ERRO}
+XXX (16): {if ((isStringIndex & EXP_A2.tipo != char) | 
+			(!isStringIndex & (!(EXP_A2.tipo == "Integer" & id.simbolo.tipo == "Float") & (EXP_A2.tipo != id.simbolo.tipo)))) 
+			then ERRO}
 XXX (17): {if EXP_A3.tipo != bool then ERRO}
 XXX (18): {if EXP_A4.tipo != bool then ERRO}
 (19): {if EXP_D1.tipo = float | } ? verificar tipo de float * int 
@@ -78,6 +80,7 @@ XXX (43): {id.simbolo.tipo := DECL_B.tipo}
 XXX (44): {if (EXP_A1.tipo != integer | id.simbolo.tipo != string) then ERRO}
 XXX (45): {DECL_B1.tipo := prev_tipo}
 XXX (46): {DECL_B2.tipo := prev_tipo}
+(47): {if id.simbolo.classe != "var" then ERRO}
 
 Regras fora de ordem:
 

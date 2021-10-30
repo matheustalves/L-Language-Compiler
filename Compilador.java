@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-// import java.io.FileReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 public class Compilador {
@@ -1476,7 +1476,8 @@ public class Compilador {
                             return;
 
                         if ((isStringIndex && expArgsA2.type != "Char")
-                                || (!isStringIndex && expArgsA2.type != currentSymbol.type)) {
+                                || (!isStringIndex && (!(expArgsA2.type == "Integer" && currentSymbol.type == "Float") &&
+                                expArgsA2.type != currentSymbol.type))) {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
@@ -1551,6 +1552,10 @@ public class Compilador {
                         if (currentToken.token == tokenId) {
                             if (!identifierIsDeclared(currentToken)) {
                                 throwIdentifierError("id_not_declared");
+                                return;
+                            }
+                            if (symbolTable.get(currentToken.lexeme).classification != "var") {
+                                throwIdentifierError("id_incompatible_class");
                                 return;
                             }
                             checkToken(tokenId);
@@ -2384,7 +2389,7 @@ public class Compilador {
             symbolTable.put(reservedWords[i], symbol);
         }
 
-        // BufferedReader br = new BufferedReader(new FileReader("programa.in"));
+        //BufferedReader br = new BufferedReader(new FileReader("io/testeclasse.in"));
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         fileStr = readAllCharsOneByOne(br);
