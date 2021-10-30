@@ -954,9 +954,9 @@ public class Compilador {
                 writer.write("\tmov [M+" + symbol.addr + "], eax ; adicionando valor a endereco do id: " + symbol.lexeme
                         + "\n");
             } else if (symbol.type == "Float") {
-                writer.write("\tmovss eax, " + value + " ; alocando float em registrador\n");
-                writer.write("\tmov [M+" + symbol.addr + "], eax ; adicionando valor a endereco do id: " + symbol.lexeme
-                        + "\n");
+                writer.write("\tmovss xmm0, " + value + " ; alocando float em registrador\n");
+                writer.write("\tmov [M+" + symbol.addr + "], xmm0 ; adicionando valor a endereco do id: "
+                        + symbol.lexeme + "\n");
             }
         }
 
@@ -1985,14 +1985,14 @@ public class Compilador {
                             if (expArgsD1.type == "Float") {
                                 try {
                                     writer.write("\tmovss xmm0, [M+" + expArgsC.addr
-                                            + "] ; alocando valor em end. a registrador\n");
+                                            + "] ; alocando valor em end. de expArgsC a registrador\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                             } else {
                                 try {
                                     writer.write("\tmov rax, [M+" + expArgsC.addr
-                                            + "] ; alocando valor em end. a registrador\n");
+                                            + "] ; alocando valor em end. de expArgsC a registrador\n");
                                     writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -2002,14 +2002,14 @@ public class Compilador {
                             if (expArgsD2.type == "Float") {
                                 try {
                                     writer.write("\tmovss xmm1, [M+" + expArgsD2.addr
-                                            + "] ; alocando valor em end. a registrador\n");
+                                            + "] ; alocando valor em end. de expArgsD2 a registrador\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                             } else {
                                 try {
                                     writer.write("\tmov rbx, [M+" + expArgsD2.addr
-                                            + "] ; alocando valor em end. a registrador\n");
+                                            + "] ; alocando valor em end. de expArgsD2 a registrador\n");
                                     writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -2021,7 +2021,7 @@ public class Compilador {
                                 expArgsC.addr = tempCounter;
                                 updateTempCounter(expArgsC.type, 0);
                                 writer.write("\tmovss [M+" + expArgsC.addr
-                                        + "], xmm0 ; aloca resultado da mult. em endereco\n");
+                                        + "], xmm0 ; aloca resultado da mult. em endereco de expArgsC\n");
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -2031,14 +2031,14 @@ public class Compilador {
 
                             try {
                                 writer.write("\tmov eax, [M+" + expArgsC.addr
-                                        + "] ; alocando valor em end. a registrador\n");
+                                        + "] ; alocando valor em end. de expArgsC a registrador\n");
                                 writer.write("\tmov ebx, [M+" + expArgsD2.addr
-                                        + "] ; alocando valor em end. a registrador\n");
+                                        + "] ; alocando valor em end. de expArgsD2 a registrador\n");
                                 writer.write("\timul ebx ; eax * ebx\n");
                                 expArgsC.addr = tempCounter;
                                 updateTempCounter(expArgsC.type, 0);
                                 writer.write("\tmov [M+" + expArgsC.addr
-                                        + "], eax ; aloca resultado da mult. em endereco\n");
+                                        + "], eax ; aloca resultado da mult. em endereco de expArgsC\n");
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -2062,15 +2062,15 @@ public class Compilador {
                         }
 
                         try {
-                            writer.write(
-                                    "\tmov eax, [M+" + expArgsC.addr + "] ; alocando valor em end. a registrador\n");
-                            writer.write(
-                                    "\tmov ebx, [M+" + expArgsD2.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write("\tmov eax, [M+" + expArgsC.addr
+                                    + "] ; alocando valor em end. de expArgsC a registrador\n");
+                            writer.write("\tmov ebx, [M+" + expArgsD2.addr
+                                    + "] ; alocando valor em end. de expArgsD2 a registrador\n");
                             writer.write("\tidiv ebx ; eax div ebx\n");
                             expArgsC.addr = tempCounter;
                             updateTempCounter(expArgsC.type, 0);
-                            writer.write(
-                                    "\tmov [M+" + expArgsC.addr + "], eax ; aloca quociente da div. em endereco\n");
+                            writer.write("\tmov [M+" + expArgsC.addr
+                                    + "], eax ; aloca quociente da div. em endereco de expArgsC\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -2082,14 +2082,15 @@ public class Compilador {
                         }
 
                         try {
-                            writer.write(
-                                    "\tmov eax, [M+" + expArgsC.addr + "] ; alocando valor em end. a registrador\n");
-                            writer.write(
-                                    "\tmov ebx, [M+" + expArgsD2.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write("\tmov eax, [M+" + expArgsC.addr
+                                    + "] ; alocando valor em end. de expArgsC a registrador\n");
+                            writer.write("\tmov ebx, [M+" + expArgsD2.addr
+                                    + "] ; alocando valor em end. de expArgsD2 a registrador\n");
                             writer.write("\tidiv ebx ; eax divisao ebx\n");
                             expArgsC.addr = tempCounter;
                             updateTempCounter(expArgsC.type, 0);
-                            writer.write("\tmov [M+" + expArgsC.addr + "], edx ; aloca resto da div. em endereco\n");
+                            writer.write("\tmov [M+" + expArgsC.addr
+                                    + "], edx ; aloca resto da div. em endereco de expArgsC\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -2100,15 +2101,15 @@ public class Compilador {
                         }
 
                         try {
-                            writer.write(
-                                    "\tmov eax, [M+" + expArgsC.addr + "] ; alocando valor em end. a registrador\n");
-                            writer.write(
-                                    "\tmov ebx, [M+" + expArgsD2.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write("\tmov eax, [M+" + expArgsC.addr
+                                    + "] ; alocando valor em end. de expArgsC a registrador\n");
+                            writer.write("\tmov ebx, [M+" + expArgsD2.addr
+                                    + "] ; alocando valor em end. de expArgsD2 a registrador\n");
                             writer.write("\timul ebx ; eax AND ebx\n");
                             expArgsC.addr = tempCounter;
                             updateTempCounter(expArgsC.type, 0);
-                            writer.write(
-                                    "\tmov [M+" + expArgsC.addr + "], edx:eax ; aloca resultado do AND em endereco\n");
+                            writer.write("\tmov [M+" + expArgsC.addr
+                                    + "], edx:eax ; aloca resultado do AND em endereco de expArgsC\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -2153,10 +2154,12 @@ public class Compilador {
                     expArgsD.addr = tempCounter;
                     updateTempCounter(expArgsE.type, 0);
                     try {
-                        writer.write("\tmov eax, [M+" + expArgsE.addr + "] ; alocando valor em end. a registrador\n");
+                        writer.write("\tmov eax, [M+" + expArgsE.addr
+                                + "] ; alocando valor em end. de expArgsE a registrador\n");
                         writer.write("\tneg eax ; negando conteudo de registrador\n");
                         writer.write("\tadd eax, 1 ; finalizando not logico\n");
-                        writer.write("\tmov [M+" + expArgsD.addr + "], eax ; atualizando valor em end. com negacao\n");
+                        writer.write("\tmov [M+" + expArgsD.addr
+                                + "], eax ; atualizando valor em end. de expArgsD com negacao\n");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -2347,7 +2350,7 @@ public class Compilador {
                             try {
                                 writer.write("\tmov eax, " + currentToken.lexeme + " ; imediato para registrador\n");
                                 writer.write("\tmov [M+" + expArgsF.addr
-                                        + "], eax ; alocando valor do registrador no endereco\n");
+                                        + "], eax ; alocando valor do registrador no endereco de expArgsF\n");
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -2355,7 +2358,7 @@ public class Compilador {
                             try {
                                 writer.write("\tmov al, " + currentToken.lexeme + " ; imediato para registrador\n");
                                 writer.write("\tmov [M+" + expArgsF.addr
-                                        + "], al ; alocando valor do registrador no endereco\n");
+                                        + "], al ; alocando valor do registrador no endereco de expArgsF\n");
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
