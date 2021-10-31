@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.io.FileReader;
+// import java.io.FileReader;
 import java.io.IOException;
 
 public class Compilador {
@@ -1458,7 +1458,7 @@ public class Compilador {
                             writer.write("\tmov rax, [M+" + expArgsA1.addr
                                     + "] ; alocando valor em end. de expArgsA1 a registrador (indice)\n");
                             writer.write(
-                                    "\tadd rax, " + currentSymbol.addr + " ; indice + posicao inicial do string\n");
+                                    "\tadd rax, M+" + currentSymbol.addr + " ; indice + posicao inicial do string\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -2517,7 +2517,7 @@ public class Compilador {
                             writer.write("\tmov rax, [M+" + expArgsA2.addr
                                     + "] ; alocando valor em end. de expArgsA2 a registrador (indice)\n");
                             writer.write(
-                                    "\tadd rax, " + currentSymbol.addr + " ; indice + posicao inicial do string\n");
+                                    "\tadd rax, M+" + currentSymbol.addr + " ; indice + posicao inicial do string\n");
                             writer.write("\tmov rbx, [rax] ; alocando valor em rax a registrador ebx\n");
                             writer.write("\tmov [M+" + expArgsF.addr
                                     + "], rbx ; alocando conteudo de rbx em end. de expArgsF\n");
