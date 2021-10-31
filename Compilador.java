@@ -978,13 +978,13 @@ public class Compilador {
                 writer.write("\tmov rdi, 0 ; tam. string convertido\n");
                 writer.write("\tcmp eax, 0 ; verifica sinal\n");
                 writer.write("\tjge Rot" + rot_a + " ; salta se numero positivo\n");
-                writer.write("\tmov bl, ‘-‘ ; senao, escreve sinal –\n");
+                writer.write("\tmov bl, '-' ; senao, escreve sinal –\n");
                 writer.write("\tmov [rsi], bl\n");
                 writer.write("\tadd rsi, 1 ; incrementa indice\n");
                 writer.write("\tneg eax ; toma modulo do numero\n\n");
                 writer.write("Rot" + rot_a + ":\n");
                 writer.write("\tmov ebx, 10 ; divisor\n\n");
-                writer.write("Rot" + rot_b + "\n");
+                writer.write("Rot" + rot_b + ":\n");
                 writer.write("\tadd rcx, 1 ; incrementa contador\n");
                 writer.write("\tcdq ; estende edx:eax p/ div.\n");
                 writer.write("\tidiv ebx ; divide edx;eax por ebx\n");
@@ -995,7 +995,7 @@ public class Compilador {
                 writer.write("\t; desempilha os valores e escreve o string\n\n");
                 writer.write("Rot" + rot_c + ":\n");
                 writer.write("\tpop dx ; desempilha valor\n");
-                writer.write("\tadd dl, ‘0’ ; transforma em caractere\n");
+                writer.write("\tadd dl, '0' ; transforma em caractere\n");
                 writer.write("\tmov [rsi], dl ; escreve caractere\n");
                 writer.write("\tadd rsi, 1 ; incrementa base\n");
                 writer.write("\tsub rcx, 1 ; decrementa contador\n");
@@ -1028,7 +1028,7 @@ public class Compilador {
                 writer.write("\tsubss xmm1, xmm1 ; zera registrador\n");
                 writer.write("\tcomiss xmm0, xmm1 ; verifica sinal\n");
                 writer.write("\tjae Rot" + rot_a + " ; salta (rot_a) se numero positivo\n");
-                writer.write("\tmov dl, ‘-‘ ; senao, escreve sinal –\n");
+                writer.write("\tmov dl, '-' ; senao, escreve sinal –\n");
                 writer.write("\tmov [rsi], dl\n");
                 writer.write("\tmov rdx, -1 ; carrega -1 em RDX\n");
                 writer.write("\tcvtsi2ss xmm1, rdx ; converte para real\n");
@@ -1050,13 +1050,13 @@ public class Compilador {
                 writer.write("\t; desempilha valores e escreve parte int\n\n");
                 writer.write("Rot" + rot_c + ":\n");
                 writer.write("\tpop dx ; desempilha valor\n");
-                writer.write("\tadd dl, ‘0’ ; transforma em caractere\n");
+                writer.write("\tadd dl, '0' ; transforma em caractere\n");
                 writer.write("\tmov [rsi], dl ; escreve caractere\n");
                 writer.write("\tadd rsi, 1 ; incrementa base\n");
                 writer.write("\tsub rcx, 1 ; decrementa contador\n");
                 writer.write("\tcmp rcx, 0 ; verifica pilha vazia\n");
                 writer.write("\tjne Rot" + rot_c + " ; se nao pilha vazia, loop, else rot_c\n\n");
-                writer.write("\tmov dl, ‘.’ ; escreve ponto decimal\n");
+                writer.write("\tmov dl, '.' ; escreve ponto decimal\n");
                 writer.write("\tmov [rsi], dl\n");
                 writer.write("\tadd rsi, 1 ; incrementa base\n\n");
                 writer.write("\t; converte parte fracionaria que esta em xmm0\n\n");
@@ -1067,7 +1067,7 @@ public class Compilador {
                 writer.write("\troundss xmm1,xmm0,0b0011 ; parte inteira xmm1\n");
                 writer.write("\tsubss xmm0,xmm1    ; atualiza xmm0\n");
                 writer.write("\tcvtss2si rdx, xmm1 ; convertido para int\n");
-                writer.write("\tadd dl, ‘0’ ; transforma em caractere\n");
+                writer.write("\tadd dl, '0' ; transforma em caractere\n");
                 writer.write("\tmov [rsi], dl ; escreve caractere\n");
                 writer.write("\tadd rsi, 1 ; incrementa base\n");
                 writer.write("\tsub rdi, 1 ; decrementa precisao\n");
