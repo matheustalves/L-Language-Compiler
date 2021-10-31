@@ -923,40 +923,37 @@ public class Compilador {
         void declarationToMemory(Symbol symbol, boolean hasValue, String value) throws IOException {
             if (hasValue) {
                 if (symbol.type == "Char") {
-                    writer.write("\tdb " + value + " ; char em " + posMem + "\n");
+                    writer.write("\tdb " + value + " ; char em M+" + posMem + "\n");
                 } else if (symbol.type == "Integer") {
-                    writer.write("\tdd " + value + " ; inteiro em " + posMem + "\n");
+                    writer.write("\tdd " + value + " ; inteiro em M+" + posMem + "\n");
                 } else if (symbol.type == "Float") {
-                    writer.write("\tdd " + value + " ; float em " + posMem + "\n");
+                    writer.write("\tdd " + value + " ; float em M+" + posMem + "\n");
                 } else if (symbol.type == "String") {
-                    writer.write("\tdb " + value + ", 0 ; string em " + posMem + "\n");
+                    writer.write("\tdb " + value + ", 0 ; string em M+" + posMem + "\n");
                 }
             } else {
                 if (symbol.type == "Char") {
-                    writer.write("\tresb 1 ; char em " + posMem + "\n");
+                    writer.write("\tresb 1 ; char em M+" + posMem + "\n");
                 } else if (symbol.type == "Integer") {
-                    writer.write("\tresd 1 ; inteiro em " + posMem + "\n");
+                    writer.write("\tresd 1 ; inteiro em M+" + posMem + "\n");
                 } else if (symbol.type == "Float") {
-                    writer.write("\tresd 1 ; float em " + posMem + "\n");
+                    writer.write("\tresd 1 ; float em M+" + posMem + "\n");
                 } else if (symbol.type == "String") {
-                    writer.write("\tresb 256 ; string em " + posMem + "\n");
+                    writer.write("\tresb 256 ; string em M+" + posMem + "\n");
                 }
             }
         }
 
-        void attributionToMemory(Symbol symbol, String value) throws IOException {
-            if (symbol.type == "Char") {
-                writer.write("\tmov al, " + value + " ; alocando char em registrador\n");
-                writer.write("\tmov [" + symbol.addr + "], al ; adicionando valor a endereco do id: " + symbol.lexeme
-                        + "\n");
-            } else if (symbol.type == "Integer") {
-                writer.write("\tmov eax, " + value + " ; alocando inteiro em registrador\n");
-                writer.write("\tmov [" + symbol.addr + "], eax ; adicionando valor a endereco do id: " + symbol.lexeme
-                        + "\n");
-            } else if (symbol.type == "Float") {
-                writer.write("\tmovss xmm0, " + value + " ; alocando float em registrador\n");
-                writer.write("\tmov [" + symbol.addr + "], xmm0 ; adicionando valor a endereco do id: " + symbol.lexeme
-                        + "\n");
+        void attributionToMemory(String type, String addr, String value) throws IOException {
+            if (type == "Char") {
+                writer.write("\tmov al, [M+" + value + "] ; alocando char em registrador\n");
+                writer.write("\tmov [" + addr + "], al ; adicionando valor a endereco do id\n");
+            } else if (type == "Integer") {
+                writer.write("\tmov eax, [M+" + value + "] ; alocando inteiro em registrador\n");
+                writer.write("\tmov [" + addr + "], eax ; adicionando valor a endereco do id\n");
+            } else if (type == "Float") {
+                writer.write("\tmovss xmm0, [M+" + value + "] ; alocando float em registrador\n");
+                writer.write("\tmov [" + addr + "], xmm0 ; adicionando valor a endereco do id\n");
             }
         }
 
@@ -1414,7 +1411,8 @@ public class Compilador {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenId) {
                     boolean isStringIndex = false;
-                    EXP_args argsCommand = new EXP_args();
+                    String atribAddr = "";
+                    String atribType = "";
 
                     if (!identifierIsDeclared(currentToken)) {
                         throwIdentifierError("id_not_declared");
@@ -1456,21 +1454,17 @@ public class Compilador {
                             return;
                         }
 
-                        // argsCommand.type = "Char";
-                        // argsCommand.addr = tempCounter;
-                        // updateTempCounter(argsCommand.type, 0);
+                        try {
+                            writer.write("\tmov rax, [M+" + expArgsA1.addr
+                                    + "] ; alocando valor em end. de expArgsA1 a registrador (indice)\n");
+                            writer.write(
+                                    "\tadd rax, " + currentSymbol.addr + " ; indice + posicao inicial do string\n");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
 
-                        // try {
-                        //     writer.write("\tmov rax, [M+" + expArgsA1.addr
-                        //             + "] ; alocando valor em end. de expArgsA1 a registrador (indice)\n");
-                        //     writer.write(
-                        //             "\tadd rax, " + currentSymbol.addr + " ; indice + posicao inicial do string\n");
-                        //     writer.write("\tmov rbx, [rax] ; alocando valor em rax a registrador ebx\n");
-                        //     writer.write("\tmov [M+" + argsCommand.addr
-                        //             + "], rbx ; alocando conteudo de rbx em end. de argsCommand\n");
-                        // } catch (IOException e) {
-                        //     e.printStackTrace();
-                        // }
+                        atribAddr = "rax";
+                        atribType = "Char";
 
                         if (currentToken.token == tokenCloseSq) {
                             checkToken(tokenCloseSq);
@@ -1500,8 +1494,13 @@ public class Compilador {
                             return;
                         }
 
+                        if (!isStringIndex) {
+                            atribAddr = "M+" + String.valueOf(currentSymbol.addr);
+                            atribType = currentSymbol.type;
+                        }
+
                         try {
-                            attributionToMemory(currentSymbol, "[M+" + expArgsA2.addr + "]");
+                            attributionToMemory(atribType, atribAddr, String.valueOf(expArgsA2.addr));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
