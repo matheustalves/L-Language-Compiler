@@ -2037,6 +2037,23 @@ public class Compilador {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
+
+                        try {
+                            writer.write("\tmov eax, [M+" + expArgsB.addr
+                                    + "] ; alocando valor em end. de expArgsB a registrador\n");
+                            writer.write("\tmov ebx, [M+" + expArgsC2.addr
+                                    + "] ; alocando valor em end. de expArgsC2 a registrador\n");
+                            writer.write("\tmov ecx, 2 ; alocando valor 2 a ecx\n");
+                            writer.write("\tadd eax, ebx ; eax = eax + ebx\n");
+                            writer.write("\tidiv ecx ; dividindo eax por 2\n");
+                            writer.write("\tadd eax, edx ; somando quociente e resto da divisao (Or logico)\n");
+                            expArgsB.addr = tempCounter;
+                            updateTempCounter(expArgsB.type, 0);
+                            writer.write("\tmov [M+" + expArgsB.addr
+                                    + "], eax ; aloca resultado do Or em endereco de expArgsB\n");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
