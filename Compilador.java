@@ -1845,16 +1845,20 @@ public class Compilador {
                     updateTempCounter(expArgsC1.type, 0);
                     try {
                         if (expArgsC1.type == "Integer") {
-                            writer.write(
-                                    "\tmov eax, [M+" + expArgsC1.addr + "] ; alocando valor em end. a registrador\n");
+                            writer.write("\tmov eax, [M+" + expArgsC1.addr
+                                    + "] ; alocando valor em end. de expArgsC1 a registrador\n");
                             writer.write("\tneg eax ; negando valor de registrador\n");
-                            writer.write("\tmov [M+" + expArgsB.addr + "], eax ; alocando valor negado na memoria\n");
+                            writer.write("\tmov [M+" + expArgsB.addr
+                                    + "], eax ; alocando valor negado em end. de expArgsB\n");
                         } else {
-                            // writer.write(
-                            //         "\tmovss eax, [M+" + expArgsC1.addr + "] ; alocando valor em end. a registrador\n");
-                            // writer.write("\tmovss ebx, -1")
-                            // writer.write("\tmulss eax, -1 ; multiplicando registrador por -1\n");
-                            // writer.write("\tmovss [M+" + expArgsB.addr + "], eax ; alocando valor negado na memoria\n");
+                            writer.write("\tmov rax, [M+" + expArgsC1.addr
+                                    + "] ; alocando valor em end. de expArgsC1 a registrador\n");
+                            writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                            writer.write("\tmov rbx, -1 ; alocando -1 em rbx\n");
+                            writer.write("\tcvtsi2ss xmm1, rbx ; -1 (int64) para float\n");
+                            writer.write("\tmulss xmm0, xmm1 ; xmm * -1\n");
+                            writer.write("\tmovss [M+" + expArgsB.addr
+                                    + "], xmm0 ; alocando valor negado em end. de expArgsB\n");
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -1897,8 +1901,66 @@ public class Compilador {
                             return;
                         } else if (expArgsC1.type == "Float" || expArgsC2.type == "Float") {
                             expArgsB.type = "Float";
+
+                            if (expArgsC1.type == "Float") {
+                                try {
+                                    writer.write("\tmovss xmm0, [M+" + expArgsB.addr
+                                            + "] ; alocando valor em end. de expArgsB a registrador\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                try {
+                                    writer.write("\tmov rax, [M+" + expArgsB.addr
+                                            + "] ; alocando valor em end. de expArgsB a registrador\n");
+                                    writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            if (expArgsC2.type == "Float") {
+                                try {
+                                    writer.write("\tmovss xmm1, [M+" + expArgsC2.addr
+                                            + "] ; alocando valor em end. de expArgsC2 a registrador\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                try {
+                                    writer.write("\tmov rbx, [M+" + expArgsC2.addr
+                                            + "] ; alocando valor em end. de expArgsC2 a registrador\n");
+                                    writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            try {
+                                writer.write("\taddss xmm0, xmm1 ; xmm0 + xmm1\n");
+                                expArgsB.addr = tempCounter;
+                                updateTempCounter(expArgsB.type, 0);
+                                writer.write("\tmovss [M+" + expArgsB.addr
+                                        + "], xmm0 ; aloca resultado da soma em endereco de expArgsB\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         } else {
                             expArgsB.type = "Integer";
+
+                            try {
+                                writer.write("\tmov eax, [M+" + expArgsB.addr
+                                        + "] ; alocando valor em end. de expArgsB a registrador\n");
+                                writer.write("\tmov ebx, [M+" + expArgsC2.addr
+                                        + "] ; alocando valor em end. de expArgsC2 a registrador\n");
+                                writer.write("\tadd eax, ebx ; eax + ebx\n");
+                                expArgsB.addr = tempCounter;
+                                updateTempCounter(expArgsB.type, 0);
+                                writer.write("\tmov [M+" + expArgsB.addr
+                                        + "], eax ; aloca resultado da soma em endereco de expArgsB\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     } else if (operator == tokenMinus) {
                         if ((expArgsC1.type != "Integer" && expArgsC1.type != "Float")
@@ -1909,8 +1971,66 @@ public class Compilador {
                             return;
                         } else if (expArgsC1.type == "Float" || expArgsC2.type == "Float") {
                             expArgsB.type = "Float";
+
+                            if (expArgsC1.type == "Float") {
+                                try {
+                                    writer.write("\tmovss xmm0, [M+" + expArgsB.addr
+                                            + "] ; alocando valor em end. de expArgsB a registrador\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                try {
+                                    writer.write("\tmov rax, [M+" + expArgsB.addr
+                                            + "] ; alocando valor em end. de expArgsB a registrador\n");
+                                    writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            if (expArgsC2.type == "Float") {
+                                try {
+                                    writer.write("\tmovss xmm1, [M+" + expArgsC2.addr
+                                            + "] ; alocando valor em end. de expArgsC2 a registrador\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                try {
+                                    writer.write("\tmov rbx, [M+" + expArgsC2.addr
+                                            + "] ; alocando valor em end. de expArgsC2 a registrador\n");
+                                    writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            try {
+                                writer.write("\tsubss xmm0, xmm1 ; xmm0 - xmm1\n");
+                                expArgsB.addr = tempCounter;
+                                updateTempCounter(expArgsB.type, 0);
+                                writer.write("\tmovss [M+" + expArgsB.addr
+                                        + "], xmm0 ; aloca resultado da subtracao em endereco de expArgsB\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         } else {
                             expArgsB.type = "Integer";
+
+                            try {
+                                writer.write("\tmov eax, [M+" + expArgsB.addr
+                                        + "] ; alocando valor em end. de expArgsB a registrador\n");
+                                writer.write("\tmov ebx, [M+" + expArgsC2.addr
+                                        + "] ; alocando valor em end. de expArgsC2 a registrador\n");
+                                writer.write("\tsub eax, ebx ; eax - ebx\n");
+                                expArgsB.addr = tempCounter;
+                                updateTempCounter(expArgsB.type, 0);
+                                writer.write("\tmov [M+" + expArgsB.addr
+                                        + "], eax ; aloca resultado da subtracao em endereco de expArgsB\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     } else if (operator == tokenOr) {
                         if (!(expArgsC1.type == "Boolean" && expArgsC2.type == "Boolean")) {
