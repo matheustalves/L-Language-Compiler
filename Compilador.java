@@ -817,7 +817,7 @@ public class Compilador {
             EXP_F->     	"(" EXP ")" | id ["[" EXP "]"] | num
     */
     static class Parser {
-        static int posMem = 0x10000;
+        static int posMem = 0x10000; // endereco atual da memoria
         static int tempCounter = 0x0;
         static int rotCounter = 0;
         static int currentSection = 0; // .data = 0 , .text = 1
@@ -947,16 +947,16 @@ public class Compilador {
         void attributionToMemory(Symbol symbol, String value) throws IOException {
             if (symbol.type == "Char") {
                 writer.write("\tmov al, " + value + " ; alocando char em registrador\n");
-                writer.write("\tmov [M+" + symbol.addr + "], al ; adicionando valor a endereco do id: " + symbol.lexeme
+                writer.write("\tmov [" + symbol.addr + "], al ; adicionando valor a endereco do id: " + symbol.lexeme
                         + "\n");
             } else if (symbol.type == "Integer") {
                 writer.write("\tmov eax, " + value + " ; alocando inteiro em registrador\n");
-                writer.write("\tmov [M+" + symbol.addr + "], eax ; adicionando valor a endereco do id: " + symbol.lexeme
+                writer.write("\tmov [" + symbol.addr + "], eax ; adicionando valor a endereco do id: " + symbol.lexeme
                         + "\n");
             } else if (symbol.type == "Float") {
                 writer.write("\tmovss xmm0, " + value + " ; alocando float em registrador\n");
-                writer.write("\tmov [M+" + symbol.addr + "], xmm0 ; adicionando valor a endereco do id: "
-                        + symbol.lexeme + "\n");
+                writer.write("\tmov [" + symbol.addr + "], xmm0 ; adicionando valor a endereco do id: " + symbol.lexeme
+                        + "\n");
             }
         }
 
@@ -1414,6 +1414,7 @@ public class Compilador {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenId) {
                     boolean isStringIndex = false;
+                    EXP_args argsCommand = new EXP_args();
 
                     if (!identifierIsDeclared(currentToken)) {
                         throwIdentifierError("id_not_declared");
@@ -1454,6 +1455,22 @@ public class Compilador {
                             throwIdentifierError("incompatible_types");
                             return;
                         }
+
+                        // argsCommand.type = "Char";
+                        // argsCommand.addr = tempCounter;
+                        // updateTempCounter(argsCommand.type, 0);
+
+                        // try {
+                        //     writer.write("\tmov rax, [M+" + expArgsA1.addr
+                        //             + "] ; alocando valor em end. de expArgsA1 a registrador (indice)\n");
+                        //     writer.write(
+                        //             "\tadd rax, " + currentSymbol.addr + " ; indice + posicao inicial do string\n");
+                        //     writer.write("\tmov rbx, [rax] ; alocando valor em rax a registrador ebx\n");
+                        //     writer.write("\tmov [M+" + argsCommand.addr
+                        //             + "], rbx ; alocando conteudo de rbx em end. de argsCommand\n");
+                        // } catch (IOException e) {
+                        //     e.printStackTrace();
+                        // }
 
                         if (currentToken.token == tokenCloseSq) {
                             checkToken(tokenCloseSq);
@@ -2493,6 +2510,21 @@ public class Compilador {
                         }
 
                         expArgsF.type = "Char";
+
+                        expArgsF.addr = tempCounter;
+                        updateTempCounter(expArgsF.type, 0);
+
+                        try {
+                            writer.write("\tmov rax, [M+" + expArgsA2.addr
+                                    + "] ; alocando valor em end. de expArgsA2 a registrador (indice)\n");
+                            writer.write(
+                                    "\tadd rax, " + currentSymbol.addr + " ; indice + posicao inicial do string\n");
+                            writer.write("\tmov rbx, [rax] ; alocando valor em rax a registrador ebx\n");
+                            writer.write("\tmov [M+" + expArgsF.addr
+                                    + "], rbx ; alocando conteudo de rbx em end. de expArgsF\n");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
 
                         if (currentToken.token == tokenCloseSq) {
                             checkToken(tokenCloseSq);
