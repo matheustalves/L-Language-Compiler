@@ -1891,6 +1891,33 @@ public class Compilador {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                    } else if (expArgsB1.type == "Char") {
+                        try {
+                            writer.write("\tmov al, [M+" + expArgsA.addr
+                                    + "] ; alocando valor em end. de expArgsA a registrador\n");
+                            writer.write("\tmov bl, [M+" + expArgsB2.addr
+                                    + "] ; alocando valor em end. de expArgsB2 a registrador\n");
+
+                            writer.write("\tcmp al, bl ; comparando al com bl\n");
+
+                            rotTrue = "RotVerdadeiro" + setRot();
+
+                            if (tokenOperator == tokenEqual) {
+                                writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenDif) {
+                                writer.write("\tjne " + rotTrue + " ; caso diferentes, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenLess) {
+                                writer.write("\tjl " + rotTrue + " ; caso menor, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenGtr) {
+                                writer.write("\tjg " + rotTrue + " ; caso maior, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenLessEqual) {
+                                writer.write("\tjle " + rotTrue + " ; caso menor ou igual, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenGtrEqual) {
+                                writer.write("\tjge " + rotTrue + " ; caso maior ou igual, jmp para RotVerdadeiro\n");
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     try {
