@@ -1822,6 +1822,8 @@ public class Compilador {
                         return;
                     }
 
+                    String rotTrue = "";
+
                     if (expArgsB1.type == "Integer" && expArgsB2.type == "Integer") {
                         try {
                             writer.write("\tmov eax, [M+" + expArgsA.addr
@@ -1830,7 +1832,7 @@ public class Compilador {
                                     + "] ; alocando valor em end. de expArgsB2 a registrador\n");
                             writer.write("\tcmp eax, ebx ; comparando eax com ebx\n");
 
-                            String rotTrue = "RotVerdadeiro" + setRot();
+                            rotTrue = "RotVerdadeiro" + setRot();
 
                             if (tokenOperator == tokenEqual) {
                                 writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
@@ -1845,33 +1847,71 @@ public class Compilador {
                             } else if (tokenOperator == tokenGtrEqual) {
                                 writer.write("\tjge " + rotTrue + " ; caso maior ou igual, jmp para RotVerdadeiro\n");
                             }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (expArgsB1.type == "Float" || expArgsB2.type == "Float") {
+                        try {
+                            if (expArgsB1.type == "Float") {
+                                writer.write("\tmovss xmm0, [M+" + expArgsA.addr
+                                        + "] ; alocando valor em end. de expArgsA para registrador\n");
+                            } else {
+                                writer.write("\tmov rax, [M+" + expArgsA.addr
+                                        + "] ; alocando valor em end. de expArgsA para registrador\n");
+                                writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                            }
 
-                            writer.write("\tmov eax, 0 ; teste deu false\n");
+                            if (expArgsB2.type == "Float") {
+                                writer.write("\tmovss xmm1, [M+" + expArgsB2.addr
+                                        + "] ; alocando valor em end. de expArgsB2 para registrador\n");
 
-                            String rotEnd = "RotFim" + setRot();
-                            writer.write("\tjmp " + rotEnd + " ; jmp para RotFim\n");
+                            } else {
+                                writer.write("\tmov rbx, [M+" + expArgsB2.addr
+                                        + "] ; alocando valor em end. de expArgsB2 para registrador\n");
+                                writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
+                            }
 
-                            writer.write("\t" + rotTrue + ": ; RotVerdadeiro\n");
-                            writer.write("\t\tmov eax, 1 ; teste deu true\n");
+                            writer.write("\tcomiss xmm0, xmm1 ; comparando xmm0 com xmm1\n");
 
-                            expArgsA.type = "Boolean";
-                            expArgsA.addr = tempCounter;
-                            updateTempCounter(expArgsA.type, 4);
+                            rotTrue = "RotVerdadeiro" + setRot();
 
-                            writer.write("\t" + rotEnd + ": ; RotFim\n");
-                            writer.write("\tmov [M+ " + expArgsA.addr
-                                    + "], eax ; alocando resultado bool no endereco de expArgsA\n");
-
+                            if (tokenOperator == tokenEqual) {
+                                writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenDif) {
+                                writer.write("\tjne " + rotTrue + " ; caso diferentes, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenLess) {
+                                writer.write("\tjb " + rotTrue + " ; caso menor, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenGtr) {
+                                writer.write("\tja " + rotTrue + " ; caso maior, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenLessEqual) {
+                                writer.write("\tjbe " + rotTrue + " ; caso menor ou igual, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenGtrEqual) {
+                                writer.write("\tjae " + rotTrue + " ; caso maior ou igual, jmp para RotVerdadeiro\n");
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
 
-                    // try{
-                    //     writer.write("\t")
-                    // }catch(IOException e){
-                    //     e.printStackTrace();
-                    // }
+                    try {
+                        writer.write("\tmov eax, 0 ; teste deu false\n");
+
+                        String rotEnd = "RotFim" + setRot();
+                        writer.write("\tjmp " + rotEnd + " ; jmp para RotFim\n");
+
+                        writer.write("\t" + rotTrue + ": ; RotVerdadeiro\n");
+                        writer.write("\t\tmov eax, 1 ; teste deu true\n");
+
+                        expArgsA.type = "Boolean";
+                        expArgsA.addr = tempCounter;
+                        updateTempCounter(expArgsA.type, 4);
+
+                        writer.write("\t" + rotEnd + ": ; RotFim\n");
+                        writer.write("\tmov [M+ " + expArgsA.addr
+                                + "], eax ; alocando resultado bool no endereco de expArgsA\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
