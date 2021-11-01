@@ -924,22 +924,37 @@ public class Compilador {
             if (hasValue) {
                 if (symbol.type == "Char") {
                     writer.write("\tdb " + value + " ; char em M+" + posMem + "\n");
+                    updatePosMem(symbol.type, 1);
                 } else if (symbol.type == "Integer") {
                     writer.write("\tdd " + value + " ; inteiro em M+" + posMem + "\n");
+                    updatePosMem(symbol.type, 4);
                 } else if (symbol.type == "Float") {
                     writer.write("\tdd " + value + " ; float em M+" + posMem + "\n");
+                    updatePosMem(symbol.type, 4);
                 } else if (symbol.type == "String") {
-                    writer.write("\tdb " + value + ", 0 ; string em M+" + posMem + "\n");
+                    if (symbol.classification == "const") {
+                        writer.write("\tdb " + value + ", 0 ; string em M+" + posMem + "\n");
+                        updatePosMem(symbol.type, value.length() - 2);
+                    } else {
+                        int r = 256 - (value.length() - 2 + 1);
+                        writer.write("\tdb " + value + ", 0 ; string em M+" + posMem + "\n");
+                        writer.write("\tresb " + r + " ; reservando espaco restante (str variavel)\n");
+                        updatePosMem(symbol.type, 255);
+                    }
                 }
             } else {
                 if (symbol.type == "Char") {
                     writer.write("\tresb 1 ; char em M+" + posMem + "\n");
+                    updatePosMem(symbol.type, 1);
                 } else if (symbol.type == "Integer") {
                     writer.write("\tresd 1 ; inteiro em M+" + posMem + "\n");
+                    updatePosMem(symbol.type, 4);
                 } else if (symbol.type == "Float") {
                     writer.write("\tresd 1 ; float em M+" + posMem + "\n");
+                    updatePosMem(symbol.type, 4);
                 } else if (symbol.type == "String") {
                     writer.write("\tresb 256 ; string em M+" + posMem + "\n");
+                    updatePosMem(symbol.type, 255);
                 }
             }
         }
@@ -1238,8 +1253,6 @@ public class Compilador {
                                     e.printStackTrace();
                                 }
 
-                                updatePosMem(idType, currentToken.lexeme.length());
-
                                 checkToken(tokenValue);
                                 if (pauseCompiling)
                                     return;
@@ -1379,11 +1392,6 @@ public class Compilador {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
-                    if (hasValue)
-                        updatePosMem(idType, value.length());
-                    else
-                        updatePosMem(idType, 255);
                 }
             }
         }
