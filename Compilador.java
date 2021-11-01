@@ -1731,69 +1731,6 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: OPERADOR->   = | != | < | > | <= | >=
-        
-            Metodo OPERADOR -> Símbolo não terminal para operadores.
-            Caso token = (= | != | < | > | <= | >=), continua
-            Caso seja diferente, erro
-        */
-        void OPERATOR(EXP_args operatorArgs) {
-            if (!pauseCompiling) {
-                if (currentToken.token == tokenEqual) {
-                    if (operatorArgs.type != "String" && operatorArgs.type != "Integer" && operatorArgs.type != "Float"
-                            && operatorArgs.type != "Char") {
-                        throwIdentifierError("incompatible_types");
-                        return;
-                    }
-                    checkToken(tokenEqual);
-                    if (pauseCompiling)
-                        return;
-                } else if (currentToken.token == tokenDif) {
-                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
-                        throwIdentifierError("incompatible_types");
-                        return;
-                    }
-                    checkToken(tokenDif);
-                    if (pauseCompiling)
-                        return;
-                } else if (currentToken.token == tokenLess) {
-                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
-                        throwIdentifierError("incompatible_types");
-                        return;
-                    }
-                    checkToken(tokenLess);
-                    if (pauseCompiling)
-                        return;
-                } else if (currentToken.token == tokenGtr) {
-                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
-                        throwIdentifierError("incompatible_types");
-                        return;
-                    }
-                    checkToken(tokenGtr);
-                    if (pauseCompiling)
-                        return;
-                } else if (currentToken.token == tokenLessEqual) {
-                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
-                        throwIdentifierError("incompatible_types");
-                        return;
-                    }
-                    checkToken(tokenLessEqual);
-                    if (pauseCompiling)
-                        return;
-                } else if (currentToken.token == tokenGtrEqual) {
-                    if (operatorArgs.type != "Integer" && operatorArgs.type != "Float" && operatorArgs.type != "Char") {
-                        throwIdentifierError("incompatible_types");
-                        return;
-                    }
-                    checkToken(tokenGtrEqual);
-                    if (pauseCompiling)
-                        return;
-                } else
-                    throwParserError();
-            }
-        }
-
-        /* 
             Na gramática: EXP-> EXP_B {OPERADOR EXP_B}
         
             Metodo EXP -> Símbolo não terminal para expressoes.
@@ -1813,12 +1750,64 @@ public class Compilador {
                         || currentToken.token == tokenLess || currentToken.token == tokenGtr
                         || currentToken.token == tokenLessEqual || currentToken.token == tokenGtrEqual) {
 
-                    EXP_args operatorArgs = new EXP_args();
-                    operatorArgs.type = expArgsB1.type;
-
-                    OPERATOR(operatorArgs);
-                    if (pauseCompiling)
-                        return;
+                    int tokenOperator = -1;
+                    if (currentToken.token == tokenEqual) {
+                        if (expArgsB1.type != "String" && expArgsB1.type != "Integer" && expArgsB1.type != "Float"
+                                && expArgsB1.type != "Char") {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                        tokenOperator = tokenEqual;
+                        checkToken(tokenEqual);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenDif) {
+                        if (expArgsB1.type != "Integer" && expArgsB1.type != "Float" && expArgsB1.type != "Char") {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                        tokenOperator = tokenDif;
+                        checkToken(tokenDif);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenLess) {
+                        if (expArgsB1.type != "Integer" && expArgsB1.type != "Float" && expArgsB1.type != "Char") {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                        tokenOperator = tokenLess;
+                        checkToken(tokenLess);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenGtr) {
+                        if (expArgsB1.type != "Integer" && expArgsB1.type != "Float" && expArgsB1.type != "Char") {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                        tokenOperator = tokenGtr;
+                        checkToken(tokenGtr);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenLessEqual) {
+                        if (expArgsB1.type != "Integer" && expArgsB1.type != "Float" && expArgsB1.type != "Char") {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                        tokenOperator = tokenLessEqual;
+                        checkToken(tokenLessEqual);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenGtrEqual) {
+                        if (expArgsB1.type != "Integer" && expArgsB1.type != "Float" && expArgsB1.type != "Char") {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
+                        tokenOperator = tokenGtrEqual;
+                        checkToken(tokenGtrEqual);
+                        if (pauseCompiling)
+                            return;
+                    } else
+                        throwParserError();
 
                     EXP_args expArgsB2 = new EXP_args();
                     EXP_B(expArgsB2);
@@ -1833,7 +1822,56 @@ public class Compilador {
                         return;
                     }
 
-                    expArgsA.type = "Boolean";
+                    if (expArgsB1.type == "Integer" && expArgsB2.type == "Integer") {
+                        try {
+                            writer.write("\tmov eax, [M+" + expArgsA.addr
+                                    + "] ; alocando valor em end. de expArgsA a registrador\n");
+                            writer.write("\tmov ebx, [M+" + expArgsB2.addr
+                                    + "] ; alocando valor em end. de expArgsB2 a registrador\n");
+                            writer.write("\tcmp eax, ebx ; comparando eax com ebx\n");
+
+                            String rotTrue = "RotVerdadeiro" + setRot();
+
+                            if (tokenOperator == tokenEqual) {
+                                writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenDif) {
+                                writer.write("\tjne " + rotTrue + " ; caso diferentes, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenLess) {
+                                writer.write("\tjl " + rotTrue + " ; caso menor, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenGtr) {
+                                writer.write("\tjg " + rotTrue + " ; caso maior, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenLessEqual) {
+                                writer.write("\tjle " + rotTrue + " ; caso menor ou igual, jmp para RotVerdadeiro\n");
+                            } else if (tokenOperator == tokenGtrEqual) {
+                                writer.write("\tjge " + rotTrue + " ; caso maior ou igual, jmp para RotVerdadeiro\n");
+                            }
+
+                            writer.write("\tmov eax, 0 ; teste deu false\n");
+
+                            String rotEnd = "RotFim" + setRot();
+                            writer.write("\tjmp " + rotEnd + " ; jmp para RotFim\n");
+
+                            writer.write("\t" + rotTrue + ": ; RotVerdadeiro\n");
+                            writer.write("\t\tmov eax, 1 ; teste deu true\n");
+
+                            expArgsA.type = "Boolean";
+                            expArgsA.addr = tempCounter;
+                            updateTempCounter(expArgsA.type, 4);
+
+                            writer.write("\t" + rotEnd + ": ; RotFim\n");
+                            writer.write("\tmov [M+ " + expArgsA.addr
+                                    + "], eax ; alocando resultado bool no endereco de expArgsA\n");
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    // try{
+                    //     writer.write("\t")
+                    // }catch(IOException e){
+                    //     e.printStackTrace();
+                    // }
                 }
             }
         }

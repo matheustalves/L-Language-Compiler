@@ -14,9 +14,10 @@ COMANDO->	id (2) (14) ["[" (15) EXP_A1 (44) "]"] <- EXP_A2 (16);		  |
 
 TIPO_CMD->	COMANDO | "{" {COMANDO} "}"
 LISTA_EXP->	EXP_A1 (a1) {, EXP_A2 (a2)}
-OPERADOR->    	= (36)| != (37) | < (37)| > (37)| <= (37)| >= (37)
 
-EXP_A-> 	EXP_B1 (32) [(33) OPERADOR EXP_B2 (34) (35)]
+// OPERATOR removido. Foi para EXP_A
+
+EXP_A-> 	EXP_B1 (32) [(33) (= (36)| != (37) | < (37)| > (37)| <= (37)| >= (37)) EXP_B2 (34) (35)]
 EXP_B->		[- (31)] EXP_C1 (26) (27) { (+ | - | "||") EXP_C2 (28) (29) (30)}
 EXP_C->		EXP_D1 (20) { ("*" | && | / | div | mod) EXP_D2 (21) (22) (23) (24) (25)} 
 EXP_D->		{! (11) } EXP_E (12) (13)
