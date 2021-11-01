@@ -2,6 +2,15 @@
 
 > L Language Compiler for an imperative language made in our Compilers course.
 
+## TODO
+
+- Atribuição de Strings (char por char)
+- Write, WriteLn, Read
+- Repetição - While
+- Comparação de Strings (com loop)
+- IF
+
+
 ## ☕ Rodando o compilador.
 
 Com um arquivo .in, digite no terminal:
