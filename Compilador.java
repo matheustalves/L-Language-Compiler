@@ -1538,9 +1538,25 @@ public class Compilador {
                         return;
                     }
 
-                    CMD_TYPE();
-                    if (pauseCompiling)
-                        return;
+                    String rotBegin = "Rot" + setRot();
+                    String rotEnd = "Rot" + setRot();
+
+                    try {
+                        writer.write("\t" + rotBegin + ": ; RotInicio\n");
+                        writer.write("\tmov eax, [M+" + expArgsA3.addr
+                                + "] ; alocando valor em end. de expArgsA3 a registrador\n");
+                        writer.write("\tcmp eax, 1 ; verifica se expressao eh verdadeira\n");
+                        writer.write("\tjne " + rotEnd + " ; caso false, desvia para RotFim\n");
+
+                        CMD_TYPE();
+                        if (pauseCompiling)
+                            return;
+
+                        writer.write("\tjmp " + rotBegin + " ; desvia para RotInicio\n");
+                        writer.write("\t" + rotEnd + ": ; RotFim\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 } else if (currentToken.token == tokenIf) {
                     checkToken(tokenIf);
                     if (pauseCompiling)

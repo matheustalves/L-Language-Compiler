@@ -6,9 +6,8 @@
 
 - Atribuição de Strings (char por char)
 - Write, WriteLn, Read
-- Repetição - While
 - Comparação de Strings (com loop)
-- Consertar M + rax
+- Consertar M + rax no acesso a posicao de string
 
 ## ☕ Rodando o compilador.
 
