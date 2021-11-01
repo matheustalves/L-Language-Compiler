@@ -8,8 +8,7 @@
 - Write, WriteLn, Read
 - Repetição - While
 - Comparação de Strings (com loop)
-- IF
-
+- Consertar M + rax
 
 ## ☕ Rodando o compilador.
 

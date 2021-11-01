@@ -1557,16 +1557,46 @@ public class Compilador {
                         return;
                     }
 
-                    CMD_TYPE();
-                    if (pauseCompiling)
-                        return;
+                    String rotFalse = "Rot" + setRot();
+                    String rotEnd = "Rot" + setRot();
+
+                    try {
+                        writer.write("\tmov eax, [M+" + expArgsA4.addr
+                                + "] ; alocando valor em end. de expArgsA4 a registrador\n");
+                        writer.write("\tcmp eax, 1 ; verifica se expressao eh verdadeira\n");
+                        writer.write("\tjne " + rotFalse + " ; caso falso, desvia para RotFalso\n");
+
+                        CMD_TYPE();
+                        if (pauseCompiling)
+                            return;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     if (currentToken.token == tokenElse) {
                         checkToken(tokenElse);
                         if (pauseCompiling)
                             return;
-                        CMD_TYPE();
-                        if (pauseCompiling)
-                            return;
+
+                        try {
+                            writer.write("\tjmp " + rotEnd + " ; desvio para RotFim\n");
+                            writer.write("\t" + rotFalse + ": ; RotFalso\n");
+
+                            CMD_TYPE();
+                            if (pauseCompiling)
+                                return;
+
+                            writer.write("\t" + rotEnd + " ; RotFim\n");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else {
+                        try {
+                            writer.write("\t" + rotFalse + ": ; RotFalso\n");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 } else if (currentToken.token == tokenRead) {
                     checkToken(tokenRead);
