@@ -8,6 +8,7 @@
 - Write, WriteLn, Read
 - Comparação de Strings (com loop)
 - Consertar M + rax no acesso a posicao de string
+- Consertar rax -> xmm no EXP_B minus (float)
 
 ## ☕ Rodando o compilador.
 
