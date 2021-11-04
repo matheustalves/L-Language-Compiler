@@ -825,6 +825,8 @@ public class Compilador {
         static {
             try {
                 writer = new BufferedWriter(new FileWriter("arq.asm"));
+                writer.write("global _start ; Ponto inicial do programa\n");
+                writer.write("_start: ; Inicio do programa\n");
                 writer.write("section .data ; sessao de dados\n");
                 writer.write("M: ; rotulo de inicio da sessao de dados\n");
                 writer.write("\tresb 10000h ; reserva de temporarios\n");
@@ -901,9 +903,9 @@ public class Compilador {
         }
 
         void updateTempCounter(String type, int strSize) {
-            if (type == "Char")
+            if (type == "Char" || type == "Boolean")
                 tempCounter += 1;
-            else if (type == "Integer" || type == "Float" || type == "Boolean")
+            else if (type == "Integer" || type == "Float")
                 tempCounter += 4;
             else if (type == "String") {
                 tempCounter += strSize + 1;
@@ -1169,8 +1171,6 @@ public class Compilador {
                 } else {
                     if (currentSection != 1) {
                         writer.write("section .text ; sessao de codigo\n");
-                        writer.write("global _start ; Ponto inicial do programa\n");
-                        writer.write("_start: ; Inicio do programa\n");
                     }
                     currentSection = 1;
                     COMMAND();
@@ -1965,15 +1965,34 @@ public class Compilador {
                             e.printStackTrace();
                         }
                     }
+                    else if (expArgsB1.type == "String"){ // TO-DO: String comparison
+                        try{
+                            
+                            writer.write("\tmov al, [M+" +expArgsB2.addr+"] ; pega o primeiro caractere da string A");
+                            writer.write("\tmov bl, [M+" +expArgsB2.addr+"] ; pega o primeiro caractere da string B");
+
+                            writer.write("\tcmp al, bl ; comparando al com bl\n");
+
+                            rotTrue = "RotVerdadeiro" + setRot();
+
+                            if (tokenOperator == tokenEqual) {
+                                writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
+                            }
+
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
                     try {
-                        writer.write("\tmov eax, 0 ; teste deu false\n");
+                        writer.write("\tmov al, 'f' ; teste deu false\n");
 
                         String rotEnd = "RotFim" + setRot();
                         writer.write("\tjmp " + rotEnd + " ; jmp para RotFim\n");
 
                         writer.write("\t" + rotTrue + ": ; RotVerdadeiro\n");
-                        writer.write("\t\tmov eax, 1 ; teste deu true\n");
+                        writer.write("\t\tmov al, 't' ; teste deu true\n");
 
                         expArgsA.type = "Boolean";
                         expArgsA.addr = tempCounter;
@@ -1981,7 +2000,7 @@ public class Compilador {
 
                         writer.write("\t" + rotEnd + ": ; RotFim\n");
                         writer.write("\tmov [M+ " + expArgsA.addr
-                                + "], eax ; alocando resultado bool no endereco de expArgsA\n");
+                                + "], al ; alocando resultado bool no endereco de expArgsA\n");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

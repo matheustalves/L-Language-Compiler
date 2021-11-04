@@ -1,4 +1,4 @@
-INÍCIO-> 	{DECL_A | COMANDO} eof
+START-> 	{DECL_A | COMANDO} eof
 
 DECL_A-> 	(int | float | string | char) (45) DECL_B1 {, (46) DECL_B2} ;	|
 			const id (38) = [- (31)] valor (39) (40) (41);
