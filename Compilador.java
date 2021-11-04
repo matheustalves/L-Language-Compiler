@@ -898,7 +898,7 @@ public class Compilador {
             else if (type == "Integer" || type == "Float" || type == "Boolean")
                 posMem += 4;
             else if (type == "String") {
-                posMem += strSize + 1;
+                posMem += strSize;
             }
         }
 
@@ -908,7 +908,7 @@ public class Compilador {
             else if (type == "Integer" || type == "Float")
                 tempCounter += 4;
             else if (type == "String") {
-                tempCounter += strSize + 1;
+                tempCounter += strSize;
             }
         }
 
@@ -989,11 +989,15 @@ public class Compilador {
                 writer.write("\tmov eax, [M+" + expArgs.addr + "] ; inteiro a ser convertido\n");
                 writer.write("\tmov rsi, M+" + tempCounter + "; end. string ou temp.\n");
                 writer.write("\tmov rcx, 0 ; contador pilha\n");
-                writer.write("\tmov rdi, 0 ; tam. string convertido\n");
+                writer.write("\tmov rdx, 0 ; tam. string convertido\n");
+                writer.write("\tpush rdx ; \n");
                 writer.write("\tcmp eax, 0 ; verifica sinal\n");
                 writer.write("\tjge Rot" + rot_a + " ; salta se numero positivo\n");
                 writer.write("\tmov bl, '-' ; senao, escreve sinal –\n");
-                writer.write("\tmov [rsi], bl\n");
+                writer.write("\tmov [rsi], bl ; \n");
+                writer.write("\tpop rdx ; \n");
+                writer.write("\tmov rdx, 1 ; \n");
+                writer.write("\tpush rdx ; \n");
                 writer.write("\tadd rsi, 1 ; incrementa indice\n");
                 writer.write("\tneg eax ; toma modulo do numero\n\n");
                 writer.write("Rot" + rot_a + ":\n");
@@ -1005,16 +1009,18 @@ public class Compilador {
                 writer.write("\tpush dx ; empilha valor do resto\n");
                 writer.write("\tcmp eax, 0 ; verifica se quoc. eh 0\n");
                 writer.write("\tjne Rot" + rot_b + " ; se nao eh 0, continua\n\n");
-                writer.write("\tadd rdi,rcx ; atualiza tam. string\n\n");
+                writer.write("\tmov rdx,rcx ; atualiza tam. string\n\n");
                 writer.write("\t; desempilha os valores e escreve o string\n\n");
                 writer.write("Rot" + rot_c + ":\n");
-                writer.write("\tpop dx ; desempilha valor\n");
-                writer.write("\tadd dl, '0' ; transforma em caractere\n");
-                writer.write("\tmov [rsi], dl ; escreve caractere\n");
+                writer.write("\tpop ax ; desempilha valor\n");
+                writer.write("\tadd al, '0' ; transforma em caractere\n");
+                writer.write("\tmov [rsi], al ; escreve caractere\n");
                 writer.write("\tadd rsi, 1 ; incrementa base\n");
                 writer.write("\tsub rcx, 1 ; decrementa contador\n");
                 writer.write("\tcmp rcx, 0 ; verifica pilha vazia\n");
                 writer.write("\tjne Rot" + rot_c + " ; se nao pilha vazia, loop\n\n");
+                writer.write("\tpop rcx ; \n");
+                writer.write("\tadd rcx, rdx ; \n");
                 updateTempCounter(expArgs.type, 0);
                 writer.write("\t; executa interrupcao de saida\n");
                 writer.write("\t\n");
@@ -1102,27 +1108,28 @@ public class Compilador {
             }
         }
 
-        void translationWrite(EXP_args expArgs, int endereco) {
-            int rot = setRot();
 
-            if (expArgs.type != "Boolean") {
+        void translationWrite(EXP_args expArgs) {
+            int rot = setRot();
+            try {
                 if (expArgs.type == "Integer") {
                     convertIntegerToString(expArgs);
                 } else if (expArgs.type == "Float") {
                     convertFloatToString(expArgs);
+                } else if (expArgs.type == "String"){
+                    writer.write("\tmov rsi, M+" + (expArgs.addr)
+                    + " ; registrador recebe endereco da string\n");
+                    writer.write("\tmov rdx, rsi ; rdx = rsi\n");
+                    writer.write("Rot" + rot + ": \n");
+                    writer.write("\tmov al, [rdx] ; registrador recebe primeiro caractere da string \n");
+                    writer.write("\tadd rdx, 1 ; incrementa rdx\n");
+                    writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
+                    writer.write("\tjne Rot" + rot + "\n");
+                    writer.write("\tsub rdx, M+ " + (expArgs.addr)
+                            + " ; removendo offset (byte 0) do endereco\n");
+                    writer.write("\tadd rdx, 1 ; tirando o offset");
                 }
-            }
-            try {
-                writer.write("\tmov rsi, M+" + (expArgs.addr - (2 * endereco))
-                        + " ; registrador recebe endereco da string\n");
-                writer.write("\tmov rdx, rsi ; rdx = rsi\n");
-                writer.write("Rot" + rot + ": \n");
-                writer.write("\tmov al, [rdx] ; registrador recebe primeiro caractere da string \n");
-                writer.write("\tadd rdx, 1 ; incrementa rdx\n");
-                writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
-                writer.write("\tjne Rot" + rot + "\n");
-                writer.write("\tsub rdx, M+ " + (expArgs.addr - ((2 * endereco) - 1))
-                        + " ; removendo offset (byte 0) do endereco\n");
+            
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
                 writer.write("\tmov rdi, 1 ; saida para tela\n");
                 writer.write("\tsyscall\n");
@@ -1134,9 +1141,15 @@ public class Compilador {
 
         void translationWriteln() {
             try {
-                writer.write("section .data\n");
-                writer.write("\tdb \"\\n\" ; passa um linebreak\n");
-                writer.write("section .text\n");
+                Integer linebreak = tempCounter;
+                updateTempCounter("String", 1);
+                writer.write("\tmov dl, 10 ; passa linebreak pro dl \n");
+                writer.write("\tmov [M+"+linebreak+"], dl ; passa o linebreak para dl\n");
+                writer.write("\tmov rax, 1 ; chamada para saida\n");
+                writer.write("\tmov rdi, 1 ; saida para tela\n");
+                writer.write("\tmov rsi, M+"+linebreak+" ; saida para tela\n");
+                writer.write("\tmov rdx, 1\n");
+                writer.write("\tsyscall\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -1756,8 +1769,7 @@ public class Compilador {
                 if (pauseCompiling)
                     return;
 
-                int endereco = 0;
-                translationWrite(expArgsA1, endereco);
+                translationWrite(expArgsA1);
 
                 while (currentToken.token == tokenComma) {
                     checkToken(tokenComma);
@@ -1770,8 +1782,7 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
-                    endereco++;
-                    translationWrite(expArgsA2, endereco);
+                    translationWrite(expArgsA2);
                 }
             }
         }
@@ -1968,7 +1979,7 @@ public class Compilador {
                     else if (expArgsB1.type == "String"){ // TO-DO: String comparison
                         try{
                             
-                            writer.write("\tmov al, [M+" +expArgsB2.addr+"] ; pega o primeiro caractere da string A");
+                            writer.write("\tmov al, [M+" +expArgsA.addr+"] ; pega o primeiro caractere da string A");
                             writer.write("\tmov bl, [M+" +expArgsB2.addr+"] ; pega o primeiro caractere da string B");
 
                             writer.write("\tcmp al, bl ; comparando al com bl\n");
@@ -2752,6 +2763,8 @@ public class Compilador {
                             }
                         }
                     }
+
+                    expArgsF.type = currentToken.type;
 
                     checkToken(tokenValue);
                     if (pauseCompiling)
