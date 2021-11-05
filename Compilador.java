@@ -903,9 +903,9 @@ public class Compilador {
         }
 
         void updateTempCounter(String type, int strSize) {
-            if (type == "Char" || type == "Boolean")
+            if (type == "Char")
                 tempCounter += 1;
-            else if (type == "Integer" || type == "Float")
+            else if (type == "Integer" || type == "Float"  || type == "Boolean")
                 tempCounter += 4;
             else if (type == "String") {
                 tempCounter += strSize;
@@ -970,7 +970,7 @@ public class Compilador {
                 writer.write("\tmov [" + addr + "], eax ; adicionando valor a endereco do id\n");
             } else if (type == "Float") {
                 writer.write("\tmovss xmm0, [M+" + value + "] ; alocando float em registrador\n");
-                writer.write("\tmov [" + addr + "], xmm0 ; adicionando valor a endereco do id\n");
+                writer.write("\tmovss [" + addr + "], xmm0 ; adicionando valor a endereco do id\n");
             }
         }
 
@@ -1039,7 +1039,7 @@ public class Compilador {
             int rot_e = setRot();
 
             try {
-                writer.write("\tmov xmm0, [M+" + expArgs.addr + "] ; real a ser convertido\n");
+                writer.write("\tmovss xmm0, [M+" + expArgs.addr + "] ; real a ser convertido\n");
                 writer.write("\tmov rsi, M+" + tempCounter + "; end. temporario\n");
                 writer.write("\tmov rcx, 0 ; contador pilha\n");
                 writer.write("\tmov rdi, 6 ; precisao 6 casas compart\n");
@@ -1125,9 +1125,8 @@ public class Compilador {
                     writer.write("\tadd rdx, 1 ; incrementa rdx\n");
                     writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
                     writer.write("\tjne Rot" + rot + "\n");
-                    writer.write("\tsub rdx, M+ " + (expArgs.addr)
-                            + " ; removendo offset (byte 0) do endereco\n");
-                    writer.write("\tadd rdx, 1 ; tirando o offset");
+                    writer.write("\tsub rdx, M+ " + (expArgs.addr)+ " ; removendo offset (byte 0) do endereco\n");
+                    writer.write("\tadd rdx, 1 ; \n");
                 }
             
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
@@ -1997,13 +1996,13 @@ public class Compilador {
                     }
 
                     try {
-                        writer.write("\tmov al, 'f' ; teste deu false\n");
+                        writer.write("\tmov eax, 0 ; teste deu false\n");
 
                         String rotEnd = "RotFim" + setRot();
                         writer.write("\tjmp " + rotEnd + " ; jmp para RotFim\n");
 
                         writer.write("\t" + rotTrue + ": ; RotVerdadeiro\n");
-                        writer.write("\t\tmov al, 't' ; teste deu true\n");
+                        writer.write("\t\tmov eax, 1 ; teste deu true\n");
 
                         expArgsA.type = "Boolean";
                         expArgsA.addr = tempCounter;
@@ -2011,7 +2010,7 @@ public class Compilador {
 
                         writer.write("\t" + rotEnd + ": ; RotFim\n");
                         writer.write("\tmov [M+ " + expArgsA.addr
-                                + "], al ; alocando resultado bool no endereco de expArgsA\n");
+                                + "], eax ; alocando resultado bool no endereco de expArgsA\n");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -2449,8 +2448,8 @@ public class Compilador {
                             writer.write("\tmov eax, [M+" + expArgsC.addr
                                     + "] ; alocando valor em end. de expArgsC a registrador\n");
                             writer.write("\tmov ebx, [M+" + expArgsD2.addr
-                                    + "] ; alocando valor em end. de expArgsD2 a registrador\n");
-                            writer.write("\tidiv ebx ; eax div ebx\n");
+                                    + "] ; alocando valor em end. de expArgsD2 a registrador \n");
+                            writer.write("\tidiv ebx ; eax div ebx eax: "+expArgsC.addr+" ebx: "+expArgsD2.addr+"\n");
                             expArgsC.addr = tempCounter;
                             updateTempCounter(expArgsC.type, 0);
                             writer.write("\tmov [M+" + expArgsC.addr
