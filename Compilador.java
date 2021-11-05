@@ -817,8 +817,8 @@ public class Compilador {
             EXP_F->     	"(" EXP ")" | id ["[" EXP "]"] | num
     */
     static class Parser {
-        static int posMem = 0x10000; // endereco atual da memoria
-        static int tempCounter = 0x0;
+        static int posMem = 65536; // endereco atual da memoria
+        static int tempCounter = 0;
         static int rotCounter = 0;
         static int currentSection = 0; // .data = 0 , .text = 1
         static BufferedWriter writer;
@@ -1127,7 +1127,7 @@ public class Compilador {
                     writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
                     writer.write("\tjne Rot" + rot + "\n");
                     writer.write("\tsub rdx, M+ " + (expArgs.addr) + " ; removendo offset (byte 0) do endereco\n");
-                    writer.write("\tadd rdx, 1 ; \n");
+                    // writer.write("\tadd rdx, 1 ; \n");
                 }
 
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
