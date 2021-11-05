@@ -1,0 +1,8 @@
+int b<-4;
+int a<-8;
+if ((a+b)>10) writeln("Soma ok.");
+int c<-12;
+int division<-0;
+division<-3 div 2;
+if (division=1) writeln("Divisao ok.");
+if (b-a<0) writeln("Subtracao negativa ok.");

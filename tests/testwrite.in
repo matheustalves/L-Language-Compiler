@@ -1,0 +1,7 @@
+write("Vamo ver", "teste teste");
+string x<-"lalala";
+write(x);
+/*int a<-4;
+write(a);*/
+string b<- "10";
+write(b);

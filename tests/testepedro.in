@@ -1,0 +1,139 @@
+/* Exemplo de Programa na linguagem L */
+
+int n<-1, x<-6, y<-5;
+float a<-4.5;
+a<-4;
+string nome;
+string nome1<-"Pedro";
+string nome2<-"Arthur";
+string nome3;
+/*nome3<-'a';*/
+/*char b<-"ab";*/
+/*int c<-4.5;*/
+const NOME_CONST="Ola Mundo";
+const MAXITER=10;
+int x9;
+x9<-MAXITER;
+
+string teste567;
+teste567[int(2.5)]<-'2';
+
+/*nome<--'a';*/
+/*nome<--"ab";*/
+
+string teste9;
+string teste10;
+char teste11;
+teste10<-"abc";
+/*teste9<-teste10[1];*/
+teste9[5]<-teste10[1];
+teste11<-teste9[3];
+
+
+if teste9[2] <= teste10[3] {}
+/*if teste9 <= teste10 {}*/
+
+
+/*int x20<-int(5.5);*/
+
+int xxt;
+/*xxt<-float(2);*/
+
+int p;
+float q;
+p<-int(-q);
+p<-int(q);
+/*p<-float(q);*/
+
+string abcd;
+/*abcd<--"abcd";*/
+
+/*p<-x div q;*/
+/*p<-q div x;*/
+
+/*p<-x mod q;*/
+/*p<-q mod x;*/
+
+/*p<-p/q;*/
+/*p<-q/p;*/
+
+/*p<-p*q;*/
+/*p<-q*p;*/
+
+/*p<-p+q;*/
+/*p<-q+p;*/
+
+/*p<-p-q;*/
+/*p<-q-p;*/
+
+float float10;
+int int10;
+
+float10 <- int10/float10;
+float10 <- float10/int10;
+
+float10 <- int10*float10;
+float10 <- float10*int10;
+
+float10 <- int10+float10;
+float10 <- float10+int10;
+
+float10 <- int10-float10;
+float10 <- float10-int10;
+
+
+string str;
+str <- "abc";
+str[40] <- 'a';
+
+string str2;
+str2 <- "abc";
+
+int ko;
+
+/*ko <- 2.5 + 1;*/
+
+
+/*
+string l;
+l["abc"] <- "abc";
+*/
+
+if nome1 = nome2 {
+   x<-1;
+   y<-2;
+   nome1<-NOME_CONST;
+   nome3<-"OI";
+}
+
+n <-2;
+;
+;
+
+const MINI=0xFA;
+const MINE="aaa";
+const MINA='a';
+const MINO=-9.99999;
+
+/*n <- 'b';*/
+/*MINO<-2.2;*/
+
+write("Digite seu nome: ");
+/*write(aushuahs);*/
+readln(n);
+/*readln(aushuahs);*/
+
+string str10;
+string str20<-"abcd";
+str10<-"a";
+/*str10<-'a';*/
+/*str10[20]<-'a';*/
+str10[20]<-'a';
+
+
+float percentual;
+while n<=MAXITER {
+  percentual<-float(n)/MAXITER;
+  writeln(percentual,": Ola' ",nome);
+  n<-n+1;
+}

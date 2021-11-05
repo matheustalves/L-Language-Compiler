@@ -1,0 +1,6 @@
+const A = 10;
+int B<-10;
+
+/*A<-B;*/
+B<-A;
+readln(A);

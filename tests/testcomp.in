@@ -1,0 +1,13 @@
+string x<-"blabla";
+string y<-"blibli";
+string z<-"cacaca";
+write("2>3?:");
+write(2>3);
+write(" | 2=3?: ");
+write(2=3);
+write(" | 2!=3?: ");
+write(2!=3);
+write(" | blabla[0] = blibli[0]?: ");
+write(x=y);
+write(" | blabla[0] = cacaca[0]?: ");
+write(x=z);
