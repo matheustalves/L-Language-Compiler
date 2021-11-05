@@ -905,7 +905,7 @@ public class Compilador {
         void updateTempCounter(String type, int strSize) {
             if (type == "Char")
                 tempCounter += 1;
-            else if (type == "Integer" || type == "Float"  || type == "Boolean")
+            else if (type == "Integer" || type == "Float" || type == "Boolean")
                 tempCounter += 4;
             else if (type == "String") {
                 tempCounter += strSize;
@@ -936,12 +936,13 @@ public class Compilador {
                 } else if (symbol.type == "String") {
                     if (symbol.classification == "const") {
                         writer.write("\tdb " + value + ", 0 ; string em M+" + posMem + "\n");
-                        updatePosMem(symbol.type, value.length() - 2);
+                        // Length -1 pq o java ta contando as aspas. -2 + 1 (zero no final) = -1
+                        updatePosMem(symbol.type, value.length() - 1);
                     } else {
-                        int r = 256 - (value.length() - 2 + 1);
+                        int r = 256 - (value.length() - 1);
                         writer.write("\tdb " + value + ", 0 ; string em M+" + posMem + "\n");
                         writer.write("\tresb " + r + " ; reservando espaco restante (str variavel)\n");
-                        updatePosMem(symbol.type, 255);
+                        updatePosMem(symbol.type, 256);
                     }
                 }
             } else {
@@ -956,7 +957,7 @@ public class Compilador {
                     updatePosMem(symbol.type, 4);
                 } else if (symbol.type == "String") {
                     writer.write("\tresb 256 ; string em M+" + posMem + "\n");
-                    updatePosMem(symbol.type, 255);
+                    updatePosMem(symbol.type, 256);
                 }
             }
         }
@@ -971,6 +972,8 @@ public class Compilador {
             } else if (type == "Float") {
                 writer.write("\tmovss xmm0, [M+" + value + "] ; alocando float em registrador\n");
                 writer.write("\tmovss [" + addr + "], xmm0 ; adicionando valor a endereco do id\n");
+            } else if (type == "String") {
+
             }
         }
 
@@ -1108,7 +1111,6 @@ public class Compilador {
             }
         }
 
-
         void translationWrite(EXP_args expArgs) {
             int rot = setRot();
             try {
@@ -1116,19 +1118,18 @@ public class Compilador {
                     convertIntegerToString(expArgs);
                 } else if (expArgs.type == "Float") {
                     convertFloatToString(expArgs);
-                } else if (expArgs.type == "String"){
-                    writer.write("\tmov rsi, M+" + (expArgs.addr)
-                    + " ; registrador recebe endereco da string\n");
+                } else if (expArgs.type == "String") {
+                    writer.write("\tmov rsi, M+" + (expArgs.addr) + " ; registrador recebe endereco da string\n");
                     writer.write("\tmov rdx, rsi ; rdx = rsi\n");
                     writer.write("Rot" + rot + ": \n");
                     writer.write("\tmov al, [rdx] ; registrador recebe primeiro caractere da string \n");
                     writer.write("\tadd rdx, 1 ; incrementa rdx\n");
                     writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
                     writer.write("\tjne Rot" + rot + "\n");
-                    writer.write("\tsub rdx, M+ " + (expArgs.addr)+ " ; removendo offset (byte 0) do endereco\n");
+                    writer.write("\tsub rdx, M+ " + (expArgs.addr) + " ; removendo offset (byte 0) do endereco\n");
                     writer.write("\tadd rdx, 1 ; \n");
                 }
-            
+
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
                 writer.write("\tmov rdi, 1 ; saida para tela\n");
                 writer.write("\tsyscall\n");
@@ -1143,10 +1144,10 @@ public class Compilador {
                 Integer linebreak = tempCounter;
                 updateTempCounter("String", 1);
                 writer.write("\tmov dl, 10 ; passa linebreak pro dl \n");
-                writer.write("\tmov [M+"+linebreak+"], dl ; passa o linebreak para dl\n");
+                writer.write("\tmov [M+" + linebreak + "], dl ; passa o linebreak para dl\n");
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
                 writer.write("\tmov rdi, 1 ; saida para tela\n");
-                writer.write("\tmov rsi, M+"+linebreak+" ; saida para tela\n");
+                writer.write("\tmov rsi, M+" + linebreak + " ; saida para tela\n");
                 writer.write("\tmov rdx, 1\n");
                 writer.write("\tsyscall\n");
             } catch (IOException e) {
@@ -1888,7 +1889,7 @@ public class Compilador {
                                     + "] ; alocando valor em end. de expArgsB2 a registrador\n");
                             writer.write("\tcmp eax, ebx ; comparando eax com ebx\n");
 
-                            rotTrue = "RotVerdadeiro" + setRot();
+                            rotTrue = "Rot" + setRot();
 
                             if (tokenOperator == tokenEqual) {
                                 writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
@@ -1929,7 +1930,7 @@ public class Compilador {
 
                             writer.write("\tcomiss xmm0, xmm1 ; comparando xmm0 com xmm1\n");
 
-                            rotTrue = "RotVerdadeiro" + setRot();
+                            rotTrue = "Rot" + setRot();
 
                             if (tokenOperator == tokenEqual) {
                                 writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
@@ -1956,7 +1957,7 @@ public class Compilador {
 
                             writer.write("\tcmp al, bl ; comparando al com bl\n");
 
-                            rotTrue = "RotVerdadeiro" + setRot();
+                            rotTrue = "Rot" + setRot();
 
                             if (tokenOperator == tokenEqual) {
                                 writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
@@ -1974,21 +1975,20 @@ public class Compilador {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    }
-                    else if (expArgsB1.type == "String"){ // TO-DO: String comparison
-                        try{
-                            
-                            writer.write("\tmov al, [M+" +expArgsA.addr+"] ; pega o primeiro caractere da string A");
-                            writer.write("\tmov bl, [M+" +expArgsB2.addr+"] ; pega o primeiro caractere da string B");
+                    } else if (expArgsB1.type == "String") { // TO-DO: String comparison
+                        try {
+
+                            writer.write("\tmov al, [M+" + expArgsA.addr + "] ; pega o primeiro caractere da string A");
+                            writer.write(
+                                    "\tmov bl, [M+" + expArgsB2.addr + "] ; pega o primeiro caractere da string B");
 
                             writer.write("\tcmp al, bl ; comparando al com bl\n");
 
-                            rotTrue = "RotVerdadeiro" + setRot();
+                            rotTrue = "Rot" + setRot();
 
                             if (tokenOperator == tokenEqual) {
                                 writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
                             }
-
 
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -1998,7 +1998,7 @@ public class Compilador {
                     try {
                         writer.write("\tmov eax, 0 ; teste deu false\n");
 
-                        String rotEnd = "RotFim" + setRot();
+                        String rotEnd = "Rot" + setRot();
                         writer.write("\tjmp " + rotEnd + " ; jmp para RotFim\n");
 
                         writer.write("\t" + rotTrue + ": ; RotVerdadeiro\n");
@@ -2055,9 +2055,8 @@ public class Compilador {
                             writer.write("\tmov [M+" + expArgsB.addr
                                     + "], eax ; alocando valor negado em end. de expArgsB\n");
                         } else {
-                            writer.write("\tmov rax, [M+" + expArgsC1.addr
+                            writer.write("\tmov xmm0, [M+" + expArgsC1.addr
                                     + "] ; alocando valor em end. de expArgsC1 a registrador\n");
-                            writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
                             writer.write("\tmov rbx, -1 ; alocando -1 em rbx\n");
                             writer.write("\tcvtsi2ss xmm1, rbx ; -1 (int64) para float\n");
                             writer.write("\tmulss xmm0, xmm1 ; xmm * -1\n");
@@ -2449,7 +2448,8 @@ public class Compilador {
                                     + "] ; alocando valor em end. de expArgsC a registrador\n");
                             writer.write("\tmov ebx, [M+" + expArgsD2.addr
                                     + "] ; alocando valor em end. de expArgsD2 a registrador \n");
-                            writer.write("\tidiv ebx ; eax div ebx eax: "+expArgsC.addr+" ebx: "+expArgsD2.addr+"\n");
+                            writer.write("\tidiv ebx ; eax div ebx eax: " + expArgsC.addr + " ebx: " + expArgsD2.addr
+                                    + "\n");
                             expArgsC.addr = tempCounter;
                             updateTempCounter(expArgsC.type, 0);
                             writer.write("\tmov [M+" + expArgsC.addr
@@ -2738,11 +2738,12 @@ public class Compilador {
                         }
 
                         expArgsF.addr = posMem;
-                        updatePosMem(currentToken.type, currentToken.lexeme.length());
+                        // Length -1 pq o java ta contando as aspas. -2 + 1 (zero no final) = -1
+                        updatePosMem(currentToken.type, currentToken.lexeme.length() - 1);
 
                     } else {
                         expArgsF.addr = tempCounter;
-                        updateTempCounter(currentToken.type, currentToken.lexeme.length());
+                        updateTempCounter(currentToken.type, 0);
 
                         if (currentToken.type == "Integer") {
                             try {
