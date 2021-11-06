@@ -1524,9 +1524,9 @@ public class Compilador {
                             return;
                         if (currentToken.token == tokenMinus) {
                             checkToken(tokenMinus);
-                            minus = true;
                             if (pauseCompiling)
                                 return;
+                            minus = true;
                         }
                         if (currentToken.token == tokenValue) {
                             if (minus && !(currentToken.type == "Integer" || currentToken.type == "Float")) {
@@ -1544,7 +1544,10 @@ public class Compilador {
                             }
 
                             hasValue = true;
-                            value = currentToken.lexeme;
+                            if (minus)
+                                value = "-" + currentToken.lexeme;
+                            else
+                                value = currentToken.lexeme;
 
                             checkToken(tokenValue);
                             if (pauseCompiling)
@@ -2062,13 +2065,13 @@ public class Compilador {
                         }
                     } else if (expArgsB1.type == "Float" || expArgsB2.type == "Float") {
                         try {
-                            if (expArgsB1.type == "Float") {
+                            if (expArgsA.type == "Float") {
                                 writer.write("\tmovss xmm0, [M+" + expArgsA.addr
                                         + "] ; alocando valor em end. de expArgsA para registrador\n");
                             } else {
                                 writer.write("\tmov eax, [M+" + expArgsA.addr
                                         + "] ; alocando valor em end. de expArgsA para registrador\n");
-                                writer.write("\tcvtsi2ss xmm0, eax ; int64 para float\n");
+                                writer.write("\tcvtsi2ss xmm0, eax ; int32 para float\n");
                             }
 
                             if (expArgsB2.type == "Float") {
@@ -2078,7 +2081,7 @@ public class Compilador {
                             } else {
                                 writer.write("\tmov ebx, [M+" + expArgsB2.addr
                                         + "] ; alocando valor em end. de expArgsB2 para registrador\n");
-                                writer.write("\tcvtsi2ss xmm1, ebx ; int64 para float\n");
+                                writer.write("\tcvtsi2ss xmm1, ebx ; int32 para float\n");
                             }
 
                             writer.write("\tcomiss xmm0, xmm1 ; comparando xmm0 com xmm1\n");
