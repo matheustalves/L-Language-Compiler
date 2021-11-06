@@ -1415,8 +1415,14 @@ public class Compilador {
                                 currentSymbol.type = idType;
                                 symbolTable.put(currentSymbol.lexeme, currentSymbol);
 
+                                String value;
+                                if (minus)
+                                    value = "-" + currentToken.lexeme;
+                                else
+                                    value = currentToken.lexeme;
+
                                 try {
-                                    declarationToMemory(currentSymbol, true, currentToken.lexeme);
+                                    declarationToMemory(currentSymbol, true, value);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
