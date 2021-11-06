@@ -2669,7 +2669,7 @@ public class Compilador {
                             expArgsC.addr = tempCounter;
                             updateTempCounter(expArgsC.type, 0);
                             writer.write("\tmov [M+" + expArgsC.addr
-                                    + "], edx:eax ; aloca resultado do AND em endereco de expArgsC\n");
+                                    + "], eax ; aloca resultado do AND em endereco de expArgsC\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
