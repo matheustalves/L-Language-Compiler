@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.io.FileReader;
+//import java.io.FileReader;
 import java.io.IOException;
 
 public class Compilador {
@@ -1129,7 +1129,6 @@ public class Compilador {
                     writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
                     writer.write("\tjne Rot" + rot + "\n");
                     writer.write("\tsub rdx, M+ " + (expArgs.addr) + " ; removendo offset (byte 0) do endereco\n");
-                    // writer.write("\tadd rdx, 1 ; \n");
                 }
 
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
@@ -1173,128 +1172,144 @@ public class Compilador {
             Symbol currentSymbol = symbolTable.get(currentToken.lexeme);
 
             try{
-                Integer buffer_read = currentSymbol.addr;
-                updateTempCounter("String", 256);
+                Integer buffer_read = 0;
 
-                writer.write("\tmov  rsi, M+" + buffer_read + "\n");
+                if(currentSymbol.type == "String"){
+                    buffer_read = currentSymbol.addr;
+                }
+                else if(currentSymbol.type == "Integer"){
+                    buffer_read = tempCounter;
+                    updateTempCounter("String", 11);
+                }
+                else if(currentSymbol.type == "Float"){
+                    buffer_read = tempCounter;
+                    updateTempCounter("String", 14);
+                }
+
+
+                writer.write("\tmov rsi, M+"+ buffer_read + "\n");
+
+
                 writer.write("\tmov  rdx, 100h  ;tamanho do buffer \n");
                 writer.write("\tmov  rax, 0 ;chamada para leitura \n");
                 writer.write("\tmov  rdi, 0 ;leitura do teclado \n");
                 writer.write("\tsyscall \n\n");
+                
 
-		if(currentSymbol.type == "String"){
-            writer.write("\tadd rax, M+" + (buffer_read - 1) +" ; endereço do ultimo caractere lido\n");
-            writer.write("\tmov rbx, rax ; armazena o endereço em rbx\n");
-            writer.write("\tmov al, [rbx] ; passa o ultimo caractere lido para al\n");
-            writer.write("\tcmp al, 10 ; verifica se o ultimo char era linebreak\n");
-            writer.write("\tje Rot"+ rotFimStr +" ; verifica se ainda ha chars no buffer - String\n");
-            writer.write("Rot"+rotBufStr+":   ; rot de ler buffer de readln(String)\n");
-            writer.write("\tmov rax, 0 ; chama a leitura\n");
-            writer.write("\tmov rdi, 0 ; leitor da entrada\n");
-            writer.write("\tmov  rsi, M+" + buffer_read + "\n");
-            writer.write("\tmov rdx, 1 ; le 1 byte e passa pro rdx\n");
-            writer.write("\tsyscall\n");
-            writer.write("\tmov al, [M+"+buffer_read+"] ; carrega o caractere lido em al\n");
-            writer.write("\tcmp al, 10 ; verifica se o char eh linebreak\n");
-            writer.write("\tjne Rot"+rotBufStr+" ; continua o loop se existem chars no buffer\n");
-            writer.write("Rot"+rotFimStr+":   ; rot de fim de readln(String)\n");
-            writer.write("\tmov al, 0 ; carrega o caractere final de string no al\n");
-            writer.write("\tmov [rbx], al ; carrega o caractere no endereço de rbx\n");
-		}
+                if(currentSymbol.type == "String"){
+                    writer.write("\tadd rax, M+" + (buffer_read - 1) +" ; endereço do ultimo caractere lido\n");
+                    writer.write("\tmov rbx, rax ; armazena o endereço em rbx\n");
+                    writer.write("\tmov al, [rbx] ; passa o ultimo caractere lido para al\n");
+                    writer.write("\tcmp al, 10 ; verifica se o ultimo char era linebreak\n");
+                    writer.write("\tje Rot"+ rotFimStr +" ; verifica se ainda ha chars no buffer - String\n");
+                    writer.write("Rot"+rotBufStr+":   ; rot de ler buffer de readln(String)\n");
+                    writer.write("\tmov rax, 0 ; chama a leitura\n");
+                    writer.write("\tmov rdi, 0 ; leitor da entrada\n");
+                    writer.write("\tmov  rsi, M+" + buffer_read + "\n");
+                    writer.write("\tmov rdx, 1 ; le 1 byte e passa pro rdx\n");
+                    writer.write("\tsyscall\n");
+                    writer.write("\tmov al, [M+"+buffer_read+"] ; carrega o caractere lido em al\n");
+                    writer.write("\tcmp al, 10 ; verifica se o char eh linebreak\n");
+                    writer.write("\tjne Rot"+rotBufStr+" ; continua o loop se existem chars no buffer\n");
+                    writer.write("Rot"+rotFimStr+":   ; rot de fim de readln(String)\n");
+                    writer.write("\tmov al, 0 ; carrega o caractere final de string no al\n");
+                    writer.write("\tmov [rbx], al ; carrega o caractere no endereço de rbx\n");
+                }
 
-		if(currentSymbol.type == "Integer"){
+                if(currentSymbol.type == "Integer"){
 
-	                writer.write("\tmov eax, 0     ;acumulador\n");
-	                writer.write("\tmov ebx, 0     ;caractere \n");
-	                writer.write("\tmov ecx, 10    ;base 10 \n");
-	                writer.write("\tmov dx, 1      ;sinal \n");
-	                writer.write("\tmov rsi, M+"+ buffer_read +"       ;end. buffer \n");
-	                writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
-	                writer.write("\tcmp bl, '-'       ;sinal - ? \n");
-	                writer.write("\tjne Rot" + rot_a + "       ;se dif -, salta \n");
-	                writer.write("\tmov dx, -1              ;senão, armazena - \n");
-	                writer.write("\tadd rsi, 1           ;inc. ponteiro string \n");
-	                writer.write("\tmov bl, [rsi]     ;carrega caractere \n\n");
+                    writer.write("\tmov eax, 0     ;acumulador\n");
+                    writer.write("\tmov ebx, 0     ;caractere \n");
+                    writer.write("\tmov ecx, 10    ;base 10 \n");
+                    writer.write("\tmov dx, 1      ;sinal \n");
+                    writer.write("\tmov rsi, M+"+ buffer_read +"       ;end. buffer \n");
+                    writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
+                    writer.write("\tcmp bl, '-'       ;sinal - ? \n");
+                    writer.write("\tjne Rot" + rot_a + "       ;se dif -, salta \n");
+                    writer.write("\tmov dx, -1              ;senão, armazena - \n");
+                    writer.write("\tadd rsi, 1           ;inc. ponteiro string \n");
+                    writer.write("\tmov bl, [rsi]     ;carrega caractere \n\n");
 
-	                writer.write("\tRot" + rot_a + ": \n");
-	                writer.write("\tpush dx      ;empilha sinal \n");
-	                writer.write("\tmov  edx, 0     ;reg. multiplicação \n\n");
+                    writer.write("Rot" + rot_a + ": \n");
+                    writer.write("\tpush dx      ;empilha sinal \n");
+                    writer.write("\tmov  edx, 0     ;reg. multiplicação \n\n");
 
-	                writer.write("\tRot" + rot_b + ": \n");
-	                writer.write("\tcmp  bl, 0Ah    ;verifica fim string \n");
-	                writer.write("\tje Rot" + rot_c + "      ;salta se fim string \n");
-	                writer.write("\timul ecx     ;mult. eax por 10 \n");
-	                writer.write("\tsub bl, '0'    ;converte caractere \n");
-	                writer.write("\tadd eax, ebx    ;soma valor caractere \n");
-	                writer.write("\tadd rsi, 1     ;incrementa base \n");
-	                writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
-	                writer.write("\tjmp Rot" + rot_b + "     ;loop \n\n");
+                    writer.write("Rot" + rot_b + ": \n");
+                    writer.write("\tcmp  bl, 0Ah    ;verifica fim string \n");
+                    writer.write("\tje Rot" + rot_c + "      ;salta se fim string \n");
+                    writer.write("\timul ecx     ;mult. eax por 10 \n");
+                    writer.write("\tsub bl, '0'    ;converte caractere \n");
+                    writer.write("\tadd eax, ebx    ;soma valor caractere \n");
+                    writer.write("\tadd rsi, 1     ;incrementa base \n");
+                    writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
+                    writer.write("\tjmp Rot" + rot_b + "     ;loop \n\n");
 
-	                writer.write("\tRot" + rot_c + ": \n");
-	                writer.write("\tpop cx      ;desempilha sinal \n");
-	                writer.write("\tcmp cx, 0 \n");
-	                writer.write("\tjg Rot"+ rot_d + " \n");
-	                writer.write("\tneg eax      ;mult. sinal \n\n");
+                    writer.write("Rot" + rot_c + ": \n");
+                    writer.write("\tpop cx      ;desempilha sinal \n");
+                    writer.write("\tcmp cx, 0 \n");
+                    writer.write("\tjg Rot"+ rot_d + " \n");
+                    writer.write("\tneg eax      ;mult. sinal \n\n");
 
-	                writer.write("\tRot" + rot_d + ": \n\n");
-		}
+                    writer.write("\tRot" + rot_d + ": \n\n");
+                    writer.write("\tmov [M+"+currentSymbol.addr+"], eax ; move pro endereço do simbolo\n");
+                }
 
-		if(currentSymbol.type == "Float"){
+                if(currentSymbol.type == "Float"){
 
-	                writer.write("\tmov rax, 0     ;acumul. parte int. \n");
-	                writer.write("\tsubss xmm0,xmm0      ;acumul. parte frac. \n");
-	                writer.write("\tmov rbx, 0              ;caractere  \n");
-	                writer.write("\tmov rcx, 10               ;base 10 \n");
-	                writer.write("\tcvtsi2ss xmm3,rcx    ;base 10 \n");
-	                writer.write("\tmovss xmm2,xmm3   ;potência de 10 \n");
-	                writer.write("\tmov rdx, 1              ;sinal \n");
-	                writer.write("\tmov rsi, M+" + buffer_read + "      ;end. buffer \n");
-	                writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
-	                writer.write("\tcmp bl, '-'       ;sinal - ? \n");
-	                writer.write("\tjne Rot" + rot_e + "        ;se dif -, salta \n");
-	                writer.write("\tmov rdx, -1               ;senão, armazena - \n");
-	                writer.write("\tadd rsi, 1           ;inc. ponteiro string \n");
-	                writer.write("\tmov bl, [rsi]     ;carrega caractere \n\n");
+                    writer.write("\tmov rax, 0     ;acumul. parte int. \n");
+                    writer.write("\tsubss xmm0,xmm0      ;acumul. parte frac. \n");
+                    writer.write("\tmov rbx, 0              ;caractere  \n");
+                    writer.write("\tmov rcx, 10               ;base 10 \n");
+                    writer.write("\tcvtsi2ss xmm3,rcx    ;base 10 \n");
+                    writer.write("\tmovss xmm2,xmm3   ;potência de 10 \n");
+                    writer.write("\tmov rdx, 1              ;sinal \n");
+                    writer.write("\tmov rsi, M+" + buffer_read + "      ;end. buffer \n");
+                    writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
+                    writer.write("\tcmp bl, '-'       ;sinal - ? \n");
+                    writer.write("\tjne Rot" + rot_e + "        ;se dif -, salta \n");
+                    writer.write("\tmov rdx, -1               ;senão, armazena - \n");
+                    writer.write("\tadd rsi, 1           ;inc. ponteiro string \n");
+                    writer.write("\tmov bl, [rsi]     ;carrega caractere \n\n");
 
-	                writer.write("\tRot" + rot_e + ": \n");
-	                writer.write("\tpush rdx     ;empilha sinal \n");
-	                writer.write("\tmov  rdx, 0     ;reg. multiplicação \n\n");
+                    writer.write("Rot" + rot_e + ": \n");
+                    writer.write("\tpush rdx     ;empilha sinal \n");
+                    writer.write("\tmov  rdx, 0     ;reg. multiplicação \n\n");
 
-	                writer.write("\tRot" + rot_f + ": \n");
-	                writer.write("\tcmp  bl, 0Ah    ;verifica fim string \n");
-	                writer.write("\tje Rot" + rot_g + "      ;salta se fim string \n");
-	                writer.write("\tcmp  bl, '.'    ;senão verifica ponto \n");
-	                writer.write("\tje Rot" + rot_h + "      ;salta se ponto \n");
-	                writer.write("\timul ecx     ;mult. eax por 10 \n");
-	                writer.write("\tsub bl, '0'    ;converte caractere \n");
-	                writer.write("\tadd eax, ebx    ;soma valor caractere \n");
-	                writer.write("\tadd rsi, 1     ;incrementa base \n");
-	                writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
-	                writer.write("\tjmp Rot" + rot_f + "    ;loop \n\n");
+                    writer.write("Rot" + rot_f + ": \n");
+                    writer.write("\tcmp  bl, 0Ah    ;verifica fim string \n");
+                    writer.write("\tje Rot" + rot_g + "      ;salta se fim string \n");
+                    writer.write("\tcmp  bl, '.'    ;senão verifica ponto \n");
+                    writer.write("\tje Rot" + rot_h + "      ;salta se ponto \n");
+                    writer.write("\timul ecx     ;mult. eax por 10 \n");
+                    writer.write("\tsub bl, '0'    ;converte caractere \n");
+                    writer.write("\tadd eax, ebx    ;soma valor caractere \n");
+                    writer.write("\tadd rsi, 1     ;incrementa base \n");
+                    writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
+                    writer.write("\tjmp Rot" + rot_f + "    ;loop \n\n");
 
-	                writer.write("\tRot" + rot_h + ": \n");
-	                writer.write("\t  ;calcula parte fracionária em xmm0 \n\n");
+                    writer.write("Rot" + rot_h + ": \n");
+                    writer.write("\t  ;calcula parte fracionária em xmm0 \n\n");
 
-	                writer.write("\tadd rsi, 1           ;inc. ponteiro string \n");
-	                writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
-	                writer.write("\tcmp  bl, 0Ah    ;*verifica fim string \n");
-	                writer.write("\tje Rot" + rot_g + "     ;salta se fim string \n");
-	                writer.write("\tsub bl, '0'    ;converte caractere \n");
-	                writer.write("\tcvtsi2ss xmm1,rbx    ;conv real \n");
-	                writer.write("\tdivss xmm1,xmm2   ;transf. casa decimal \n");
-	                writer.write("\taddss xmm0,xmm1   ;soma acumul. \n");
-	                writer.write("\tmulss xmm2,xmm3   ;atualiza potência \n");
-	                writer.write("\tjmp Rot" + rot_h + "     ;loop \n\n");
+                    writer.write("\tadd rsi, 1           ;inc. ponteiro string \n");
+                    writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
+                    writer.write("\tcmp  bl, 0Ah    ;*verifica fim string \n");
+                    writer.write("\tje Rot" + rot_g + "     ;salta se fim string \n");
+                    writer.write("\tsub bl, '0'    ;converte caractere \n");
+                    writer.write("\tcvtsi2ss xmm1,rbx    ;conv real \n");
+                    writer.write("\tdivss xmm1,xmm2   ;transf. casa decimal \n");
+                    writer.write("\taddss xmm0,xmm1   ;soma acumul. \n");
+                    writer.write("\tmulss xmm2,xmm3   ;atualiza potência \n");
+                    writer.write("\tjmp Rot" + rot_h + "     ;loop \n\n");
 
-	                writer.write("\tRot" + rot_g + ": \n");
-	                writer.write("\tcvtsi2ss xmm1,rax    ;conv parte inteira \n");
-	                writer.write("\taddss xmm0,xmm1   ;soma parte frac. \n");
-	                writer.write("\tpop rcx      ;desempilha sinal \n");
-	                writer.write("\tcvtsi2ss xmm1,rcx    ;conv sinal \n");
-	                writer.write("\tmulss xmm0,xmm1   ;mult. sinal \n\n");
+                    writer.write("Rot" + rot_g + ": \n");
+                    writer.write("\tcvtsi2ss xmm1,rax    ;conv parte inteira \n");
+                    writer.write("\taddss xmm0,xmm1   ;soma parte frac. \n");
+                    writer.write("\tpop rcx      ;desempilha sinal \n");
+                    writer.write("\tcvtsi2ss xmm1,rcx    ;conv sinal \n");
+                    writer.write("\tmulss xmm0,xmm1   ;mult. sinal \n\n");
 
-	                writer.write("\tmov M+" + currentSymbol.addr + ", xmm0 \n\n");
-		}
+                    writer.write("\tmovss [M+" + currentSymbol.addr + "], xmm0 \n\n");
+                }
 
             } catch (IOException e) {
                 e.printStackTrace();
