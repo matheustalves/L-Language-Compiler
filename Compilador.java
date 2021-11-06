@@ -1555,6 +1555,9 @@ public class Compilador {
                             else
                                 value = currentToken.lexeme;
 
+                            if (idType == "Float" && currentToken.type == "Integer")
+                                value += ".0";
+
                             checkToken(tokenValue);
                             if (pauseCompiling)
                                 return;
