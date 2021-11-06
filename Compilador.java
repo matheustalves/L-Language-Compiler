@@ -1684,6 +1684,18 @@ public class Compilador {
                             destAddr = "rax";
                         }
 
+                        if (currentSymbol.type == "Float" && expArgsA2.type == "Integer") {
+                            try {
+                                writer.write("\tmov eax, [M+" + expArgsA2.addr
+                                        + "] ; alocando valor em end. de expArgsA2 a registrador\n");
+                                writer.write("\tcvtsi2ss xmm0, eax ; int32 para float\n");
+                                writer.write("\tmovss [M+" + expArgsA2.addr
+                                        + "], xmm0 ; alocando valor de xmm0 a end. de expArgsA2\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
                         try {
                             attributionToMemory(atribType, destAddr, String.valueOf(expArgsA2.addr));
                         } catch (IOException e) {
@@ -2777,21 +2789,25 @@ public class Compilador {
                         } else
                             throwParserError();
 
-                        expArgsE.addr = tempCounter;
-                        updateTempCounter(expArgsE.type, 0);
                         try {
                             if (expArgsE.type == "Integer" && expArgsA.type == "Float") {
+                                expArgsE.addr = tempCounter;
+                                updateTempCounter(expArgsE.type, 0);
                                 writer.write("\tmovss xmm0, [M+" + expArgsA.addr
                                         + "] ; alocando valor em end. de expArgsA a registrador\n");
                                 writer.write("\tcvtss2si rax, xmm0 ; convertendo float para int64\n");
                                 writer.write("\tmov [M+" + expArgsE.addr
                                         + "], eax ; alocando valor de eax a end. de expArgsE\n");
                             } else if (expArgsE.type == "Float" && expArgsA.type == "Integer") {
+                                expArgsE.addr = tempCounter;
+                                updateTempCounter(expArgsE.type, 0);
                                 writer.write("\tmov eax, [M+" + expArgsA.addr
                                         + "] ; alocando valor em end. de expArgsA a registrador\n");
-                                writer.write("\tcvtsi2ss xmm0, eax\n ; convertendo int32 para float\n");
+                                writer.write("\tcvtsi2ss xmm0, eax ; convertendo int32 para float\n");
                                 writer.write("\tmovss [M+" + expArgsE.addr
                                         + "], xmm0 ; alocando valor de xmm0 a end. de expArgsE\n");
+                            } else {
+                                expArgsE.addr = expArgsA.addr;
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
