@@ -10,10 +10,8 @@ Features:
 - [ ] Implementar regra semântica a1 e a2, não pode imprimir Boolean (confirmarei com Alexei)
 
 Bugs:
-- [ ] Comparação com negativos tá ignorando o sinal
 - [ ] Erro na codegen de && com boolean
 - [ ] Floating point exception em bateria_comp.in em testes que funcionam independentemente, deve ter a ver com limpar o rax, similar ao erro do idiv que tava dando hoje.
-- [ ] Floats declarados em notação int são registrados como zero (float e<-100). Se atribuídos ou recebidos por readln estão OK.
 
 ## ☕ Rodando o compilador.
 
