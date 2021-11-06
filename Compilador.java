@@ -1954,12 +1954,15 @@ public class Compilador {
                 tempCounter = 0;
                 EXP_args expArgsA1 = new EXP_args();
                 EXP_A(expArgsA1);
+
+                if (pauseCompiling)
+                return;
+
                 if (expArgsA1.type == "Boolean") {
                     throwIdentifierError("incompatible_types");
                     return;
                 }
-                if (pauseCompiling)
-                    return;
+
 
                 translationWrite(expArgsA1);
 
@@ -1971,12 +1974,12 @@ public class Compilador {
                     tempCounter = 0;
                     EXP_args expArgsA2 = new EXP_args();
                     EXP_A(expArgsA2);
+                    if (pauseCompiling)
+                    return;
                     if (expArgsA2.type == "Boolean") {
                         throwIdentifierError("incompatible_types");
                         return;
                     }
-                    if (pauseCompiling)
-                        return;
 
                     translationWrite(expArgsA2);
                 }
