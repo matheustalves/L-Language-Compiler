@@ -1,0 +1,68 @@
+int a<--20;
+a<--20;
+int b<--10;
+b<--10;
+float c<--50.0;
+c<--50.0;
+int d<--50;
+d<--50;
+float e<--20.0;
+e<--20.0;
+float f<-100.0;
+f<-100.0;
+float h<-0.5;
+h<-0.5;
+
+write("2*(-1) = "); 
+writeln(2*(-1));
+
+write("2 div (-1) = "); 
+writeln(2 div (-1));
+
+write("-50.0-(-20) = ",c, " - ", a, " = ");
+writeln(c-a);
+
+write("-50.0 > -20?"); 
+if(c>a) writeln(" True");
+else writeln(" False");
+
+write("-20 > -50?"); 
+if(a>d) writeln(" True");
+else writeln(" False");
+
+write("-50.0 > -20.0?"); 
+if(c>e) writeln(" True");
+else writeln(" False");
+
+write("-50.0 - (-20) = "); 
+writeln(c-a);
+
+write("-50.0 + (-20) = "); 
+writeln(c+a);
+
+write("-50.0 - (-20.0) = "); 
+writeln(c-e);
+
+write("-50.0 + (-20.0) = "); 
+writeln(c+e);
+
+write("-50 - (-20) = "); 
+writeln(d-a);
+
+write("-50 + (-20) = "); 
+writeln(d+a);
+
+write("100.0+(-50.0) = "); 
+writeln(f+c);
+
+write("100.0-(-50.0) = "); 
+writeln(f-c);
+
+write("-50.0+100.0 = ");
+writeln(c+f);
+
+write("100.0 - 0.5 = ");
+writeln(f-h);
+
+write("-20 div -10 = ");
+writeln(a div b);
