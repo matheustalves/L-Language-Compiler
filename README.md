@@ -6,7 +6,6 @@
 
 Features:
 - [ ] Atribuição de Strings (char por char)
-- [ ] comando float(num)
 - [ ] Implementar regra semântica a1 e a2, não pode imprimir Boolean (confirmarei com Alexei)
 
 Bugs:

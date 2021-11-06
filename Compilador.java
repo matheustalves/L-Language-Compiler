@@ -2740,12 +2740,21 @@ public class Compilador {
         */
         void EXP_E(EXP_args expArgsE) {
             if (!pauseCompiling) {
-                if (currentToken.token == tokenInt) {
-                    expArgsE.type = "Integer";
+                if (currentToken.token == tokenInt || currentToken.token == tokenFloat) {
+                    if (currentToken.token == tokenInt) {
+                        expArgsE.type = "Integer";
 
-                    checkToken(tokenInt);
-                    if (pauseCompiling)
-                        return;
+                        checkToken(tokenInt);
+                        if (pauseCompiling)
+                            return;
+                    } else if (currentToken.token == tokenFloat) {
+                        expArgsE.type = "Float";
+
+                        checkToken(tokenFloat);
+                        if (pauseCompiling)
+                            return;
+                    }
+
                     if (currentToken.token == tokenOpenPar) {
                         checkToken(tokenOpenPar);
                         if (pauseCompiling)
@@ -2767,33 +2776,26 @@ public class Compilador {
                                 return;
                         } else
                             throwParserError();
-                    } else
-                        throwParserError();
-                } else if (currentToken.token == tokenFloat) {
-                    expArgsE.type = "Float";
 
-                    checkToken(tokenFloat);
-                    if (pauseCompiling)
-                        return;
-                    if (currentToken.token == tokenOpenPar) {
-                        checkToken(tokenOpenPar);
-                        if (pauseCompiling)
-                            return;
-
-                        EXP_args expArgsA = new EXP_args();
-                        EXP_A(expArgsA);
-
-                        if (expArgsA.type != "Integer" && expArgsA.type != "Float") {
-                            throwIdentifierError("incompatible_types");
-                            return;
+                        expArgsE.addr = tempCounter;
+                        updateTempCounter(expArgsE.type, 0);
+                        try {
+                            if (expArgsE.type == "Integer" && expArgsA.type == "Float") {
+                                writer.write("\tmovss xmm0, [M+" + expArgsA.addr
+                                        + "] ; alocando valor em end. de expArgsA a registrador\n");
+                                writer.write("\tcvtss2si rax, xmm0 ; convertendo float para int64\n");
+                                writer.write("\tmov [M+" + expArgsE.addr
+                                        + "], eax ; alocando valor de eax a end. de expArgsE\n");
+                            } else if (expArgsE.type == "Float" && expArgsA.type == "Integer") {
+                                writer.write("\tmov eax, [M+" + expArgsA.addr
+                                        + "] ; alocando valor em end. de expArgsA a registrador\n");
+                                writer.write("\tcvtsi2ss xmm0, eax\n ; convertendo int32 para float\n");
+                                writer.write("\tmovss [M+" + expArgsE.addr
+                                        + "], xmm0 ; alocando valor de xmm0 a end. de expArgsE\n");
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-
-                        if (currentToken.token == tokenClosePar) {
-                            checkToken(tokenClosePar);
-                            if (pauseCompiling)
-                                return;
-                        } else
-                            throwParserError();
                     } else
                         throwParserError();
                 } else {
