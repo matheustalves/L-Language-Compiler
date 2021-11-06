@@ -4,13 +4,15 @@
 
 ## TODO
 
-- Atribuição de Strings (char por char)
-- write (p/ int e float)
-- read
-- Comparação de Strings (com loop)
-- Conversao float / int
-- Consertar M + rax no acesso a posicao de string
-- Consertar endereços de string "comidos" em writes seguidos
+Features:
+- [ ] Atribuição de Strings (char por char)
+- [ ] read(int|float)
+- [ ] comando float(num)
+- [ ] Comparação de Strings (com loop)
+
+Bugs:
+- [ ] Consertar M + rax no acesso a posicao de string
+- [ ] Consertar endereços de string "comidos" em writes seguidos
 
 ## ☕ Rodando o compilador.
 
@@ -25,4 +27,9 @@ Caso receba o aviso:
 x linhas compiladas.
 ```
 
-Seu código foi gerado em `arq.asm`. 
+Seu código foi gerado em `arq.asm`. Para executá-lo, siga as seguintes instruções (requer NASM):
+```
+nasm arq.asm -g -w-zeroing -f elf64 -o arq.o
+ld arq.o -o arq
+./arq
+```
