@@ -1,0 +1,59 @@
+
+writeln("Testes de comparacao de strings.");
+writeln("---------\\----------");
+string a<-"banana";
+string b<-"banana";
+string c<-"banan";
+string d<-"0000";
+string e<-"0000a";
+string f<-"0000";
+string g<-"BANANA";
+string h<-"ab0ef";
+string j<-"ab0ef";
+string head<-"----";
+
+writeln("renato = renatod");
+if("renato"="renatod") writeln("Strings iguais");
+else writeln("Strings diferentes.");
+
+writeln(head);
+writeln("banana = banan");
+if(a=c) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("banana = banana");
+if(a=b) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("banan = banana");
+if(c=b) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("banana = banana - ordem inversa");
+if(b=a) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("0000 = 0000");
+if(d=f) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("0000 = 0000a");
+if(d=e) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("BANANA = banana");
+if(a=g) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("ab0ef = ab0ef");
+if(h=j) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+

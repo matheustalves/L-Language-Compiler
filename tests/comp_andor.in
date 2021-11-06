@@ -1,0 +1,8 @@
+int a<-2;
+int b<-3;
+int c<-4;
+string g<-"banana";
+string h<-"banana";
+
+if(!((g=h)&&(a>c))) writeln("True");
+else writeln("False");

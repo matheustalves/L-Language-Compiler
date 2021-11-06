@@ -1205,7 +1205,7 @@ public class Compilador {
                     writer.write("Rot"+rotBufStr+":   ; rot de ler buffer de readln(String)\n");
                     writer.write("\tmov rax, 0 ; chama a leitura\n");
                     writer.write("\tmov rdi, 0 ; leitor da entrada\n");
-                    writer.write("\tmov  rsi, M+" + buffer_read + "\n");
+                    writer.write("\tmov rsi, M+" + buffer_read + "\n");
                     writer.write("\tmov rdx, 1 ; le 1 byte e passa pro rdx\n");
                     writer.write("\tsyscall\n");
                     writer.write("\tmov al, [M+"+buffer_read+"] ; carrega o caractere lido em al\n");
@@ -1778,14 +1778,14 @@ public class Compilador {
                             if (pauseCompiling)
                                 return;
 
-                            writer.write("\t" + rotEnd + " ; RotFim\n");
+                            writer.write(rotEnd + ": ; RotFim\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
 
                     } else {
                         try {
-                            writer.write("\t" + rotFalse + ": ; RotFalso\n");
+                            writer.write(rotFalse + ": ; RotFalso\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -2044,6 +2044,7 @@ public class Compilador {
                     }
 
                     String rotTrue = "";
+                    String rotFalse = "";
 
                     if (expArgsB1.type == "Integer" && expArgsB2.type == "Integer") {
                         try {
@@ -2141,18 +2142,23 @@ public class Compilador {
                         }
                     } else if (expArgsB1.type == "String") { // TO-DO: String comparison
                         try {
-
-                            writer.write("\tmov al, [M+" + expArgsA.addr + "] ; pega o primeiro caractere da string A");
-                            writer.write(
-                                    "\tmov bl, [M+" + expArgsB2.addr + "] ; pega o primeiro caractere da string B");
-
-                            writer.write("\tcmp al, bl ; comparando al com bl\n");
-
                             rotTrue = "Rot" + setRot();
+                            rotFalse = "Rot" + setRot();
+                            String rotLoopStr = "Rot" + setRot();
 
-                            if (tokenOperator == tokenEqual) {
-                                writer.write("\tje " + rotTrue + " ; caso iguais, jmp para RotVerdadeiro\n");
-                            }
+                            writer.write("\tmov rsi, M+" + expArgsA.addr + " ; passa o endereco da string A pra rax\n");
+                            writer.write("\tmov rdi, M+" + expArgsB2.addr + " ; passa o endereco da string B pra rbx\n");
+                            writer.write(rotLoopStr + ": ; string loop \n");
+                            writer.write("\tmov al, [rsi] ; pega o caractere na posicao rax+eax da string A\n");
+                            writer.write("\tmov bl, [rdi] ; pega o caractere na posicao rax+eax da string B\n");
+                            writer.write("\tcmp al, bl ; comparando al com bl\n");
+                            writer.write("\tjne "+rotFalse+ "; char nao eh igual, fim\n");
+                            writer.write("\tadd rsi, 1 ; incrementa o contador\n");
+                            writer.write("\tadd rdi, 1 ; incrementa o contador\n");
+                            writer.write("\tcmp al, 0 ; fim da strA?\n");
+                            writer.write("\tje "+ rotTrue +"; se sim, passa pro check final\n");
+                            writer.write("\tjmp "+ rotLoopStr +"; se nao, continua loop\n");
+                            
 
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -2160,19 +2166,20 @@ public class Compilador {
                     }
 
                     try {
-                        writer.write("\tmov eax, 0 ; teste deu false\n");
-
                         String rotEnd = "Rot" + setRot();
-                        writer.write("\tjmp " + rotEnd + " ; jmp para RotFim\n");
 
-                        writer.write("\t" + rotTrue + ": ; RotVerdadeiro\n");
+                        if (expArgsB1.type == "String") writer.write(rotFalse + ": ; rotFalse\n");
+                        writer.write("\tmov eax, 0 ; teste deu false\n");
+                        writer.write("\tjmp " + rotEnd + " ; jmp para RotFim\n");
+     
+                        writer.write(rotTrue + ": ; RotVerdadeiro\n");
                         writer.write("\t\tmov eax, 1 ; teste deu true\n");
 
                         expArgsA.type = "Boolean";
                         expArgsA.addr = tempCounter;
                         updateTempCounter(expArgsA.type, 4);
 
-                        writer.write("\t" + rotEnd + ": ; RotFim\n");
+                        writer.write(rotEnd + ": ; RotFim\n");
                         writer.write("\tmov [M+ " + expArgsA.addr
                                 + "], eax ; alocando resultado bool no endereco de expArgsA\n");
                     } catch (IOException e) {

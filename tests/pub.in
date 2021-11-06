@@ -8,7 +8,7 @@ readln(nome);
 
 float percentual;
 while n<=MAXITER {
-  percentual<-float(n)/MAXITER;
+  percentual<-n/MAXITER;
   writeln(float(n),": Ola' ",nome);
   n<-n+1;
 }

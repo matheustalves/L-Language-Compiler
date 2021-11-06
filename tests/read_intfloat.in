@@ -1,0 +1,10 @@
+writeln("Digite um int e um float");
+int a;
+readln(a);
+float b;
+readln(b);
+writeln("Nums digitados: ", a, " | ", b);
+writeln("Digite uma string");
+string c;
+readln(c);
+writeln("String digitada: ", c);

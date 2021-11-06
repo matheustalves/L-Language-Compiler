@@ -6,13 +6,14 @@
 
 Features:
 - [ ] Atribuição de Strings (char por char)
-- [ ] read(int|float)
 - [ ] comando float(num)
-- [ ] Comparação de Strings (com loop)
+- [ ] Implementar regra semântica a1 e a2, não pode imprimir Boolean (confirmarei com Alexei)
 
 Bugs:
 - [ ] Consertar M + rax no acesso a posicao de string
-- [ ] Consertar endereços de string "comidos" em writes seguidos
+- [ ] Comparação com negativos tá ignorando o sinal
+- [ ] Erro na codegen de && com boolean
+- [ ] Floating point exception em bateria_comp.in em testes que funcionam independentemente, deve ter a ver com limpar o rax, similar ao erro do idiv que tava dando hoje
 
 ## ☕ Rodando o compilador.
 
