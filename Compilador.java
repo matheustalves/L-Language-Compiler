@@ -2423,6 +2423,7 @@ public class Compilador {
                                     + "] ; alocando valor em end. de expArgsC2 a registrador\n");
                             writer.write("\tmov ecx, 2 ; alocando valor 2 a ecx\n");
                             writer.write("\tadd eax, ebx ; eax = eax + ebx\n");
+                            writer.write("\tcdq ; limpa o rdx \n");
                             writer.write("\tidiv ecx ; dividindo eax por 2\n");
                             writer.write("\tadd eax, edx ; somando quociente e resto da divisao (Or logico)\n");
                             expArgsB.addr = tempCounter;

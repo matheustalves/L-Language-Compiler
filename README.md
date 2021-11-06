@@ -10,7 +10,7 @@ Features:
 - [ ] Implementar regra semântica a1 e a2, não pode imprimir Boolean (confirmarei com Alexei)
 
 Bugs:
-- [ ] Floating point exception em bateria_comp.in em testes que funcionam independentemente, deve ter a ver com limpar o rax, similar ao erro do idiv que tava dando hoje.
+SEM BUGS POR ENQUANTO
 
 ## ☕ Rodando o compilador.
 
