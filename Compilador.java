@@ -962,16 +962,16 @@ public class Compilador {
             }
         }
 
-        void attributionToMemory(String type, String addr, String value) throws IOException {
+        void attributionToMemory(String type, String destAddr, String sourceAddr) throws IOException {
             if (type == "Char") {
-                writer.write("\tmov al, [M+" + value + "] ; alocando char em registrador\n");
-                writer.write("\tmov [" + addr + "], al ; adicionando valor a endereco do id\n");
+                writer.write("\tmov bl, [M+" + sourceAddr + "] ; alocando char em registrador\n");
+                writer.write("\tmov [" + destAddr + "], bl ; adicionando valor a endereco do id\n");
             } else if (type == "Integer") {
-                writer.write("\tmov eax, [M+" + value + "] ; alocando inteiro em registrador\n");
-                writer.write("\tmov [" + addr + "], eax ; adicionando valor a endereco do id\n");
+                writer.write("\tmov eax, [M+" + sourceAddr + "] ; alocando inteiro em registrador\n");
+                writer.write("\tmov [" + destAddr + "], eax ; adicionando valor a endereco do id\n");
             } else if (type == "Float") {
-                writer.write("\tmovss xmm0, [M+" + value + "] ; alocando float em registrador\n");
-                writer.write("\tmovss [" + addr + "], xmm0 ; adicionando valor a endereco do id\n");
+                writer.write("\tmovss xmm0, [M+" + sourceAddr + "] ; alocando float em registrador\n");
+                writer.write("\tmovss [" + destAddr + "], xmm0 ; adicionando valor a endereco do id\n");
             } else if (type == "String") {
 
             }
@@ -988,7 +988,7 @@ public class Compilador {
             int rot_a = setRot();
             int rot_b = setRot();
             int rot_c = setRot();
-            
+
             try {
                 writer.write("\tmov eax, [M+" + expArgs.addr + "] ; inteiro a ser convertido\n");
                 writer.write("\tmov rsi, M+" + tempCounter + "; end. string ou temp.\n");
@@ -1024,7 +1024,7 @@ public class Compilador {
                 writer.write("\tcmp rcx, 0 ; verifica pilha vazia\n");
                 writer.write("\tjne Rot" + rot_c + " ; se nao pilha vazia, loop\n\n");
                 writer.write("\tpop rcx ; \n");
-                writer.write("\tadd rdx, rcx ; \n");                
+                writer.write("\tadd rdx, rcx ; \n");
                 writer.write("\tmov rsi, M+" + tempCounter + "; passando pro rsi o endereço inicial da string \n");
                 writer.write("\t; executa interrupcao de saida\n");
                 writer.write("\t\n");
@@ -1120,7 +1120,7 @@ public class Compilador {
                     convertIntegerToString(expArgs);
                 } else if (expArgs.type == "Float") {
                     convertFloatToString(expArgs);
-                } else if (expArgs.type == "String") {
+                } else if (expArgs.type == "String" || expArgs.type == "Char") {
                     writer.write("\tmov rsi, M+" + (expArgs.addr) + " ; registrador recebe endereco da string\n");
                     writer.write("\tmov rdx, rsi ; rdx = rsi\n");
                     writer.write("Rot" + rot + ": \n");
@@ -1156,8 +1156,8 @@ public class Compilador {
             }
 
         }
-        
-        void translationReadln(){
+
+        void translationReadln() {
             int rotFimStr = setRot();
             int rotBufStr = setRot();
             int rot_a = setRot();
@@ -1171,58 +1171,53 @@ public class Compilador {
 
             Symbol currentSymbol = symbolTable.get(currentToken.lexeme);
 
-            try{
+            try {
                 Integer buffer_read = 0;
 
-                if(currentSymbol.type == "String"){
+                if (currentSymbol.type == "String") {
                     buffer_read = currentSymbol.addr;
-                }
-                else if(currentSymbol.type == "Integer"){
+                } else if (currentSymbol.type == "Integer") {
                     buffer_read = tempCounter;
                     updateTempCounter("String", 11);
-                }
-                else if(currentSymbol.type == "Float"){
+                } else if (currentSymbol.type == "Float") {
                     buffer_read = tempCounter;
                     updateTempCounter("String", 14);
                 }
 
-
-                writer.write("\tmov rsi, M+"+ buffer_read + "\n");
-
+                writer.write("\tmov rsi, M+" + buffer_read + "\n");
 
                 writer.write("\tmov  rdx, 100h  ;tamanho do buffer \n");
                 writer.write("\tmov  rax, 0 ;chamada para leitura \n");
                 writer.write("\tmov  rdi, 0 ;leitura do teclado \n");
                 writer.write("\tsyscall \n\n");
-                
 
-                if(currentSymbol.type == "String"){
-                    writer.write("\tadd rax, M+" + (buffer_read - 1) +" ; endereço do ultimo caractere lido\n");
+                if (currentSymbol.type == "String") {
+                    writer.write("\tadd rax, M+" + (buffer_read - 1) + " ; endereço do ultimo caractere lido\n");
                     writer.write("\tmov rbx, rax ; armazena o endereço em rbx\n");
                     writer.write("\tmov al, [rbx] ; passa o ultimo caractere lido para al\n");
                     writer.write("\tcmp al, 10 ; verifica se o ultimo char era linebreak\n");
-                    writer.write("\tje Rot"+ rotFimStr +" ; verifica se ainda ha chars no buffer - String\n");
-                    writer.write("Rot"+rotBufStr+":   ; rot de ler buffer de readln(String)\n");
+                    writer.write("\tje Rot" + rotFimStr + " ; verifica se ainda ha chars no buffer - String\n");
+                    writer.write("Rot" + rotBufStr + ":   ; rot de ler buffer de readln(String)\n");
                     writer.write("\tmov rax, 0 ; chama a leitura\n");
                     writer.write("\tmov rdi, 0 ; leitor da entrada\n");
                     writer.write("\tmov rsi, M+" + buffer_read + "\n");
                     writer.write("\tmov rdx, 1 ; le 1 byte e passa pro rdx\n");
                     writer.write("\tsyscall\n");
-                    writer.write("\tmov al, [M+"+buffer_read+"] ; carrega o caractere lido em al\n");
+                    writer.write("\tmov al, [M+" + buffer_read + "] ; carrega o caractere lido em al\n");
                     writer.write("\tcmp al, 10 ; verifica se o char eh linebreak\n");
-                    writer.write("\tjne Rot"+rotBufStr+" ; continua o loop se existem chars no buffer\n");
-                    writer.write("Rot"+rotFimStr+":   ; rot de fim de readln(String)\n");
+                    writer.write("\tjne Rot" + rotBufStr + " ; continua o loop se existem chars no buffer\n");
+                    writer.write("Rot" + rotFimStr + ":   ; rot de fim de readln(String)\n");
                     writer.write("\tmov al, 0 ; carrega o caractere final de string no al\n");
                     writer.write("\tmov [rbx], al ; carrega o caractere no endereço de rbx\n");
                 }
 
-                if(currentSymbol.type == "Integer"){
+                if (currentSymbol.type == "Integer") {
 
                     writer.write("\tmov eax, 0     ;acumulador\n");
                     writer.write("\tmov ebx, 0     ;caractere \n");
                     writer.write("\tmov ecx, 10    ;base 10 \n");
                     writer.write("\tmov dx, 1      ;sinal \n");
-                    writer.write("\tmov rsi, M+"+ buffer_read +"       ;end. buffer \n");
+                    writer.write("\tmov rsi, M+" + buffer_read + "       ;end. buffer \n");
                     writer.write("\tmov bl, [rsi]     ;carrega caractere \n");
                     writer.write("\tcmp bl, '-'       ;sinal - ? \n");
                     writer.write("\tjne Rot" + rot_a + "       ;se dif -, salta \n");
@@ -1247,14 +1242,14 @@ public class Compilador {
                     writer.write("Rot" + rot_c + ": \n");
                     writer.write("\tpop cx      ;desempilha sinal \n");
                     writer.write("\tcmp cx, 0 \n");
-                    writer.write("\tjg Rot"+ rot_d + " \n");
+                    writer.write("\tjg Rot" + rot_d + " \n");
                     writer.write("\tneg eax      ;mult. sinal \n\n");
 
                     writer.write("\tRot" + rot_d + ": \n\n");
-                    writer.write("\tmov [M+"+currentSymbol.addr+"], eax ; move pro endereço do simbolo\n");
+                    writer.write("\tmov [M+" + currentSymbol.addr + "], eax ; move pro endereço do simbolo\n");
                 }
 
-                if(currentSymbol.type == "Float"){
+                if (currentSymbol.type == "Float") {
 
                     writer.write("\tmov rax, 0     ;acumul. parte int. \n");
                     writer.write("\tsubss xmm0,xmm0      ;acumul. parte frac. \n");
@@ -1315,8 +1310,6 @@ public class Compilador {
                 e.printStackTrace();
             }
         }
-
-
 
         class EXP_args {
             String type;
@@ -1593,8 +1586,9 @@ public class Compilador {
         void COMMAND() {
             if (!pauseCompiling) {
                 if (currentToken.token == tokenId) {
+                    EXP_args expArgsA1 = new EXP_args();
                     boolean isStringIndex = false;
-                    String atribAddr = "";
+                    String destAddr = "";
                     String atribType = "";
 
                     if (!identifierIsDeclared(currentToken)) {
@@ -1619,14 +1613,11 @@ public class Compilador {
                             return;
                         }
 
-                        isStringIndex = true;
-
                         checkToken(tokenOpenSq);
                         if (pauseCompiling)
                             return;
 
                         tempCounter = 0;
-                        EXP_args expArgsA1 = new EXP_args();
                         EXP_A(expArgsA1);
 
                         if (pauseCompiling)
@@ -1637,19 +1628,6 @@ public class Compilador {
                             return;
                         }
 
-                        try {
-                            writer.write("\tmov rax, 0 ; zerando o rax \n");
-                            writer.write("\tmov eax, [M+" + expArgsA1.addr
-                                    + "] ; alocando valor em end. de expArgsA1 a registrador (indice)\n");
-                            writer.write(
-                                    "\tadd rax, M+" + currentSymbol.addr + " ; indice + posicao inicial do string\n");
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        atribAddr = "rax";
-                        atribType = "Char";
-
                         if (currentToken.token == tokenCloseSq) {
                             checkToken(tokenCloseSq);
                             if (pauseCompiling)
@@ -1657,14 +1635,14 @@ public class Compilador {
                         } else
                             throwParserError();
 
+                        isStringIndex = true;
+                        atribType = "Char";
                     }
-
                     if (currentToken.token == tokenAtrib) {
                         checkToken(tokenAtrib);
                         if (pauseCompiling)
                             return;
 
-                        tempCounter = 0;
                         EXP_args expArgsA2 = new EXP_args();
                         EXP_A(expArgsA2);
 
@@ -1679,12 +1657,23 @@ public class Compilador {
                         }
 
                         if (!isStringIndex) {
-                            atribAddr = "M+" + String.valueOf(currentSymbol.addr);
+                            destAddr = "M+" + String.valueOf(currentSymbol.addr);
                             atribType = currentSymbol.type;
+                        } else {
+                            try {
+                                writer.write("\tmov rax, 0 ; zerando o rax \n");
+                                writer.write("\tmov eax, [M+" + expArgsA1.addr
+                                        + "] ; alocando valor em end. de expArgsA1 a registrador (indice)\n");
+                                writer.write("\tadd rax, M+" + currentSymbol.addr
+                                        + " ; indice + posicao inicial do string\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            destAddr = "rax";
                         }
 
                         try {
-                            attributionToMemory(atribType, atribAddr, String.valueOf(expArgsA2.addr));
+                            attributionToMemory(atribType, destAddr, String.valueOf(expArgsA2.addr));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -1707,7 +1696,6 @@ public class Compilador {
                     EXP_args expArgsA3 = new EXP_args();
                     if (pauseCompiling)
                         return;
-
 
                     String rotBegin = "Rot" + setRot();
                     String rotEnd = "Rot" + setRot();
@@ -2147,18 +2135,18 @@ public class Compilador {
                             String rotLoopStr = "Rot" + setRot();
 
                             writer.write("\tmov rsi, M+" + expArgsA.addr + " ; passa o endereco da string A pra rax\n");
-                            writer.write("\tmov rdi, M+" + expArgsB2.addr + " ; passa o endereco da string B pra rbx\n");
+                            writer.write(
+                                    "\tmov rdi, M+" + expArgsB2.addr + " ; passa o endereco da string B pra rbx\n");
                             writer.write(rotLoopStr + ": ; string loop \n");
                             writer.write("\tmov al, [rsi] ; pega o caractere na posicao rax+eax da string A\n");
                             writer.write("\tmov bl, [rdi] ; pega o caractere na posicao rax+eax da string B\n");
                             writer.write("\tcmp al, bl ; comparando al com bl\n");
-                            writer.write("\tjne "+rotFalse+ "; char nao eh igual, fim\n");
+                            writer.write("\tjne " + rotFalse + "; char nao eh igual, fim\n");
                             writer.write("\tadd rsi, 1 ; incrementa o contador\n");
                             writer.write("\tadd rdi, 1 ; incrementa o contador\n");
                             writer.write("\tcmp al, 0 ; fim da strA?\n");
-                            writer.write("\tje "+ rotTrue +"; se sim, passa pro check final\n");
-                            writer.write("\tjmp "+ rotLoopStr +"; se nao, continua loop\n");
-                            
+                            writer.write("\tje " + rotTrue + "; se sim, passa pro check final\n");
+                            writer.write("\tjmp " + rotLoopStr + "; se nao, continua loop\n");
 
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -2168,10 +2156,11 @@ public class Compilador {
                     try {
                         String rotEnd = "Rot" + setRot();
 
-                        if (expArgsB1.type == "String") writer.write(rotFalse + ": ; rotFalse\n");
+                        if (expArgsB1.type == "String")
+                            writer.write(rotFalse + ": ; rotFalse\n");
                         writer.write("\tmov eax, 0 ; teste deu false\n");
                         writer.write("\tjmp " + rotEnd + " ; jmp para RotFim\n");
-     
+
                         writer.write(rotTrue + ": ; RotVerdadeiro\n");
                         writer.write("\t\tmov eax, 1 ; teste deu true\n");
 
@@ -2372,7 +2361,7 @@ public class Compilador {
                                     e.printStackTrace();
                                 }
 
-                            expArgsB.type = "Float";
+                                expArgsB.type = "Float";
                             } else {
                                 try {
                                     writer.write("\tmov ebx, [M+" + expArgsC2.addr
@@ -2883,9 +2872,9 @@ public class Compilador {
                                     + "] ; alocando valor em end. de expArgsA2 a registrador (indice)\n");
                             writer.write(
                                     "\tadd rax, M+" + currentSymbol.addr + " ; indice + posicao inicial do string\n");
-                            writer.write("\tmov ebx, [rax] ; alocando valor em rax a registrador ebx\n");
+                            writer.write("\tmov bl, [rax] ; alocando valor em rax a registrador bl\n");
                             writer.write("\tmov [M+" + expArgsF.addr
-                                    + "], ebx ; alocando conteudo de ebx em end. de expArgsF\n");
+                                    + "], bl ; alocando conteudo de bl em end. de expArgsF\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
