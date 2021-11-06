@@ -1,3 +1,9 @@
+string a<-"nada";
+
 writeln("matheus e ", "bernardo");
 writeln(" e henrique");
+readln(a);
 write("bernardo2");
+writeln(a);
+int c<-4;
+c<-3 div 2;

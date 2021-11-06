@@ -1,0 +1,4 @@
+int a;
+writeln("Abcd");
+a <- 3 div 2;
+writeln(a);

@@ -1,0 +1,7 @@
+writeln(305);
+writeln("Soma");
+writeln(305+340);
+writeln("Negativo");
+writeln(-400+100);
+writeln("Multiplicacao");
+writeln(200*2);

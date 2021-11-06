@@ -2,6 +2,6 @@ const runs=4;
 int n<-0;
 
 while n<=runs{
-    write("a");
     n<-n+1;
+    write("a");
 }

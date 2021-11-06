@@ -1,0 +1,8 @@
+writeln(305.625);
+writeln("Negativo:");
+writeln(300.00-500);
+writeln(300.00-500.00);
+writeln("Divisao:");
+writeln(-50.00/float(25));
+writeln(30.00/20.00);
+

@@ -1,0 +1,6 @@
+string a<- "nada";
+a<-"wow";
+
+readln(a);
+
+writeln(a);

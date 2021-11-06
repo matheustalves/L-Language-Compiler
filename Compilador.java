@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-// import java.io.FileReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 public class Compilador {
@@ -988,6 +988,7 @@ public class Compilador {
             int rot_a = setRot();
             int rot_b = setRot();
             int rot_c = setRot();
+            
             try {
                 writer.write("\tmov eax, [M+" + expArgs.addr + "] ; inteiro a ser convertido\n");
                 writer.write("\tmov rsi, M+" + tempCounter + "; end. string ou temp.\n");
@@ -1023,10 +1024,11 @@ public class Compilador {
                 writer.write("\tcmp rcx, 0 ; verifica pilha vazia\n");
                 writer.write("\tjne Rot" + rot_c + " ; se nao pilha vazia, loop\n\n");
                 writer.write("\tpop rcx ; \n");
-                writer.write("\tadd rcx, rdx ; \n");
-                updateTempCounter(expArgs.type, 0);
+                writer.write("\tadd rdx, rcx ; \n");                
+                writer.write("\tmov rsi, M+" + tempCounter + "; passando pro rsi o endereço inicial da string \n");
                 writer.write("\t; executa interrupcao de saida\n");
                 writer.write("\t\n");
+                updateTempCounter(expArgs.type, 0);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -1068,7 +1070,7 @@ public class Compilador {
                 writer.write("\tidiv ebx ; divide edx;eax por ebx\n");
                 writer.write("\tpush dx ; empilha valor do resto\n");
                 writer.write("\tcmp eax, 0 ; verifica se quoc. eh 0\n");
-                writer.write("\tjne " + rot_b + " ; se nao eh 0, continua, else rot_b\n\n");
+                writer.write("\tjne Rot" + rot_b + " ; se nao eh 0, continua, else rot_b\n\n");
                 writer.write("\tsub rdi, rcx ; decrementa precisao\n\n");
                 writer.write("\t; desempilha valores e escreve parte int\n\n");
                 writer.write("Rot" + rot_c + ":\n");
@@ -1157,6 +1159,8 @@ public class Compilador {
         }
         
         void translationReadln(){
+            int rotFimStr = setRot();
+            int rotBufStr = setRot();
             int rot_a = setRot();
             int rot_b = setRot();
             int rot_c = setRot();
@@ -1165,12 +1169,11 @@ public class Compilador {
             int rot_f = setRot();
             int rot_g = setRot();
             int rot_h = setRot();
-            int rot_i = setRot();
 
             Symbol currentSymbol = symbolTable.get(currentToken.lexeme);
 
             try{
-                Integer buffer_read = tempCounter;
+                Integer buffer_read = currentSymbol.addr;
                 updateTempCounter("String", 256);
 
                 writer.write("\tmov  rsi, M+" + buffer_read + "\n");
@@ -1179,18 +1182,29 @@ public class Compilador {
                 writer.write("\tmov  rdi, 0 ;leitura do teclado \n");
                 writer.write("\tsyscall \n\n");
 
-		if(currentToken.type == "String"){
-                    writer.write("Rot" + rot_i + ": \n");
-                    writer.write("\tmov [M+" + (buffer_read) + "], [rax] ; registrador recebe primeiro caractere da string \n");
-                    writer.write("\tadd rax, 1 ; incrementa rdx\n");
-                    writer.write("\tcmp [M+" + (buffer_read--) + "], 0 ; al == 0 ? se True, fim da string\n");
-                    writer.write("\tjne Rot" + rot_i + "\n");
-                    writer.write("\tsub rax, [M+ " + (buffer_read) + "] ; removendo offset (byte 0) do endereco\n");
+		if(currentSymbol.type == "String"){
+            writer.write("\tadd rax, M+" + (buffer_read - 1) +" ; endereço do ultimo caractere lido\n");
+            writer.write("\tmov rbx, rax ; armazena o endereço em rbx\n");
+            writer.write("\tmov al, [rbx] ; passa o ultimo caractere lido para al\n");
+            writer.write("\tcmp al, 10 ; verifica se o ultimo char era linebreak\n");
+            writer.write("\tje Rot"+ rotFimStr +" ; verifica se ainda ha chars no buffer - String\n");
+            writer.write("Rot"+rotBufStr+":   ; rot de ler buffer de readln(String)\n");
+            writer.write("\tmov rax, 0 ; chama a leitura\n");
+            writer.write("\tmov rdi, 0 ; leitor da entrada\n");
+            writer.write("\tmov  rsi, M+" + buffer_read + "\n");
+            writer.write("\tmov rdx, 1 ; le 1 byte e passa pro rdx\n");
+            writer.write("\tsyscall\n");
+            writer.write("\tmov al, [M+"+buffer_read+"] ; carrega o caractere lido em al\n");
+            writer.write("\tcmp al, 10 ; verifica se o char eh linebreak\n");
+            writer.write("\tjne Rot"+rotBufStr+" ; continua o loop se existem chars no buffer\n");
+            writer.write("Rot"+rotFimStr+":   ; rot de fim de readln(String)\n");
+            writer.write("\tmov al, 0 ; carrega o caractere final de string no al\n");
+            writer.write("\tmov [rbx], al ; carrega o caractere no endereço de rbx\n");
 		}
 
-		if(currentToken.type == "Integer"){
+		if(currentSymbol.type == "Integer"){
 
-	                writer.write("\tmov eax, 0     ;acumulador \n");
+	                writer.write("\tmov eax, 0     ;acumulador\n");
 	                writer.write("\tmov ebx, 0     ;caractere \n");
 	                writer.write("\tmov ecx, 10    ;base 10 \n");
 	                writer.write("\tmov dx, 1      ;sinal \n");
@@ -1225,7 +1239,7 @@ public class Compilador {
 	                writer.write("\tRot" + rot_d + ": \n\n");
 		}
 
-		if(currentToken.type == "Float"){
+		if(currentSymbol.type == "Float"){
 
 	                writer.write("\tmov rax, 0     ;acumul. parte int. \n");
 	                writer.write("\tsubss xmm0,xmm0      ;acumul. parte frac. \n");
@@ -1609,7 +1623,8 @@ public class Compilador {
                         }
 
                         try {
-                            writer.write("\tmov rax, [M+" + expArgsA1.addr
+                            writer.write("\tmov rax, 0 ; zerando o rax \n");
+                            writer.write("\tmov eax, [M+" + expArgsA1.addr
                                     + "] ; alocando valor em end. de expArgsA1 a registrador (indice)\n");
                             writer.write(
                                     "\tadd rax, M+" + currentSymbol.addr + " ; indice + posicao inicial do string\n");
@@ -1675,20 +1690,20 @@ public class Compilador {
 
                     tempCounter = 0;
                     EXP_args expArgsA3 = new EXP_args();
-                    EXP_A(expArgsA3);
                     if (pauseCompiling)
                         return;
 
-                    if (expArgsA3.type != "Boolean") {
-                        throwIdentifierError("incompatible_types");
-                        return;
-                    }
 
                     String rotBegin = "Rot" + setRot();
                     String rotEnd = "Rot" + setRot();
 
                     try {
                         writer.write("\t" + rotBegin + ": ; RotInicio\n");
+                        EXP_A(expArgsA3);
+                        if (expArgsA3.type != "Boolean") {
+                            throwIdentifierError("incompatible_types");
+                            return;
+                        }
                         writer.write("\tmov eax, [M+" + expArgsA3.addr
                                 + "] ; alocando valor em end. de expArgsA3 a registrador\n");
                         writer.write("\tcmp eax, 1 ; verifica se expressao eh verdadeira\n");
@@ -1777,10 +1792,10 @@ public class Compilador {
                                 throwIdentifierError("id_incompatible_class");
                                 return;
                             }
+                            translationReadln();
                             checkToken(tokenId);
                             if (pauseCompiling)
                                 return;
-			    translationReadln();
                             if (currentToken.token == tokenClosePar) {
                                 checkToken(tokenClosePar);
                                 if (pauseCompiling)
@@ -2047,9 +2062,9 @@ public class Compilador {
                                 writer.write("\tmovss xmm0, [M+" + expArgsA.addr
                                         + "] ; alocando valor em end. de expArgsA para registrador\n");
                             } else {
-                                writer.write("\tmov rax, [M+" + expArgsA.addr
+                                writer.write("\tmov eax, [M+" + expArgsA.addr
                                         + "] ; alocando valor em end. de expArgsA para registrador\n");
-                                writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                                writer.write("\tcvtsi2ss xmm0, eax ; int64 para float\n");
                             }
 
                             if (expArgsB2.type == "Float") {
@@ -2057,9 +2072,9 @@ public class Compilador {
                                         + "] ; alocando valor em end. de expArgsB2 para registrador\n");
 
                             } else {
-                                writer.write("\tmov rbx, [M+" + expArgsB2.addr
+                                writer.write("\tmov ebx, [M+" + expArgsB2.addr
                                         + "] ; alocando valor em end. de expArgsB2 para registrador\n");
-                                writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
+                                writer.write("\tcvtsi2ss xmm1, ebx ; int64 para float\n");
                             }
 
                             writer.write("\tcomiss xmm0, xmm1 ; comparando xmm0 com xmm1\n");
@@ -2189,7 +2204,7 @@ public class Compilador {
                             writer.write("\tmov [M+" + expArgsB.addr
                                     + "], eax ; alocando valor negado em end. de expArgsB\n");
                         } else {
-                            writer.write("\tmov xmm0, [M+" + expArgsC1.addr
+                            writer.write("\tmovss xmm0, [M+" + expArgsC1.addr
                                     + "] ; alocando valor em end. de expArgsC1 a registrador\n");
                             writer.write("\tmov rbx, -1 ; alocando -1 em rbx\n");
                             writer.write("\tcvtsi2ss xmm1, rbx ; -1 (int64) para float\n");
@@ -2237,9 +2252,8 @@ public class Compilador {
                             throwIdentifierError("incompatible_types");
                             return;
                         } else if (expArgsC1.type == "Float" || expArgsC2.type == "Float") {
-                            expArgsB.type = "Float";
 
-                            if (expArgsC1.type == "Float") {
+                            if (expArgsB.type == "Float") {
                                 try {
                                     writer.write("\tmovss xmm0, [M+" + expArgsB.addr
                                             + "] ; alocando valor em end. de expArgsB a registrador\n");
@@ -2248,9 +2262,9 @@ public class Compilador {
                                 }
                             } else {
                                 try {
-                                    writer.write("\tmov rax, [M+" + expArgsB.addr
+                                    writer.write("\tmov eax, [M+" + expArgsB.addr
                                             + "] ; alocando valor em end. de expArgsB a registrador\n");
-                                    writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                                    writer.write("\tcvtsi2ss xmm0, eax ; int32 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -2265,9 +2279,9 @@ public class Compilador {
                                 }
                             } else {
                                 try {
-                                    writer.write("\tmov rbx, [M+" + expArgsC2.addr
+                                    writer.write("\tmov ebx, [M+" + expArgsC2.addr
                                             + "] ; alocando valor em end. de expArgsC2 a registrador\n");
-                                    writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
+                                    writer.write("\tcvtsi2ss xmm1, ebx ; int32 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -2282,6 +2296,9 @@ public class Compilador {
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+
+                            expArgsB.type = "Float";
+
                         } else {
                             expArgsB.type = "Integer";
 
@@ -2307,9 +2324,8 @@ public class Compilador {
                             throwIdentifierError("incompatible_types");
                             return;
                         } else if (expArgsC1.type == "Float" || expArgsC2.type == "Float") {
-                            expArgsB.type = "Float";
 
-                            if (expArgsC1.type == "Float") {
+                            if (expArgsB.type == "Float") {
                                 try {
                                     writer.write("\tmovss xmm0, [M+" + expArgsB.addr
                                             + "] ; alocando valor em end. de expArgsB a registrador\n");
@@ -2318,9 +2334,9 @@ public class Compilador {
                                 }
                             } else {
                                 try {
-                                    writer.write("\tmov rax, [M+" + expArgsB.addr
+                                    writer.write("\tmov eax, [M+" + expArgsB.addr
                                             + "] ; alocando valor em end. de expArgsB a registrador\n");
-                                    writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                                    writer.write("\tcvtsi2ss xmm0, eax ; int32 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -2333,11 +2349,13 @@ public class Compilador {
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
+
+                            expArgsB.type = "Float";
                             } else {
                                 try {
-                                    writer.write("\tmov rbx, [M+" + expArgsC2.addr
+                                    writer.write("\tmov ebx, [M+" + expArgsC2.addr
                                             + "] ; alocando valor em end. de expArgsC2 a registrador\n");
-                                    writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
+                                    writer.write("\tcvtsi2ss xmm1, ebx ; int32 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -2453,10 +2471,8 @@ public class Compilador {
                                         && (expArgsD2.type != "Integer" && expArgsD2.type != "Float"))) {
                             throwIdentifierError("incompatible_types");
                             return;
-                        } else if (expArgsD1.type == "Float" || expArgsD2.type == "Float") {
-                            expArgsC.type = "Float";
-
-                            if (expArgsD1.type == "Float") {
+                        } else if (expArgsC.type == "Float" || expArgsD2.type == "Float") {
+                            if (expArgsC.type == "Float") {
                                 try {
                                     writer.write("\tmovss xmm0, [M+" + expArgsC.addr
                                             + "] ; alocando valor em end. de expArgsC a registrador\n");
@@ -2465,9 +2481,9 @@ public class Compilador {
                                 }
                             } else {
                                 try {
-                                    writer.write("\tmov rax, [M+" + expArgsC.addr
+                                    writer.write("\tmov eax, [M+" + expArgsC.addr
                                             + "] ; alocando valor em end. de expArgsC a registrador\n");
-                                    writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                                    writer.write("\tcvtsi2ss xmm0, eax ; int32 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -2482,9 +2498,9 @@ public class Compilador {
                                 }
                             } else {
                                 try {
-                                    writer.write("\tmov rbx, [M+" + expArgsD2.addr
+                                    writer.write("\tmov ebx, [M+" + expArgsD2.addr
                                             + "] ; alocando valor em end. de expArgsD2 a registrador\n");
-                                    writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
+                                    writer.write("\tcvtsi2ss xmm1, ebx ; int32 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -2499,6 +2515,8 @@ public class Compilador {
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+
+                            expArgsC.type = "Float";
 
                         } else {
                             expArgsC.type = "Integer";
@@ -2525,9 +2543,8 @@ public class Compilador {
                             throwIdentifierError("incompatible_types");
                             return;
                         } else {
-                            expArgsC.type = "Float";
 
-                            if (expArgsD1.type == "Float") {
+                            if (expArgsC.type == "Float") {
                                 try {
                                     writer.write("\tmovss xmm0, [M+" + expArgsC.addr
                                             + "] ; alocando valor em end. de expArgsC a registrador\n");
@@ -2536,9 +2553,9 @@ public class Compilador {
                                 }
                             } else {
                                 try {
-                                    writer.write("\tmov rax, [M+" + expArgsC.addr
+                                    writer.write("\tmov eax, [M+" + expArgsC.addr
                                             + "] ; alocando valor em end. de expArgsC a registrador\n");
-                                    writer.write("\tcvtsi2ss xmm0, rax ; int64 para float\n");
+                                    writer.write("\tcvtsi2ss xmm0, eax ; int64 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -2553,13 +2570,15 @@ public class Compilador {
                                 }
                             } else {
                                 try {
-                                    writer.write("\tmov rbx, [M+" + expArgsD2.addr
+                                    writer.write("\tmov ebx, [M+" + expArgsD2.addr
                                             + "] ; alocando valor em end. de expArgsD2 a registrador\n");
-                                    writer.write("\tcvtsi2ss xmm1, rbx ; int64 para float\n");
+                                    writer.write("\tcvtsi2ss xmm1, ebx ; int64 para float\n");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                             }
+
+                            expArgsC.type = "Float";
 
                             try {
                                 writer.write("\tdivss xmm0, xmm1 ; xmm0 / xmm1\n");
@@ -2582,6 +2601,7 @@ public class Compilador {
                                     + "] ; alocando valor em end. de expArgsC a registrador\n");
                             writer.write("\tmov ebx, [M+" + expArgsD2.addr
                                     + "] ; alocando valor em end. de expArgsD2 a registrador \n");
+                            writer.write("\tcdq ; limpa o rdx \n");
                             writer.write("\tidiv ebx ; eax div ebx eax: " + expArgsC.addr + " ebx: " + expArgsD2.addr
                                     + "\n");
                             expArgsC.addr = tempCounter;
@@ -2836,13 +2856,14 @@ public class Compilador {
                         updateTempCounter(expArgsF.type, 0);
 
                         try {
-                            writer.write("\tmov rax, [M+" + expArgsA2.addr
+                            writer.write("\tmov rax, 0 ; zerando rax\n");
+                            writer.write("\tmov eax, [M+" + expArgsA2.addr
                                     + "] ; alocando valor em end. de expArgsA2 a registrador (indice)\n");
                             writer.write(
                                     "\tadd rax, M+" + currentSymbol.addr + " ; indice + posicao inicial do string\n");
-                            writer.write("\tmov rbx, [rax] ; alocando valor em rax a registrador ebx\n");
+                            writer.write("\tmov ebx, [rax] ; alocando valor em rax a registrador ebx\n");
                             writer.write("\tmov [M+" + expArgsF.addr
-                                    + "], rbx ; alocando conteudo de rbx em end. de expArgsF\n");
+                                    + "], ebx ; alocando conteudo de ebx em end. de expArgsF\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -2936,7 +2957,7 @@ public class Compilador {
             symbolTable.put(reservedWords[i], symbol);
         }
 
-        //BufferedReader br = new BufferedReader(new FileReader("io/testeclasse.in"));
+        //BufferedReader br = new BufferedReader(new FileReader("tests/testread.in"));
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         fileStr = readAllCharsOneByOne(br);

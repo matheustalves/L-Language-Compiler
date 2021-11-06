@@ -4,7 +4,7 @@ int n<-1;
 string nome;
 const MAXITER=10;
 
-nome<-"bernardo";
+readln(nome);
 
 float percentual;
 while n<=MAXITER {
