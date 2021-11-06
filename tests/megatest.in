@@ -1,0 +1,234 @@
+writeln("--- MEGA TESTE ---");
+writeln("---------\\----------");
+
+string head<-"----";
+
+writeln("---------\\----------");
+writeln("Testes de operacoes negativas:");
+writeln("---------\\----------");
+
+int a_opneg<--20;
+int b_opneg<--10;
+float c_opneg<--50.0;
+int d_opneg<--50;
+float e_opneg<--20.0;
+float f_opneg<-100;
+float h_opneg<-0.5;
+
+write("2*(-1) = "); 
+writeln(2*(-1));
+
+write("2 div (-1) = "); 
+writeln(2 div (-1));
+
+write("-50.0-(-20) = ",c_opneg, " - ", a_opneg, " = ");
+writeln(c_opneg-a_opneg);
+
+write("-50.0 > -20?"); 
+if(c_opneg>a_opneg) writeln(" True");
+else writeln(" False");
+
+write("-20 > -50?"); 
+if(a_opneg>d_opneg) writeln(" True");
+else writeln(" False");
+
+write("-50.0 > -20.0?"); 
+if(c_opneg>e_opneg) writeln(" True");
+else writeln(" False");
+
+write("-50.0 - (-20) = "); 
+writeln(c_opneg-a_opneg);
+
+write("-50.0 + (-20) = "); 
+writeln(c_opneg+a_opneg);
+
+write("-50.0 - (-20.0) = "); 
+writeln(c_opneg-e_opneg);
+
+write("-50.0 + (-20.0) = "); 
+writeln(c_opneg+e_opneg);
+
+write("-50 - (-20) = "); 
+writeln(d_opneg-a_opneg);
+
+write("-50 + (-20) = "); 
+writeln(d_opneg+a_opneg);
+
+write("100.0+(-50.0) = "); 
+writeln(f_opneg+c_opneg);
+
+write("100.0-(-50.0) = "); 
+writeln(f_opneg-c_opneg);
+
+write("-50.0+100.0 = ");
+writeln(c_opneg+f_opneg);
+
+write("100.0 - 0.5 = ");
+writeln(f_opneg-h_opneg);
+
+write("-20 div -10 = ");
+writeln(a_opneg div b_opneg);
+
+write("-20 div -10 * -50.0 * 4 = ");
+writeln(a_opneg div b_opneg*c_opneg*4);
+
+write("(-20 div -10 * -50.0 * 4)/(2*-1) = ");
+writeln((a_opneg div b_opneg*c_opneg*4)/(2*(-1)));
+
+writeln("---------\\----------");
+writeln("Outros testes de operacao:");
+writeln("---------\\----------");
+writeln("2+3+4.5 = ", (2+3+4.5));
+writeln("2.0+3+4.5 = ", (2.0+3+4.5));
+writeln("2/4 = ", (2/4));
+writeln("2*4 = ", (2*4));
+writeln("2.0*4 = ", (2.0*4));
+writeln("-50.0/(-25.0) = ", -50.0/(-25.0));
+writeln("(-50+50.2544-4.0/(2) * (-1)) = ", (-50+50.2544-4.0/(2))/(-1));
+
+writeln("---------\\----------");
+writeln("Testes de atribuicoes de string:");
+writeln("---------\\----------");
+
+string a_stratrb<-"matheus";
+string b_stratrb<-"bernardo";
+string c_stratrb<-"menor";
+
+writeln(head);
+a_stratrb<-b_stratrb;
+write("matheus<-bernardo = ");
+writeln(a_stratrb);
+
+writeln(head);
+a_stratrb<-c_stratrb;
+write("matheus<-menor = ");
+writeln(a_stratrb);
+
+writeln(head);
+c_stratrb<-"d";
+write("menor<-d(str) = ");
+writeln(c_stratrb);
+
+writeln(head);
+write("menor[0] = d?");
+if (c_stratrb[0]='d') writeln(" True.");
+else writeln(" False.");
+
+writeln(head);
+write("ber{n}ardo<-'m' = ");
+b_stratrb[3]<-'m';
+writeln(b_stratrb);
+
+char a_atrb<-'a';
+string b_atrb<-"vitamina";
+string c_atrb<-"ccccccc";
+string d_atrb<-"omega";
+char e_atrb<-'b';
+float f_atrb<-2.0;
+int h_atrb<-2;
+char i_atrb<-'2';
+
+writeln(head);
+writeln("'a' > 'b'?");
+if(a_atrb>e_atrb) writeln("True.");
+else writeln("False.");
+
+writeln(head);
+writeln("a = omeg{a}?");
+if(a_atrb=d_atrb[4]) writeln("True.");
+else writeln("False.");
+
+writeln(head);
+write("vi{t}amina<-'a' = " );
+b_atrb[2]<-a_atrb;
+writeln(b_atrb);
+
+writeln(head);
+d_atrb<-"testeatrib";
+write("d_atrb<-testeatrib = ");
+writeln(d_atrb);
+
+writeln("---------\\----------");
+writeln("Testes de comparacao de strings.");
+writeln("---------\\----------");
+string a_compstr<-"banana";
+string b_compstr<-"banana";
+string c_compstr<-"banan";
+string d_compstr<-"0000";
+string e_compstr<-"0000a";
+string f_compstr<-"0000";
+string g_compstr<-"BANANA";
+string h_compstr<-"ab0ef";
+string j_compstr<-"ab0ef";
+
+writeln("renato = renatod");
+if("renato"="renatod") writeln("Strings iguais");
+else writeln("Strings diferentes.");
+
+writeln(head);
+writeln("banana = banan");
+if(a_compstr=c_compstr) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("banana = banana");
+if(a_compstr=b_compstr) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("banan = banana");
+if(c_compstr=b_compstr) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("banana = banana - ordem inversa");
+if(b_compstr=a_compstr) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("0000 = 0000");
+if(d_compstr=f_compstr) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("0000 = 0000a");
+if(d_compstr=e_compstr) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("BANANA = banana");
+if(a_compstr=g_compstr) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln(head);
+writeln("ab0ef = ab0ef");
+if(h_compstr=j_compstr) writeln("Strings iguais.");
+else writeln("Strings diferentes");
+
+writeln("---------\\----------");
+writeln("Entrada do Alexei:");
+writeln("---------\\----------");
+
+int n_pub<-1;
+string nome;
+const MAXITER=10;
+
+writeln("Digite seu nome: ");
+readln(nome);
+
+float percentual;
+while n_pub<=MAXITER {
+  percentual<-float(n_pub)/MAXITER;
+  writeln(float(n_pub),": Ola' ",nome);
+  n_pub<-n_pub+1;
+}
+
+
+writeln("---------\\----------");
+writeln("Conversao maldita:");
+writeln("---------\\----------");
+
+
+float a;
+a <- int(float(float(int(int(float(int(2.5)))))));
+writeln("a <- int(float(float(int(int(float(int(2.5))))))) = ", a);

@@ -1,14 +1,15 @@
 /* Exemplo de Programa na linguagem L */
 
-int n<-1;
+int n_pub<-1;
 string nome;
 const MAXITER=10;
 
+writeln("Digite seu nome: ");
 readln(nome);
 
 float percentual;
-while n<=MAXITER {
-  percentual<-n/MAXITER;
-  writeln(float(n),": Ola' ",nome);
-  n<-n+1;
+while n_pub<=MAXITER {
+  percentual<-float(n_pub)/MAXITER;
+  writeln(float(n_pub),": Ola' ",nome);
+  n_pub<-n_pub+1;
 }

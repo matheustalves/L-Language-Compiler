@@ -3,7 +3,7 @@ START-> 	{DECL_A | COMANDO} eof
 DECL_A-> 	(int | float | string | char) (45) DECL_B1 {, (46) DECL_B2} ;	|
 			const id (38) = [- (31)] valor (39) (40) (41);
 
-DECL_B-> 		id (38) [<- [- (31)] valor (39) (42) ] (43)
+DECL_B-> 	id (38) [<- [- (31)] valor (39) (42) ] (43)
 
 COMANDO->	id (2) (14) ["[" (15) EXP_A1 (44) "]"] <- EXP_A2 (16);		  |
 			while EXP_A3 (17) TIPO_CMD				        |
@@ -13,7 +13,7 @@ COMANDO->	id (2) (14) ["[" (15) EXP_A1 (44) "]"] <- EXP_A2 (16);		  |
 			;
 
 TIPO_CMD->	COMANDO | "{" {COMANDO} "}"
-LISTA_EXP->	EXP_A1 (a1) {, EXP_A2 (a2)}
+LISTA_EXP->	EXP_A1 (48) {, EXP_A2 (49)}
 
 // OPERATOR removido. Foi para EXP_A
 
@@ -81,12 +81,12 @@ XXX (43): {id.simbolo.tipo := DECL_B.tipo}
 XXX (44): {if (EXP_A1.tipo != integer | id.simbolo.tipo != string) then ERRO}
 XXX (45): {DECL_B1.tipo := prev_tipo}
 XXX (46): {DECL_B2.tipo := prev_tipo}
-(47): {if id.simbolo.classe != "var" then ERRO}
+XXX (47): {if id.simbolo.classe != "var" then ERRO}
 
 Regras fora de ordem:
 
-(a1): {if EXP_A1.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
-(a2): {if EXP_A2.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
+XXX (48): {if EXP_A1.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
+XXX (49): {if EXP_A2.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
  
 
 // Duvidas:

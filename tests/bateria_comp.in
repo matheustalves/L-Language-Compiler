@@ -1,71 +1,73 @@
 writeln("Testes de comparacoes:");
 writeln("---------\\----------");
 
-int a<-10;
-int b<--15;
-float c<-10;
-float d<--25;
-float e<-10.1;
-string g<-"banana";
-string h<-"banana";
-string j<-"cmpldrs";
+int a_comp<-10;
+int b_comp<--15;
+float c_comp<-10;
+float d_comp<--25;
+float e_comp<-10.1;
+string g_comp<-"banana";
+string h_comp<-"banana";
+string j_comp<-"cmpldrs";
 string head<-"----";
 
 writeln("10 = -15?");
-if(a=b) writeln("True.");
+if(a_comp=b_comp) writeln("True.");
 else writeln("False.");
 
 writeln(head);
 writeln("10 > -15?");
-if(a>b) writeln("True.");
+if(a_comp>b_comp) writeln("True.");
 else writeln("False.");
 
 writeln(head);
 writeln("10 < -15?");
-if(a<b) writeln("True.");
+if(a_comp<b_comp) writeln("True.");
 else writeln("False.");
 
 writeln(head);
 writeln("10.1 > 10?");
-if(e>a) writeln("True.");
+if(e_comp>a_comp) writeln("True.");
 else writeln("False.");
 
-/*
 writeln(head);
 writeln("(10.1 > 10?) & (10 = 10)?");
-if((e>a)&&(c=a)) writeln("True.");
+if((e_comp>a_comp)&&(c_comp=a_comp)) writeln("True.");
 else writeln("False.");
-*/
 
 writeln(head);
 writeln("-25 < -15?");
-if(d<e) writeln("True.");
+if(d_comp<e_comp) writeln("True.");
 else writeln("False.");
 
 writeln(head);
 writeln("(-25 > -15)?");
-if(d>e) writeln("True.");
+if(d_comp>e_comp) writeln("True.");
 else writeln("False.");
 
 writeln(head);
 writeln("!(-25 > -15)?");
-if(!(d>e)) writeln("True.");
+if(!(d_comp>e_comp)) writeln("True.");
 else writeln("False.");
 
 writeln(head);
 writeln("!((-25 > -15)||(banana=banana))?");
-if(!((d>e)||(g=h))) writeln("True.");
+if(!((d_comp>e_comp)||(g_comp=h_comp))) writeln("True.");
 else writeln("False.");
 
-/*
 writeln(head);
 writeln("((banana=banana)&&(10.1>10))?");
-if(((g=h)&&(e>a))) writeln("True.");
+if(((g_comp=h_comp)&&(e_comp>a_comp))) writeln("True.");
 else writeln("False.");
 
 writeln(head);
 writeln("((banana=banana)&&(10.1>10))&&(cmpldrs==banana)?");
-if(((g=h)&&(e>a))&&(j=h)) writeln("True.");
-else writeln("False.");*/
+if(((g_comp=h_comp)&&(e_comp>a_comp))&&(j_comp=h_comp)) writeln("True.");
+else writeln("False.");
+
+writeln(head);
+writeln("!!((banana=banana)&&(10.1>10))&&!(cmpldrs==banana)?");
+if(!!((g_comp=h_comp)&&(e_comp>a_comp))&&!(j_comp=h_comp)) writeln("True.");
+else writeln("False.");
 
 

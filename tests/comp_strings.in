@@ -1,15 +1,15 @@
 
 writeln("Testes de comparacao de strings.");
 writeln("---------\\----------");
-string a<-"banana";
-string b<-"banana";
-string c<-"banan";
-string d<-"0000";
-string e<-"0000a";
-string f<-"0000";
-string g<-"BANANA";
-string h<-"ab0ef";
-string j<-"ab0ef";
+string a_compstr<-"banana";
+string b_compstr<-"banana";
+string c_compstr<-"banan";
+string d_compstr<-"0000";
+string e_compstr<-"0000a";
+string f_compstr<-"0000";
+string g_compstr<-"BANANA";
+string h_compstr<-"ab0ef";
+string j_compstr<-"ab0ef";
 string head<-"----";
 
 writeln("renato = renatod");
@@ -18,42 +18,42 @@ else writeln("Strings diferentes.");
 
 writeln(head);
 writeln("banana = banan");
-if(a=c) writeln("Strings iguais.");
+if(a_compstr=c_compstr) writeln("Strings iguais.");
 else writeln("Strings diferentes");
 
 writeln(head);
 writeln("banana = banana");
-if(a=b) writeln("Strings iguais.");
+if(a_compstr=b_compstr) writeln("Strings iguais.");
 else writeln("Strings diferentes");
 
 writeln(head);
 writeln("banan = banana");
-if(c=b) writeln("Strings iguais.");
+if(c_compstr=b_compstr) writeln("Strings iguais.");
 else writeln("Strings diferentes");
 
 writeln(head);
 writeln("banana = banana - ordem inversa");
-if(b=a) writeln("Strings iguais.");
+if(b_compstr=a_compstr) writeln("Strings iguais.");
 else writeln("Strings diferentes");
 
 writeln(head);
 writeln("0000 = 0000");
-if(d=f) writeln("Strings iguais.");
+if(d_compstr=f_compstr) writeln("Strings iguais.");
 else writeln("Strings diferentes");
 
 writeln(head);
 writeln("0000 = 0000a");
-if(d=e) writeln("Strings iguais.");
+if(d_compstr=e_compstr) writeln("Strings iguais.");
 else writeln("Strings diferentes");
 
 writeln(head);
 writeln("BANANA = banana");
-if(a=g) writeln("Strings iguais.");
+if(a_compstr=g_compstr) writeln("Strings iguais.");
 else writeln("Strings diferentes");
 
 writeln(head);
 writeln("ab0ef = ab0ef");
-if(h=j) writeln("Strings iguais.");
+if(h_compstr=j_compstr) writeln("Strings iguais.");
 else writeln("Strings diferentes");
 
 

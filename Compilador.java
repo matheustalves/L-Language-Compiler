@@ -973,6 +973,18 @@ public class Compilador {
                 writer.write("\tmovss xmm0, [M+" + sourceAddr + "] ; alocando float em registrador\n");
                 writer.write("\tmovss [" + destAddr + "], xmm0 ; adicionando valor a endereco do id\n");
             } else if (type == "String") {
+                String rotLoopStr = "Rot" + setRot();
+                writer.write("\tmov rsi, " + destAddr + " ; passa o endereco da string A pra rax\n");
+                writer.write(
+                        "\tmov rdi, M+" + sourceAddr + " ; passa o endereco da string B pra rbx\n");
+                writer.write(rotLoopStr + ": ; string loop \n");
+                writer.write("\tmov al, [rdi] ; pega o caractere na posicao rdi+i da string B\n");
+                writer.write("\tmov [rsi], al ; coloca o char na string A\n");
+                writer.write("\tadd rsi, 1 ; incrementa o contador\n");
+                writer.write("\tadd rdi, 1 ; incrementa o contador\n");
+                writer.write("\tcmp al, 0 ; fim da strB?\n");
+                writer.write("\tjne "+ rotLoopStr +"; se nao, continua loop\n");
+                writer.write("\t; se sim, fim da atribuicao de strB a strA. \n");              
 
             }
         }
@@ -1942,6 +1954,10 @@ public class Compilador {
                 tempCounter = 0;
                 EXP_args expArgsA1 = new EXP_args();
                 EXP_A(expArgsA1);
+                if (expArgsA1.type == "Boolean") {
+                    throwIdentifierError("incompatible_types");
+                    return;
+                }
                 if (pauseCompiling)
                     return;
 
@@ -1955,6 +1971,10 @@ public class Compilador {
                     tempCounter = 0;
                     EXP_args expArgsA2 = new EXP_args();
                     EXP_A(expArgsA2);
+                    if (expArgsA2.type == "Boolean") {
+                        throwIdentifierError("incompatible_types");
+                        return;
+                    }
                     if (pauseCompiling)
                         return;
 
@@ -2999,7 +3019,7 @@ public class Compilador {
             symbolTable.put(reservedWords[i], symbol);
         }
 
-        //BufferedReader br = new BufferedReader(new FileReader("tests/testread.in"));
+        //BufferedReader br = new BufferedReader(new FileReader("tests/simple_f.in"));
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         fileStr = readAllCharsOneByOne(br);

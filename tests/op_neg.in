@@ -1,17 +1,13 @@
-int a<--20;
-a<--20;
-int b<--10;
-b<--10;
-float c<--50.0;
-c<--50.0;
-int d<--50;
-d<--50;
-float e<--20.0;
-e<--20.0;
-float f<-100.0;
-f<-100.0;
-float h<-0.5;
-h<-0.5;
+writeln("Testes de operacoes negativas:");
+writeln("---------\\----------");
+
+int a_opneg<--20;
+int b_opneg<--10;
+float c_opneg<--50.0;
+int d_opneg<--50;
+float e_opneg<--20.0;
+float f_opneg<-100;
+float h_opneg<-0.5;
 
 write("2*(-1) = "); 
 writeln(2*(-1));
@@ -19,50 +15,56 @@ writeln(2*(-1));
 write("2 div (-1) = "); 
 writeln(2 div (-1));
 
-write("-50.0-(-20) = ",c, " - ", a, " = ");
-writeln(c-a);
+write("-50.0-(-20) = ",c_opneg, " - ", a_opneg, " = ");
+writeln(c_opneg-a_opneg);
 
 write("-50.0 > -20?"); 
-if(c>a) writeln(" True");
+if(c_opneg>a_opneg) writeln(" True");
 else writeln(" False");
 
 write("-20 > -50?"); 
-if(a>d) writeln(" True");
+if(a_opneg>d_opneg) writeln(" True");
 else writeln(" False");
 
 write("-50.0 > -20.0?"); 
-if(c>e) writeln(" True");
+if(c_opneg>e_opneg) writeln(" True");
 else writeln(" False");
 
 write("-50.0 - (-20) = "); 
-writeln(c-a);
+writeln(c_opneg-a_opneg);
 
 write("-50.0 + (-20) = "); 
-writeln(c+a);
+writeln(c_opneg+a_opneg);
 
 write("-50.0 - (-20.0) = "); 
-writeln(c-e);
+writeln(c_opneg-e_opneg);
 
 write("-50.0 + (-20.0) = "); 
-writeln(c+e);
+writeln(c_opneg+e_opneg);
 
 write("-50 - (-20) = "); 
-writeln(d-a);
+writeln(d_opneg-a_opneg);
 
 write("-50 + (-20) = "); 
-writeln(d+a);
+writeln(d_opneg+a_opneg);
 
 write("100.0+(-50.0) = "); 
-writeln(f+c);
+writeln(f_opneg+c_opneg);
 
 write("100.0-(-50.0) = "); 
-writeln(f-c);
+writeln(f_opneg-c_opneg);
 
 write("-50.0+100.0 = ");
-writeln(c+f);
+writeln(c_opneg+f_opneg);
 
 write("100.0 - 0.5 = ");
-writeln(f-h);
+writeln(f_opneg-h_opneg);
 
 write("-20 div -10 = ");
-writeln(a div b);
+writeln(a_opneg div b_opneg);
+
+write("-20 div -10 * -50.0 * 4 = ");
+writeln(a_opneg div b_opneg*c_opneg*4);
+
+write("(-20 div -10 * -50.0 * 4)/(2*-1) = ");
+writeln((a_opneg div b_opneg*c_opneg*4)/(2*(-1)));

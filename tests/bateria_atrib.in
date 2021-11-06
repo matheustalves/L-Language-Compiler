@@ -1,0 +1,35 @@
+writeln("Testes de atribuicoes e tipos:");
+writeln("---------\\----------");
+
+
+
+char a<-'a';
+string b<-"vitamina";
+string c<-"ccccccc";
+string d<-"omega";
+char e<-'b';
+float f<-2.0;
+int h<-2;
+char i<-'2';
+string head<-"----";
+
+writeln("a > b?");
+if(a>e) writeln("True.");
+else writeln("False.");
+
+writeln(head);
+writeln("a = omeg{a}?");
+if(a=d[4]) writeln("True.");
+else writeln("False.");
+
+writeln(head);
+write("vi{t}amina<-'a' = " );
+b[2]<-a;
+writeln(b);
+
+writeln(head);
+d<-"testeatrib";
+write("d<-testeatrib");
+writeln(d);
+
+

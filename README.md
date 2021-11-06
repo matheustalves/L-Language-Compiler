@@ -5,13 +5,19 @@
 ## TODO
 
 Features:
-- [ ] Atribuição de Strings (char por char)
-- [ ] Implementar regra semântica a1 e a2, não pode imprimir Boolean (confirmarei com Alexei)
+🎉FEATURE COMPLETE🎉
+
+Documentação:
+- [ ] Escrever o ET de codegen
+
+Melhorias:
+- [ ] Remover os ifs desnecessários, deixando pro checkToken consumir o token e reportar o erro
+- [ ] Otimização peephole
 
 Bugs:
-SEM BUGS POR ENQUANTO
+🎉SEM BUGS (POR ENQUANTO)🎉
 
-## ☕ Rodando o compilador.
+## 💻 Rodando o compilador.
 
 Com um arquivo .in, digite no terminal:
 
