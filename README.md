@@ -15,7 +15,7 @@ Melhorias:
 - [ ] Otimização peephole
 
 Bugs:
-🎉SEM BUGS (POR ENQUANTO)🎉
+- [ ] Retorno estranho no write de loop_str.
 
 ## 💻 Rodando o compilador.
 

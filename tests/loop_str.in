@@ -1,0 +1,24 @@
+const LOOP = 15;
+const word = "compiladores";
+int n<-0;
+
+while(n<=LOOP){
+    writeln(word[n]);
+    n<-n+1;
+}
+
+string str;
+writeln("Digite uma palavra: ");
+readln(str);
+
+n<-0;
+
+if(str[1]='a') writeln("Bugado");
+
+writeln("Vogais:");
+while(n<=LOOP){
+    if((str[n]='a')/*||(str[n]='e')||(str[n]='i')||(str[n]='o')||(str[n]='u')*/){
+        writeln(str[n], ", ");
+    }
+    n<-n+1;
+}

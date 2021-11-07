@@ -1,0 +1,13 @@
+int a_md<-2;
+int b_md<-4;
+int c_md<-7;
+int d_md<--10;
+
+d_md<--10 mod (-4);
+/*write("-10 mod -4 = ");
+writeln(d_md);*/
+
+c_md<-7 mod 2;
+/*write("7 mod 2 = ");
+if(c_md=0) writeln(c_md, " Par.");
+else writeln(c_md, " Impar");*/

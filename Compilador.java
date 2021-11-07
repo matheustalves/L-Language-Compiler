@@ -2682,6 +2682,7 @@ public class Compilador {
                                     + "] ; alocando valor em end. de expArgsC a registrador\n");
                             writer.write("\tmov ebx, [M+" + expArgsD2.addr
                                     + "] ; alocando valor em end. de expArgsD2 a registrador\n");
+                            writer.write("\tcdq ; limpa o rbx\n");
                             writer.write("\tidiv ebx ; eax divisao ebx\n");
                             expArgsC.addr = tempCounter;
                             updateTempCounter(expArgsC.type, 0);

@@ -1,0 +1,42 @@
+/*writeln("Testes de mod:");
+writeln("---------\\----------");*/
+
+int a_md<-2;
+int b_md<-4;
+int c_md<-7;
+int d_md<--10;
+
+a_md<-2 mod 2;
+write("2 mod 2 = ");
+if(a_md=0) writeln(a_md, ", Par.");
+else writeln(" Impar");
+
+d_md<-d_md mod b_md;
+write("-10 mod 4 = ");
+writeln(d_md);
+
+d_md<-10 mod (-4);
+write("10 mod -4 = ");
+writeln(d_md);
+
+d_md<--10 mod (-4);
+write("-10 mod -4 = ");
+writeln(d_md);
+
+c_md<-7 mod 2;
+write("7 mod 2 = ");
+if(c_md=0) writeln(c_md, " Par.");
+else writeln(c_md, " Impar");
+
+int n_wh<-0;
+int m_wh<-100;
+
+writeln("Imprimindo todos os pares de 0 a 100:");
+while(m_wh>n_wh){
+    if((n_wh mod 2)=0) write(n_wh, ", ");
+    n_wh<-n_wh+1;
+}
+
+
+
+
