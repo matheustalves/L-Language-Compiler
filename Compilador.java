@@ -1132,7 +1132,7 @@ public class Compilador {
                     convertIntegerToString(expArgs);
                 } else if (expArgs.type == "Float") {
                     convertFloatToString(expArgs);
-                } else if (expArgs.type == "String" || expArgs.type == "Char") {
+                } else if (expArgs.type == "String")  {
                     writer.write("\tmov rsi, M+" + (expArgs.addr) + " ; registrador recebe endereco da string\n");
                     writer.write("\tmov rdx, rsi ; rdx = rsi\n");
                     writer.write("Rot" + rot + ": \n");
@@ -1141,6 +1141,9 @@ public class Compilador {
                     writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
                     writer.write("\tjne Rot" + rot + "\n");
                     writer.write("\tsub rdx, M+ " + (expArgs.addr) + " ; removendo offset (byte 0) do endereco\n");
+                } else if (expArgs.type == "Char"){
+                    writer.write("\tmov rsi, M+" + (expArgs.addr) + " ; registrador recebe endereco da string\n");
+                    writer.write("\tmov rdx, 1 ; tamanho 1 pra char\n");
                 }
 
                 writer.write("\tmov rax, 1 ; chamada para saida\n");
@@ -1753,7 +1756,7 @@ public class Compilador {
                             return;
 
                         writer.write("\tjmp " + rotBegin + " ; desvia para RotInicio\n");
-                        writer.write("\t" + rotEnd + ": ; RotFim\n");
+                        writer.write(rotEnd + ": ; RotFim\n");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -1796,7 +1799,7 @@ public class Compilador {
 
                         try {
                             writer.write("\tjmp " + rotEnd + " ; desvio para RotFim\n");
-                            writer.write("\t" + rotFalse + ": ; RotFalso\n");
+                            writer.write(rotFalse + ": ; RotFalso\n");
 
                             CMD_TYPE();
                             if (pauseCompiling)
@@ -1809,7 +1812,7 @@ public class Compilador {
 
                     } else {
                         try {
-                            writer.write(rotFalse + ": ; RotFalso\n");
+                            writer.write(rotFalse + ": ; RotFalso else\n");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

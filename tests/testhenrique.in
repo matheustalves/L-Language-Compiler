@@ -1,0 +1,6 @@
+string a <- "Teste";
+if(a="Teste"){
+        a <- "teste";
+}
+
+writeln(a);

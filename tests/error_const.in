@@ -1,0 +1,2 @@
+const MAX = 10;
+int a <- MAX;

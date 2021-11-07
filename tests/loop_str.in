@@ -1,24 +1,39 @@
+writeln("While tests:");
+writeln("---------\\----------");
+
 const LOOP = 15;
 const word = "compiladores";
 int n<-0;
 
+writeln("Imprimir compiladores char por char:");
 while(n<=LOOP){
     writeln(word[n]);
     n<-n+1;
 }
 
 string str;
-writeln("Digite uma palavra: ");
+writeln("Digite uma palavra, ate 15 chars: ");
 readln(str);
 
 n<-0;
+const n2=1;
+int PASSADA<-0;
 
-if(str[1]='a') writeln("Bugado");
-
-writeln("Vogais:");
-while(n<=LOOP){
-    if((str[n]='a')/*||(str[n]='e')||(str[n]='i')||(str[n]='o')||(str[n]='u')*/){
-        writeln(str[n], ", ");
+while(PASSADA<=n2){
+    if (PASSADA=0){
+        writeln("Vogais:");
     }
-    n<-n+1;
+    else {
+        writeln("Consoantes: ");
+    }
+    while(n<=LOOP){
+        if(((str[n]='a')||(str[n]='e')||(str[n]='i')||(str[n]='o')||(str[n]='u'))){
+            if(PASSADA=0) writeln("V: ", str[n]);
+        } else{
+            if((PASSADA = 1)) writeln("C: ", str[n]);
+        }
+        n<-n+1;
+    }
+    PASSADA<-PASSADA+1;
+    n<-0;
 }

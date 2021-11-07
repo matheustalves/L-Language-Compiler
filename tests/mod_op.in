@@ -31,6 +31,7 @@ else writeln(c_md, " Impar");
 int n_wh<-0;
 int m_wh<-100;
 
+writeln(head);
 writeln("Imprimindo todos os pares de 0 a 100:");
 while(m_wh>n_wh){
     if((n_wh mod 2)=0) write(n_wh, ", ");

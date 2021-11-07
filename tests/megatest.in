@@ -206,6 +206,55 @@ if(h_compstr=j_compstr) writeln("Strings iguais.");
 else writeln("Strings diferentes");
 
 writeln("---------\\----------");
+writeln("Conversao maldita:");
+writeln("---------\\----------");
+
+
+float a;
+a <- int(float(float(int(int(float(int(2.5)))))));
+writeln("a <- int(float(float(int(int(float(int(2.5))))))) = ", a);
+
+/*writeln("Testes de mod:");
+writeln("---------\\----------");*/
+
+int a_md<-2;
+int b_md<-4;
+int c_md<-7;
+int d_md<--10;
+
+a_md<-2 mod 2;
+write("2 mod 2 = ");
+if(a_md=0) writeln(a_md, ", Par.");
+else writeln(" Impar");
+
+d_md<-d_md mod b_md;
+write("-10 mod 4 = ");
+writeln(d_md);
+
+d_md<-10 mod (-4);
+write("10 mod -4 = ");
+writeln(d_md);
+
+d_md<--10 mod (-4);
+write("-10 mod -4 = ");
+writeln(d_md);
+
+c_md<-7 mod 2;
+write("7 mod 2 = ");
+if(c_md=0) writeln(c_md, " Par.");
+else writeln(c_md, " Impar");
+
+int n_wh<-0;
+int m_wh<-100;
+
+writeln(head);
+writeln("Imprimindo todos os pares de 0 a 100:");
+while(m_wh>n_wh){
+    if((n_wh mod 2)=0) write(n_wh, ", ");
+    n_wh<-n_wh+1;
+}
+
+writeln("---------\\----------");
 writeln("Entrada do Alexei:");
 writeln("---------\\----------");
 
@@ -223,12 +272,46 @@ while n_pub<=MAXITER {
   n_pub<-n_pub+1;
 }
 
-
 writeln("---------\\----------");
-writeln("Conversao maldita:");
+writeln("While tests:");
 writeln("---------\\----------");
 
+const LOOP = 15;
+const word = "compiladores";
+int n<-0;
 
-float a;
-a <- int(float(float(int(int(float(int(2.5)))))));
-writeln("a <- int(float(float(int(int(float(int(2.5))))))) = ", a);
+writeln("Imprimir compiladores char por char:");
+while(n<=LOOP){
+    writeln(word[n]);
+    n<-n+1;
+}
+
+string str;
+writeln("Digite uma palavra, ate 15 chars: ");
+readln(str);
+
+n<-0;
+const n2=1;
+int PASSADA<-0;
+
+while(PASSADA<=n2){
+    if (PASSADA=0){
+        writeln("Vogais:");
+    }
+    else {
+        writeln("Consoantes: ");
+    }
+    while(n<=LOOP){
+        if(((str[n]='a')||(str[n]='e')||(str[n]='i')||(str[n]='o')||(str[n]='u'))){
+            if(PASSADA=0) writeln("V: ", str[n]);
+        } else{
+            if((PASSADA = 1)) writeln("C: ", str[n]);
+        }
+        n<-n+1;
+    }
+    PASSADA<-PASSADA+1;
+    n<-0;
+}
+
+
+

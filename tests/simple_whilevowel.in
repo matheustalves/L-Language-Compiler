@@ -1,0 +1,17 @@
+int n<-0;
+const LOOP = 15;
+string str<-"bernardo";
+char erro;
+
+writeln(str[4]);
+if((str[4]='a')){
+    writeln(str[4]);
+}
+/*
+while(n<=LOOP){
+    writeln(str[n], ", ");
+    if((str[n]='a')||(str[n]='e')||(str[n]='i')||(str[n]='o')||(str[n]='u')){
+        writeln(str[n], ", ");
+    }
+    n<-n+1;
+}*/

@@ -82,12 +82,6 @@ XXX (44): {if (EXP_A1.tipo != integer | id.simbolo.tipo != string) then ERRO}
 XXX (45): {DECL_B1.tipo := prev_tipo}
 XXX (46): {DECL_B2.tipo := prev_tipo}
 XXX (47): {if id.simbolo.classe != "var" then ERRO}
-
-Regras fora de ordem:
-
 XXX (48): {if EXP_A1.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
 XXX (49): {if EXP_A2.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
- 
 
-// Duvidas:
-1. Por que "*" e "||" são os únicos operadores em aspas?
