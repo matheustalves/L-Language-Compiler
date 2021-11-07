@@ -931,7 +931,8 @@ public class Compilador {
                     writer.write("\tdd " + value + " ; inteiro em M+" + posMem + "\n");
                     updatePosMem(symbol.type, 4);
                 } else if (symbol.type == "Float") {
-                    writer.write("\tdd " + value + " ; float em M+" + posMem + "\n");
+                    String floatValue = treatFloat(value);
+                    writer.write("\tdd " + floatValue + " ; float em M+" + posMem + "\n");
                     updatePosMem(symbol.type, 4);
                 } else if (symbol.type == "String") {
                     if (symbol.classification == "const") {
@@ -1324,6 +1325,20 @@ public class Compilador {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        // Trata inserção de floats que começam com "."
+        String treatFloat(String value){
+            String firstChar = String.valueOf(value.charAt(0));
+            if (firstChar.equals(".")){
+                value = "0" + value;
+            } else if (firstChar.equals("-")){
+                StringBuilder str = new StringBuilder(value);
+                str.insert(1, "0");
+                value = str.toString();
+            }
+
+            return value;
         }
 
         class EXP_args {
@@ -2951,7 +2966,8 @@ public class Compilador {
                         try {
                             writer.write("section .data\n");
                             if (currentToken.type == "Float") {
-                                writer.write("\tdd " + currentToken.lexeme + " ; declarando valor na area de dados\n");
+                                String floatValue = treatFloat(currentToken.lexeme);
+                                writer.write("\tdd " + floatValue + " ; declarando valor na area de dados\n");
                             } else if (currentToken.type == "String") {
                                 writer.write(
                                         "\tdb " + currentToken.lexeme + ", 0 ; declarando valor na area de dados\n");
@@ -3026,7 +3042,7 @@ public class Compilador {
             symbolTable.put(reservedWords[i], symbol);
         }
 
-        //BufferedReader br = new BufferedReader(new FileReader("tests/simple_f.in"));
+        //BufferedReader br = new BufferedReader(new FileReader("tests/prec_float.in"));
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         fileStr = readAllCharsOneByOne(br);

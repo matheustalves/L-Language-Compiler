@@ -286,6 +286,7 @@ while(n<=LOOP){
     n<-n+1;
 }
 
+writeln(head);
 string str;
 writeln("Digite uma palavra, ate 15 chars: ");
 readln(str);
@@ -312,6 +313,100 @@ while(PASSADA<=n2){
     PASSADA<-PASSADA+1;
     n<-0;
 }
+
+writeln(head);
+n<-0;
+string string_doida;
+writeln("Digite abcdef: ");
+readln(string_doida);
+float contador <- 0;
+
+writeln("Write doidao: ");
+while(n<=5){
+    if((string_doida[0] = 'a') && (n=0)){
+        writeln("'a' detectado!");
+        contador <- contador+1;
+    } else if ((string_doida[1] = 'b') && (n=1)){
+        writeln("'b' detectado!");
+        contador <- contador+1;
+    } else if ((string_doida[2] = 'c') && (n=2)){
+        writeln("'c' detectado!");
+        contador <- contador+1;
+    } else if ((string_doida[3] = 'd') && (n=3)){
+        writeln("'d' detectado!");
+        contador <- contador+1;
+    } else if ((string_doida[4] = 'e') && (n=4)){
+        writeln("'e' detectado!");
+        contador <- contador+1;
+    } else if ((string_doida[5] = 'f') && (n=5)){
+        writeln("'f' detectado!");
+        contador <- contador+1;
+    } else{
+        writeln("Opa! Digitou errado!");
+    }
+    n<-n+1;
+}
+
+
+
+writeln("Voce digitou ",contador, " caracteres iguais.");
+
+writeln("---------\\----------");
+writeln("Bateria de operacoes, atribuicoes e conversoes:");
+writeln("---------\\----------");
+
+
+int x1;
+x1<-4;
+writeln("int x1 recebeu 4, int x1 = ", x1);
+
+writeln(head);
+writeln("Digite um valor novo pra x1: ");
+readln(x1);
+
+writeln(head);
+writeln("x1 * -100 = ", (x1*(-100)));
+writeln("x1 * -100 + 4 = ", (x1*(-100) + 4));
+writeln("x1 * -100 + 4/1 = ", (x1*(-100) + 4/1));
+writeln("(x1 elevado x1 4) div 1000 + 0.0 = ", ((((x1*x1*x1*x1)/(1000))+0.0)));
+
+float x2;
+writeln(head);
+writeln("Digite um x2, que sera float: ");
+readln(x2);
+
+writeln(head);
+writeln("x1-x2 = ", x1-x2);
+writeln("x2/x1 = ", x2/x1);
+writeln("x2 + 1.01*x1*94 = ", x2 + 1.01*x1*94);
+
+writeln(head);
+writeln("x2<-x2*(-1/-1)*(-x2)");
+x2<-x2*(-1/(-1))*(-x2);
+writeln("novo valor de x2 = ", x2);
+writeln("x2<-x2*x1*(-.20)");
+x2<-x2*x1*(-.20);
+writeln("novo valor de x2 = ", x2);
+
+writeln(head);
+writeln("Digite um valor de x3, que sera int: ");
+int x3;
+readln(x3);
+writeln("int(x2) mod int(float(x3)) = ", int(x2), " mod ", int(float(x3)), " = ", int(x2) mod int(float(x3)));
+writeln("int(x2) mod int(float(x3)) div x1 = ", int(x2), " mod ", int(float(x3)), " div ", x1, " = ", int(x2) mod int(float(x3)) div x1);
+writeln("float(x3) + float(x1) - float(x2) = ", float(x3), " + ", float(x1), " - ", int(x2), " = ", float(x3) + float(x1) - int(x2));
+writeln("int(float(x3) + float(x1) - float(x2)) div 2 = ", "int(" , float(x3) , " + " , float(x1) , " - " , float(x2) , ") mod 2 = ", int(float(x3) + float(x1) - float(x2)), " mod 2 = ", int(float(x3) + float(x1) - float(x2)) mod 2);
+if((int(float(x3) + float(x1) - float(x2)) mod 2) = 0) writeln("Numero par!");
+else writeln("Numero impar!");
+
+
+
+
+
+
+
+
+
 
 
 
