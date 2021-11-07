@@ -1,28 +1,23 @@
-INÍCIO-> 	{DECL_A | COMANDO} eof
+START-> 	{DECL_A | COMANDO} eof
+    
+DECL_A-> 	(int | float | string | char) DECL_B1 {, DECL_B2} ;	|
+			const id = [-] valor;
 
-DECL_A-> 	(int | float | string | char) DECL_B {,DECL_B} ;	|
-			const id = valor;
+DECL_B-> 	id [<- [-] valor ]
 
-DECL_B-> 		id [<- [-] valor ]
-
-//Removi TIPO_DECL-> 	[-]num | string | hexa | caractere
-//não pode ter token diferente para cada tipo de declaração: token constante e token valor, analisador léxico difere pelo formato
-
-COMANDO->	id ["[" EXP_A "]"] <- EXP_A;		    	|
-			while EXP_A TIPO_CMD				        |
-			if EXP_A TIPO_CMD [else TIPO_CMD]			|
-			readln "(" id ")";				            |
-			(write | writeln) "(" LISTA_EXP ")";		|
+COMANDO->	id ["[" EXP_A1 "]"] <- EXP_A2;		  |
+			while EXP_A3 TIPO_CMD				  |
+			if EXP_A4 TIPO_CMD [else TIPO_CMD]	  |
+			readln "(" id ")";				      |
+			(write | writeln) "(" LISTA_EXP ")";  |
 			;
 
-TIPO_CMD->	COMANDO | "{" {COMANDO}+ "}"
-LISTA_EXP->	EXP_A {, EXP_A}
+TIPO_CMD->	COMANDO | "{" {COMANDO} "}"
+LISTA_EXP->	EXP_A1 {, EXP_A2}
 
-// OPERATOR removido. Foi para EXP_A
-
-EXP_A-> 	EXP_B [(= | != | < | > | <= | >=) EXP_B]
-EXP_B->		[-] EXP_C { (+ | - | "||") EXP_C }
-EXP_C->		EXP_D { ("*" | && | / | div | mod) EXP_D }
-EXP_D->		{!} EXP_E
-EXP_E->		(int | float) "(" EXP_A ")" | EXP_F
-EXP_F->     "(" EXP_A ")" | id ["[" EXP_A "]"] | valor
+EXP_A-> 	EXP_B1 [ (= | != | < | > | <= | >= ) EXP_B2 ]
+EXP_B->		[-] EXP_C1 { (+ | - | "||") EXP_C2 }
+EXP_C->		EXP_D1 { ("*" | && | / | div | mod) EXP_D2 } 
+EXP_D->		{!} EXP_E 
+EXP_E->		(int | float ) "(" EXP_A ")" | EXP_F
+EXP_F->     "(" EXP_A1 ")" | id ["[" EXP_A2 "]"] | valor

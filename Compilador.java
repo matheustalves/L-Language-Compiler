@@ -82,7 +82,13 @@ public class Compilador {
     static final int tokenCloseSq = 35;
     static final int tokenValue = 36;
 
-    // Classe dos Elementos da Tabela de Símbolos
+    /*
+        Classe dos Elementos da Tabela de Símbolos
+        Atributos:  lexeme  -> lexema
+                    addr    -> endereço na memória
+                    classification -> classe (var ou const)
+                    type    -> tipo 
+    */
     static class Symbol {
         String lexeme;
         int token;
@@ -98,12 +104,16 @@ public class Compilador {
         }
     }
 
-    // Classe dos Tokens encontrados
+    /*
+        Classe dos Tokens encontrados
+        Atributos:  token   -> numero do tipo de token
+                    lexeme  -> lexema
+                    type    -> tipo 
+    */
     static class Token {
         int token;
         String lexeme;
         String type;
-        byte bsize;
 
         Token(String lex, int tk, String t) {
             lexeme = lex;
@@ -540,7 +550,6 @@ public class Compilador {
             int nextState = 20;
 
             if (c == '#') {
-                // lineCount--;
                 throwError("unexpected_eof");
             } else if (c != '\'') {
                 lexeme += c;
@@ -776,9 +785,18 @@ public class Compilador {
     }
 
     /* 
-        Classe do Analisador Sintático
+        Classe do Analisador Sintático, Tradução e Geração de Código
     
-        Apesar de não possuir variáveis locais, utiliza as seguintes variáveis globais:
+        As regras de tradução estão especificadas no arquivo de documentação do trabalho.
+    
+        Variáveis locais:
+            posMem -> endereço atual da memoria
+            tempCounter -> contador da posição de temporários
+            rotCounter -> contador de rótulos
+            currentSection -> 0 : .data ;  1 : .text
+            writer -> bufferedWriter para escrever no .asm
+    
+        Utiliza as seguintes variáveis globais:
             currentToken    -> Token atual no escopo global do programa
             pauseCompiling  -> Flag de erro global do Compilador
             token?          -> Tokens da linguagem
@@ -790,31 +808,29 @@ public class Compilador {
         O Parser segue a seguinte Gramática:
         (na implementação, simbolos não terminais foram traduzidos para INGLÊS para seguir a mesma convenção do restante do código)
     
-            INÍCIO-> 	{D | C} eof
-        
-            DECLARAÇÃO-> 	(int | float | string | char) DECL_B {,DECL_B};	|
-                            const id = TIPO_DECL;
-        
-            DECL_B-> 		id [<- TIPO_DECL ]
-            TIPO_DECL-> 	[-]num | string | hexa | caractere
-        
-            COMANDO->	id ["[" EXP "]"] <- EXP;                    |
-                        while EXP TIPO_CMD				            |
-                        if EXP TIPO_CMD [else TIPO_CMD]	            |
-                        readln "(" id ")";				            |
-                        (write | writeln) "(" LISTA_EXP ")";		|
+            START-> 	{DECL_A | COMANDO} eof
+    
+            DECL_A-> 	(int | float | string | char) DECL_B1 {, DECL_B2} ;	|
+    		            const id = [-] valor;
+    
+            DECL_B-> 	id [<- [-] valor ]
+            
+            COMANDO->	id ["[" EXP_A1 "]"] <- EXP_A2;		  |
+                        while EXP_A3 TIPO_CMD				  |
+                        if EXP_A4 TIPO_CMD [else TIPO_CMD]	  |
+                        readln "(" id ")";				      |
+                        (write | writeln) "(" LISTA_EXP ")";  |
                         ;
-        
-            TIPO_CMD->	    COMANDO | "{" {COMANDO}+ "}"
-            LISTA_EXP->	    EXP {, EXP}
-            OPERADOR->    	= | != | < | > | <= | >=
-        
-            EXP-> 		EXP_B {OPERADOR EXP_B}
-            EXP_B->		[-] EXP_C { (+ | - | "||") EXP_C }
-            EXP_C->		EXP_D { ("*" | && | / | div | mod) EXP_D }
-            EXP_D->		{!} EXP_E
-            EXP_E->		(int | float) "(" EXP ")" | EXP_F
-            EXP_F->     	"(" EXP ")" | id ["[" EXP "]"] | num
+            
+            TIPO_CMD->	COMANDO | "{" {COMANDO} "}"
+            LISTA_EXP->	EXP_A1 {, EXP_A2}
+            
+            EXP_A-> 	EXP_B1 [ (= | != | < | > | <= | >= ) EXP_B2 ]
+            EXP_B->		[-] EXP_C1 { (+ | - | "||") EXP_C2 }
+            EXP_C->		EXP_D1 { ("*" | && | / | div | mod) EXP_D2 } 
+            EXP_D->		{!} EXP_E 
+            EXP_E->		(int | float ) "(" EXP_A ")" | EXP_F
+            EXP_F->     "(" EXP_A1 ")" | id ["[" EXP_A2 "]"] | valor
     */
     static class Parser {
         static int posMem = 65536; // endereco atual da memoria
@@ -853,11 +869,11 @@ public class Compilador {
         }
 
         /* 
-            Método throwIdentifierError -> Acusa erros relacionados a identificadores.
+            Método throwIdentifierError -> Acusa erros relacionados a identificadores e tipos.
             1- Se identificador nao foi declarado
             2- Se identificador esta sendo declarado de novo
             3- Se identificador possui classe incompativel
-            4- Se tipo do identificador é incompativel
+            4- Se tipo do identificador/expressao é incompativel
         */
         void throwIdentifierError(String errorType) {
             if (errorType == "id_not_declared") {
@@ -892,6 +908,11 @@ public class Compilador {
             }
         }
 
+        /*
+            Metodo updatePosMem(type, strSize)
+                Atualiza endereco atual da memoria com base no tipo especificado.
+                O parametro strSize é ignorado caso type != String
+        */
         void updatePosMem(String type, int strSize) {
             if (type == "Char")
                 posMem += 1;
@@ -902,6 +923,11 @@ public class Compilador {
             }
         }
 
+        /*
+            Metodo updateTempCounter(type, strSize)
+                Atualiza endereco atual da memoria de Temporarios com base no tipo especificado.
+                O parametro strSize é ignorado caso type != String
+        */
         void updateTempCounter(String type, int strSize) {
             if (type == "Char")
                 tempCounter += 1;
@@ -922,6 +948,12 @@ public class Compilador {
             return false;
         }
 
+        /*
+            Metodo declarationToMemory(symbol, hasValue, value)
+                Para geração de código. Adiciona identificador na memória.
+                Caso tenha valor, é utilizado db e dd com o valor especificado. 
+                Caso nao, so reserva uma area com o tamanho certo.
+        */
         void declarationToMemory(Symbol symbol, boolean hasValue, String value) throws IOException {
             if (hasValue) {
                 if (symbol.type == "Char") {
@@ -963,6 +995,13 @@ public class Compilador {
             }
         }
 
+        /*
+            Metodo attributionToMemory(type, destAddr, sourceAddr)
+                Para geração de código. Atribui valor a uma area de memoria com base no tipo
+                destAddr -> endereco de destino
+                sourceAddr -> endereco onde esta localizado o valor atualmente.
+                Caso seja string, é atribuido char por char.
+        */
         void attributionToMemory(String type, String destAddr, String sourceAddr) throws IOException {
             if (type == "Char") {
                 writer.write("\tmov bl, [M+" + sourceAddr + "] ; alocando char em registrador\n");
@@ -976,20 +1015,23 @@ public class Compilador {
             } else if (type == "String") {
                 String rotLoopStr = "Rot" + setRot();
                 writer.write("\tmov rsi, " + destAddr + " ; passa o endereco da string A pra rax\n");
-                writer.write(
-                        "\tmov rdi, M+" + sourceAddr + " ; passa o endereco da string B pra rbx\n");
+                writer.write("\tmov rdi, M+" + sourceAddr + " ; passa o endereco da string B pra rbx\n");
                 writer.write(rotLoopStr + ": ; string loop \n");
                 writer.write("\tmov al, [rdi] ; pega o caractere na posicao rdi+i da string B\n");
                 writer.write("\tmov [rsi], al ; coloca o char na string A\n");
                 writer.write("\tadd rsi, 1 ; incrementa o contador\n");
                 writer.write("\tadd rdi, 1 ; incrementa o contador\n");
                 writer.write("\tcmp al, 0 ; fim da strB?\n");
-                writer.write("\tjne "+ rotLoopStr +"; se nao, continua loop\n");
-                writer.write("\t; se sim, fim da atribuicao de strB a strA. \n");              
+                writer.write("\tjne " + rotLoopStr + "; se nao, continua loop\n");
+                writer.write("\t; se sim, fim da atribuicao de strB a strA. \n");
 
             }
         }
 
+        /*
+            Metodo setRot()
+                Gera novo numero para Rotulos.
+        */
         int setRot() {
             int current_rot = rotCounter;
             rotCounter = rotCounter + 1;
@@ -997,6 +1039,11 @@ public class Compilador {
             return current_rot;
         }
 
+        /*
+            Metodo convertIntegerToString(expArgs)
+                Converte um Inteiro para String, para posteriormente ser Impresso na tela com Write.
+                Código igual o implementado pelo professor.
+        */
         void convertIntegerToString(EXP_args expArgs) {
             int rot_a = setRot();
             int rot_b = setRot();
@@ -1049,6 +1096,11 @@ public class Compilador {
 
         }
 
+        /*
+           Metodo convertFloatToString(expArgs)
+               Converte um Float para String, para posteriormente ser Impresso na tela com Write.
+               Código igual o implementado pelo professor.
+        */
         void convertFloatToString(EXP_args expArgs) {
             int rot_a = setRot();
             int rot_b = setRot();
@@ -1126,6 +1178,11 @@ public class Compilador {
             }
         }
 
+        /*
+           Metodo translationWrite(expArgs)
+               Geração de código para Impressão Write. (Igual a implementação do professor)
+               Caso exp seja Int ou Float, converte para String antes.
+        */
         void translationWrite(EXP_args expArgs) {
             int rot = setRot();
             try {
@@ -1133,7 +1190,7 @@ public class Compilador {
                     convertIntegerToString(expArgs);
                 } else if (expArgs.type == "Float") {
                     convertFloatToString(expArgs);
-                } else if (expArgs.type == "String")  {
+                } else if (expArgs.type == "String") {
                     writer.write("\tmov rsi, M+" + (expArgs.addr) + " ; registrador recebe endereco da string\n");
                     writer.write("\tmov rdx, rsi ; rdx = rsi\n");
                     writer.write("Rot" + rot + ": \n");
@@ -1142,7 +1199,7 @@ public class Compilador {
                     writer.write("\tcmp al, 0 ; al == 0 ? se True, fim da string\n");
                     writer.write("\tjne Rot" + rot + "\n");
                     writer.write("\tsub rdx, M+ " + (expArgs.addr) + " ; removendo offset (byte 0) do endereco\n");
-                } else if (expArgs.type == "Char"){
+                } else if (expArgs.type == "Char") {
                     writer.write("\tmov rsi, M+" + (expArgs.addr) + " ; registrador recebe endereco da string\n");
                     writer.write("\tmov rdx, 1 ; tamanho 1 pra char\n");
                 }
@@ -1156,6 +1213,11 @@ public class Compilador {
 
         }
 
+        /*
+           Metodo translationWriteLn(expArgs)
+               Geração de código para Impressão WriteLn. (Igual a implementação do professor)
+               Nesse caso, so insere o linebreak no codigo (roda depois do translationWrite)
+        */
         void translationWriteln() {
             try {
                 Integer linebreak = tempCounter;
@@ -1173,6 +1235,10 @@ public class Compilador {
 
         }
 
+        /*
+           Metodo translationReadLn()
+               Geração de código para Leitura Read. (Igual a implementação do professor)
+        */
         void translationReadln() {
             int rotFimStr = setRot();
             int rotBufStr = setRot();
@@ -1328,11 +1394,11 @@ public class Compilador {
         }
 
         // Trata inserção de floats que começam com "."
-        String treatFloat(String value){
+        String treatFloat(String value) {
             String firstChar = String.valueOf(value.charAt(0));
-            if (firstChar.equals(".")){
+            if (firstChar.equals(".")) {
                 value = "0" + value;
-            } else if (firstChar.equals("-")){
+            } else if (firstChar.equals("-")) {
                 StringBuilder str = new StringBuilder(value);
                 str.insert(1, "0");
                 value = str.toString();
@@ -1341,6 +1407,13 @@ public class Compilador {
             return value;
         }
 
+        /*
+            Classe EXP_args
+                Como em java nao existe passagem por parametro e referencia, foi criada essa classe para os parametros de expressoes.
+                Em toda chamada de expressão, uma nova instância é iniciada antes e passada no parâmetro.
+                Atributos:  type -> tipo da expressao
+                            addr -> endereço de memória da expressão
+        */
         class EXP_args {
             String type;
             int addr;
@@ -1381,12 +1454,22 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: DECL_A-> 	(int | float | string | char) DECL_B {,DECL_B};	|
-                                    const id = TIPO_DECL;
+            Na gramática: 
+            DECL_A-> 	(int | float | string | char) (45) DECL_B1 {, (46) DECL_B2} ;	|
+        	            const id (38) = [- (31)] valor (39) (40) (41);
         
             Metodo DECL_A -> Símbolo não terminal de Declaração da gramática. 
             Caso inicio com (int | float | string | char), vai para DECL_B e pode rodar ,DECL_B 0 ou + vezes depois.
-            Caso inicio com const, proximos tokens são um identificador, token de igual e vai para TIPO_DECL.
+            Caso inicio com const, proximos tokens são um identificador, token de igual, menos opcional e um valor.
+        
+            Regras de Semântica:
+            (31): {minus = True}
+            (38): {if id.simbolo.classe != null then ERRO_id_declarado}
+            (39): {if (minus & !(valor.tipo = integer | valor.tipo = float)) then ERRO}
+            (40): {id.simbolo.tipo := valor.tipo_constante}
+            (41): {id.simbolo.classe := constante}
+            (45): {DECL_B1.tipo := idType}
+            (46): {DECL_B2.tipo := idType}
         */
         void DECL_A() {
             if (!pauseCompiling) {
@@ -1528,10 +1611,18 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: DECL_B-> 	id [<- TIPO_DECL ]
+            Na gramática: 
+            DECL_B-> 	id (38) [<- [- (31)] valor (39) (42) ] (43)
         
-            Metodo DECL_B -> Símbolo não terminal auxiliar 1 para Declaração
-            Le token identificador e opcionalmente pode ter uma atribuição <- TIPO_DECL
+            Metodo DECL_B -> Símbolo não terminal auxiliar para Declaração
+            Le token identificador e opcionalmente pode ter uma atribuição com valor.
+        
+            Regras de Semântica:
+            (31): {minus = True}
+            (38): {if id.simbolo.classe != null then ERRO_id_declarado}
+            (39): {if (minus & !(valor.tipo = integer | valor.tipo = float)) then ERRO}
+            (42): {id.simbolo.classe := variavel}
+            (43): {id.simbolo.tipo := DECL_B.tipo}
         */
         void DECL_B(String idType) {
             if (!pauseCompiling) {
@@ -1608,15 +1699,16 @@ public class Compilador {
 
         /* 
             Na gramática:
-            COMANDO->	id ["[" EXP_A "]"] <- EXP_A;		            |
-        	            while EXP_A TIPO_CMD				            |
-                        if EXP_A TIPO_CMD [else TIPO_CMD]	            |
-                        readln "(" id ")";				            |
-                        (write | writeln) "(" LISTA_EXP ")";		|
+            COMANDO->	id (2) (14) ["[" (15) EXP_A1 (44) "]"] <- EXP_A2 (16);  |
+                        while EXP_A3 (17) TIPO_CMD                              |
+                        if EXP_A4 (18) TIPO_CMD [else TIPO_CMD]                 |
+                        readln "(" id (2) (47)")";                              |
+                        (write | writeln) "(" LISTA_EXP ")";                    |
                         ;
         
             Metodo COMANDO -> Símbolo não terminal para Comandos da linguagem
         
+            Execução:
             1. Caso leia um token identificador, opcionalmente podera ler [EXP_A]. Em seguida, sera necessario um token de atribuicao, vai chamar EXP_A e finalmente um token de ponto e virgula.
             2. Caso leia um token while, sera chamado EXP_A e depois TIPO_CMD.
             3. Caso leia um token if, sera chamado EXP_A e depois TIPO_CMD. Opcionalmente pode-se ter um token else seguido de uma chamada TIPO_CMD.
@@ -1624,6 +1716,18 @@ public class Compilador {
             5. Caso leia token write ou writeln, sera chamado LISTA_EXP dentro de tokens ( e ), seguido de token ponto e virgula.
             6. Caso leia token ponto e virgula, so chama o CasaToken mesmo.
             7. Caso contrario, erro.
+        
+            Regras de Semântica:
+            (2): {if id.simbolo.classe = null then ERRO}
+            (14): {if id.simbolo.classe != variavel then ERRO}
+            (15): {isStringIndex = true}
+            (16): {if ((isStringIndex & EXP_A2.tipo != char) | 
+                        (!isStringIndex & (!(EXP_A2.tipo == "Integer" & id.simbolo.tipo == "Float") & (EXP_A2.tipo != id.simbolo.tipo)))) 
+                        then ERRO}
+            (17): {if EXP_A3.tipo != bool then ERRO}
+            (18): {if EXP_A4.tipo != bool then ERRO}
+            (44): {if (EXP_A1.tipo != integer | id.simbolo.tipo != string) then ERRO}
+            (47): {if id.simbolo.classe != "var" then ERRO}
         */
         void COMMAND() {
             if (!pauseCompiling) {
@@ -1932,7 +2036,8 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: TIPO_CMD->	C | "{" {C}+ "}"
+            Na gramática: 
+            TIPO_CMD->	COMANDO | "{" {COMANDO} "}"
         
             Metodo TIPO_CMD -> Símbolo não terminal para comando ou bloco de comandos.
             Caso token = {, devera rodar "{" {COMANDO}+ "}". (bloco)
@@ -1961,11 +2066,15 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: LISTA_EXP->	EXP {, EXP}
+            Na gramática:
+            LISTA_EXP->	EXP_A1 (48) {, EXP_A2 (49)}
         
             Metodo LISTA_EXP -> Símbolo não terminal para lista de expressao.
-            Caso token = {, devera rodar "{" {COMANDO}+ "}". (bloco)
-            Caso contrario, so roda COMANDO.
+            Pode rodar uma ou mais expressoes com uso de virgula.
+        
+            Regras de Semântica:
+            (48): {if EXP_A1.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
+            (49): {if EXP_A2.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
         */
         void EXP_LIST() {
             if (!pauseCompiling) {
@@ -1974,13 +2083,12 @@ public class Compilador {
                 EXP_A(expArgsA1);
 
                 if (pauseCompiling)
-                return;
+                    return;
 
                 if (expArgsA1.type == "Boolean") {
                     throwIdentifierError("incompatible_types");
                     return;
                 }
-
 
                 translationWrite(expArgsA1);
 
@@ -1993,7 +2101,7 @@ public class Compilador {
                     EXP_args expArgsA2 = new EXP_args();
                     EXP_A(expArgsA2);
                     if (pauseCompiling)
-                    return;
+                        return;
                     if (expArgsA2.type == "Boolean") {
                         throwIdentifierError("incompatible_types");
                         return;
@@ -2005,10 +2113,24 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP-> EXP_B {OPERADOR EXP_B}
+            Na gramática: 
+            EXP_A-> EXP_B1 (32) [(33) (= (36)| != (37) | < (37)| > (37)| <= (37)| >= (37)) EXP_B2 (34) (35)]
         
-            Metodo EXP -> Símbolo não terminal para expressoes.
+            Metodo EXP_A -> Símbolo não terminal para expressoes.
             Chama metodo EXP_B e pode rodar OPERADOR EXP_B opcionalmente, quantas vezes quiser.
+        
+            Regras de Semântica:
+            (32): {EXP_A.tipo := EXP_B1.tipo} 
+            (33): {OPERADOR.tipo := EXP_B1.tipo}
+            (34): {if !((EXP_B1.tipo = string & EXP_B2.tipo = string) |
+                    (EXP_B1.tipo = char & EXP_B2.tipo = char) |
+                    (EXP_B1.tipo = integer & EXP_B2.tipo = integer) |
+                    (EXP_B1.tipo = float & EXP_B2.tipo = integer) |
+                    (EXP_B1.tipo = integer & EXP_B2.tipo = float) |
+                    (EXP_B1.tipo = float & EXP_B2.tipo = float)) then ERRO}
+            (35): {EXP_A.tipo := bool}
+            (36): {if OPERADOR.tipo != (string|int|float|char) then ERRO}
+            (37): {if OPERADOR.tipo != (int|float|char) then ERRO}
         */
         void EXP_A(EXP_args expArgsA) {
             if (!pauseCompiling) {
@@ -2244,10 +2366,21 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP_B-> [-] EXP_C { (+ | - | "||") EXP_C }
+            Na gramática: 
+            EXP_B->	[- (31)] EXP_C1 (26) (27) { (+ | - | "||") EXP_C2 (28) (29) (30)}
         
             Metodo EXP_B -> Símbolo não terminal auxiliar 1 para expressoes.
             Opcionalmente pode iniciar com token de menos. Chama EXP_C e pode opcionalmente rodar (+ | - | "||") EXP_C, quantas vezes quiser.
+        
+            Regras de Semântica:
+            (26): {if (minus & !(EXP_C1.tipo = integer | EXP_C2.tipo = float)) then ERRO}
+            (27): {EXP_B.tipo := EXP_C1.tipo}
+            (28): {if (operador = +) then if (!((EXP_C1.tipo = integer | EXP_C1.tipo = float) & (EXP_C2.tipo = integer | EXP_C2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float)))  then ERRO;
+                    else if (EXP_C1.tipo = float | EXP_C2.tipo = float) then EXP_B.tipo = float else EXP_B.tipo = integer}
+            (29): {if (operador = -) then if (!((EXP_C1.tipo = integer | EXP_C1.tipo = float) & (EXP_C2.tipo = integer | EXP_C2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float))) then ERRO;
+                    else if (EXP_C1.tipo = float | EXP_C2.tipo = float) then EXP_B.tipo = float else EXP_B.tipo = integer}
+            (30): {if (operador = "||") then if !((EXP_C1.tipo = boolean & EXP_C2.tipo = boolean) then ERRO}
+            (31): {minus = True}
         */
         void EXP_B(EXP_args expArgsB) {
             if (!pauseCompiling) {
@@ -2492,10 +2625,21 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP_C-> EXP_D { ("*" | && | / | div | mod) EXP_D }
+            Na gramática: 
+            EXP_C->	EXP_D1 (20) { ("*" | && | / | div | mod) EXP_D2 (21) (22) (23) (24) (25)} 
         
             Metodo EXP_C -> Símbolo não terminal auxiliar 2 para expressoes.
             Chama EXP_D e pode opcionalmente rodar ("*" | && | / | div | mod) EXP_D, quantas vezes quiser.
+        
+            Regras de Semântica:
+            (20): {EXP_C.tipo := EXP_D1.tipo}
+            (21): {if (operador = "*") then if (!((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D2.tipo = integer | EXP_D2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float)) then ERRO;
+                    else if (EXP_D1.tipo = float | EXP_D2.tipo = float) then EXP_C.tipo = float else EXP_C.tipo = integer}
+            (22): {if (operador = /) then if (!((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D2.tipo = integer | EXP_D2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float))  then ERRO;
+                    else if (EXP_D1.tipo = float | EXP_D2.tipo = float) then EXP_C.tipo = float else EXP_C.tipo = integer}
+            (23): {if (operador = div) then if !((EXP_D1.tipo = integer & EXP_D2.tipo = integer) then ERRO}
+            (24): {if (operador = mod) then if !((EXP_D1.tipo = integer & EXP_D2.tipo = integer) then ERRO}
+            (25): {if (operador = &&) then if !((EXP_D1.tipo = boolean & EXP_D2.tipo = boolean) then ERRO}
         */
         void EXP_C(EXP_args expArgsC) {
             if (!pauseCompiling) {
@@ -2734,10 +2878,16 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP_D-> {!} EXP_E
+            Na gramática: 
+            EXP_D->	{! (11) } EXP_E (12) (13)
         
             Metodo EXP_D -> Símbolo não terminal auxiliar 3 para expressoes.
             Pode iniciar com token !, e enquanto o proximo for igual a !, continua nesse loop. Depois chama EXP_E.
+        
+            Regras de Semântica:
+            (11): {houve_negacao := True}
+            (12): {if (houve_negacao & EXP_E.tipo != bool) then ERRO}
+            (13): {EXP_D.tipo := EXP_E.tipo}
         */
         void EXP_D(EXP_args expArgsD) {
             if (!pauseCompiling) {
@@ -2786,11 +2936,18 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP_E-> (int | float) "(" EXP_A ")" | EXP_F
+            Na gramática: 
+            EXP_E->	(int (9) | float (10) ) "(" EXP_A (8) ")" | EXP_F (7)
         
             Metodo EXP_E -> Símbolo não terminal auxiliar 4 para expressoes.
             Caso inicia com token int ou float, precisa de token (, depois chama EXP_A e volta para verificar token ). 
             Caso contrario, chama EXP_F.
+        
+            Regras de Semântica:
+            (7): {EXP_E.tipo := EXP_F.tipo}
+            (8): {if !(EXP_A.tipo = integer | EXP_A.tipo = float) then ERRO}
+            (9): {EXP_E.tipo := integer}
+            (10): {EXP_E.tipo := float}
         */
         void EXP_E(EXP_args expArgsE) {
             if (!pauseCompiling) {
@@ -2869,13 +3026,22 @@ public class Compilador {
         }
 
         /* 
-            Na gramática: EXP_F->  "(" EXP ")" | id ["[" EXP "]"] | num
+            Na gramática: 
+            EXP_F-> "(" EXP_A1 ")" (6) | id (2)(3) ["[" EXP_A2 (4)(5) "]"] | valor (1)
         
             Metodo EXP_F -> Símbolo não terminal auxiliar 5 para expressoes.
-            Caso inicia com token = (, executa EXP e fecha o parenteses com token = ).
-            Caso inicia com token identificador, pode opcionalmente ter tambem "[" EXP "]".
+            Caso inicia com token = (, executa EXP_A e fecha o parenteses com token = ).
+            Caso inicia com token identificador, pode opcionalmente ter tambem "[" EXP_A "]".
             Por ultimo, pode ser tambem um valor. 
             Else, erro.
+        
+            Regras de Semântica:
+            (1): {EXP_F.tipo := valor.tipo}
+            (2): {if id.simbolo.classe = null then ERRO}
+            (3): {EXP_F.tipo := id.simbolo.tipo}
+            (4): {if (EXP_A2.tipo != integer | id.simbolo.tipo != string) then ERRO}
+            (5): {EXP_F.tipo := char}
+            (6): {EXP_F.tipo := EXP_A1.tipo}
         */
         void EXP_F(EXP_args expArgsF) {
             if (!pauseCompiling) {
@@ -3015,6 +3181,7 @@ public class Compilador {
         }
     }
 
+    // Metodo para leitura do arquivo fonte.
     static public String readAllCharsOneByOne(BufferedReader reader) throws IOException {
         StringBuilder content = new StringBuilder();
 
