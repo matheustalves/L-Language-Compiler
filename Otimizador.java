@@ -9,6 +9,10 @@
 
 
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -45,7 +49,8 @@ public class Otimizador {
         else if(list32.contains(reg)) return "32";
         else if(list16.contains(reg)) return "16";
         else if(list8.contains(reg)) return "8";
-        else return "0";
+        else if(reg.contains("M+")) return "addr";
+        return "0";
 
     }
 
@@ -61,7 +66,8 @@ public class Otimizador {
         reg2 = currLine.get(0);
         source = currLine.get(1);
         reg1Size = matchRegisterSize(reg1);
-        reg2Size = matchRegisterSize(reg1);
+        reg2Size = matchRegisterSize(reg2);
+
 
 
         if(reg1Size.equals(reg2Size)&&(dest.equals(source))&&
@@ -69,8 +75,8 @@ public class Otimizador {
             
             if(reg1.equals(reg2)){ // mesmos registradores, deleta as linhas
                 newLine = "case2";
-            } else{ // mesmo tamanho, faz a "ponte"
-                newLine = "\tmov "+reg2+", "+reg1+" ; LOAD/STORE OTIMIZADO PEEPHOLE";
+            } else if(!((reg1.contains("M+")||reg2.contains("M+")))){ // mesmo tamanho, faz a "ponte"
+                newLine = "\tmov "+reg2+", "+reg1+" ; LOAD/STORE OTIMIZADO PEEPHOLE\n";
             } 
         }
 
@@ -78,10 +84,11 @@ public class Otimizador {
     }
 
     public static ArrayList<String> getOptimizedLines() throws Exception{
-        BufferedReader br = new BufferedReader(new FileReader("peephole_test.asm"));
+        BufferedReader br = new BufferedReader(new FileReader("arq.asm"));
         String line;
+        int lineCount = 0;
+        String newLine = "";
         int lineIndex = 0;
-        String previousLine, newLine = "";
         
 
 
@@ -98,7 +105,7 @@ public class Otimizador {
                 currLineElements.clear();
                 newLine = "";
 
-                if(line.charAt(0) == '\t'){
+                if(!line.isEmpty() && line.charAt(0) == '\t'){
                     m = mov.matcher(line);
                     if (m.find()){
                         currLineElements = new ArrayList<String>(Arrays.asList(line.split(",")));
@@ -109,17 +116,22 @@ public class Otimizador {
                 }
 
                 lineOperator.add(line);
+                if(lineIndex==3220){
+                    System.out.println("Bora");
+                }
 
                 //Aqui tenho os elementos das duas linhas prévias
                 if(!(currLineElements.isEmpty()||previousLineElements.isEmpty())){
                     newLine = matchElements(previousLineElements, currLineElements);
                     if(!newLine.isEmpty()){
                         lineOperator.remove(lineOperator.size() - 1);
-                        if(!newLine.equals("case2")){
-                            lineOperator.remove(lineOperator.size() - 2);
+                        lineOperator.remove(lineOperator.size() - 1);
+                        lineCount++;  
+                        if(!newLine.equals("case2")){                  
+                            lineCount++;  
                             lineOperator.add(newLine);                            
                         } else{
-                            lineOperator.add("\t ; LINHA REDUNDANTE REMOVIDA PEEPHOLE");
+                            lineOperator.add("\t ; LINHA REDUNDANTE REMOVIDA PEEPHOLE\n");
                         }
                     }
                 }
@@ -129,21 +141,33 @@ public class Otimizador {
                     previousLineElements = new ArrayList<>(currLineElements);
                 }
 
-                previousLine = line;
+                lineIndex++;
+                System.out.println("Linha "+lineIndex);
 
-                //lineIndex++;                             
+                           
             }
         } catch (final IOException exception) {
             exception.printStackTrace();
         }
 
+        System.out.println(lineCount + " linhas otimizadas!");
         return lineOperator;
+    }
+
+    public static void writeToFile(ArrayList<String> optimizedLines){
+        try{
+            Path out = Paths.get("arq.asm");
+            Files.write(out,optimizedLines,Charset.defaultCharset());
+        } catch (final IOException exception) {
+            exception.printStackTrace();
+        }
     }
 
     
     public static void main(String[] args) throws Exception {
         ArrayList<String> optimizedLines = new ArrayList<String>();
         optimizedLines = getOptimizedLines();
+        writeToFile(optimizedLines);
         //Escrever de volta no arquivo.
         System.out.print("s");
     }
