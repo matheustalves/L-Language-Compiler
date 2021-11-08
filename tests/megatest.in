@@ -287,9 +287,9 @@ readln(test_f);
 if(test_f<=f_testing) writeln("Menor ou igual!");
 else writeln ("Maior!");
 
-writeln("Digite um numero maior ou igual a -.111: ");
+writeln("Digite um numero maior que -.111: ");
 readln(test_g);
-if(test_g>=g_testing) writeln("Maior ou igual!");
+if(test_g>g_testing) writeln("Maior!");
 else writeln ("Maior!");
 
 

@@ -1254,7 +1254,7 @@ public class Compilador {
             try {
                 Integer buffer_read = 0;
 
-                if (currentSymbol.type == "String") {
+                if (currentSymbol.type == "String" || currentSymbol.type == "Char") {
                     buffer_read = currentSymbol.addr;
                 } else if (currentSymbol.type == "Integer") {
                     buffer_read = tempCounter;
@@ -1271,7 +1271,7 @@ public class Compilador {
                 writer.write("\tmov  rdi, 0 ;leitura do teclado \n");
                 writer.write("\tsyscall \n\n");
 
-                if (currentSymbol.type == "String") {
+                if (currentSymbol.type == "String"||currentSymbol.type == "Char") {
                     writer.write("\tadd rax, M+" + (buffer_read - 1) + " ; endereço do ultimo caractere lido\n");
                     writer.write("\tmov rbx, rax ; armazena o endereço em rbx\n");
                     writer.write("\tmov al, [rbx] ; passa o ultimo caractere lido para al\n");
