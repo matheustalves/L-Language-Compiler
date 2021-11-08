@@ -2024,6 +2024,8 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
                         EXP_LIST();
+                        if (pauseCompiling)
+                            return;
                         translationWriteln();
                         if (currentToken.token == tokenClosePar) {
                             checkToken(tokenClosePar);
