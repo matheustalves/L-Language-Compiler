@@ -1734,8 +1734,8 @@ public class Compilador {
                 if (currentToken.token == tokenId) {
                     EXP_args expArgsA1 = new EXP_args();
                     boolean isStringIndex = false;
-                    String destAddr = "";
-                    String atribType = "";
+                    String destAddr = ""; // endereço destino da atribuição
+                    String atribType = ""; // tipo da atribuição
 
                     if (!identifierIsDeclared(currentToken)) {
                         throwIdentifierError("id_not_declared");
@@ -1802,6 +1802,10 @@ public class Compilador {
                             return;
                         }
 
+                        /* 
+                            Caso não seja acesso a posição de um String, o endereço destino é o proprio endereço do id, assim como seu tipo.
+                            Caso contario, aloca em registrador rax o endereço do indice + posicao inicial do string. Com isso, rax é o endereço destino.
+                        */
                         if (!isStringIndex) {
                             destAddr = "M+" + String.valueOf(currentSymbol.addr);
                             atribType = currentSymbol.type;
@@ -1818,6 +1822,9 @@ public class Compilador {
                             destAddr = "rax";
                         }
 
+                        /* 
+                            Caso o id seja float e a atribuição seja int, converte o int em float.
+                        */
                         if (currentSymbol.type == "Float" && expArgsA2.type == "Integer") {
                             try {
                                 writer.write("\tmov eax, [M+" + expArgsA2.addr
@@ -1830,6 +1837,7 @@ public class Compilador {
                             }
                         }
 
+                        // Executa atribuição
                         try {
                             attributionToMemory(atribType, destAddr, String.valueOf(expArgsA2.addr));
                         } catch (IOException e) {
@@ -1855,6 +1863,9 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
+                    /* 
+                        Geração de código do While. Basicamente compara resultado da expressão e realiza o jump com base no resultado.
+                    */
                     String rotBegin = "Rot" + setRot();
                     String rotEnd = "Rot" + setRot();
 
@@ -1895,6 +1906,10 @@ public class Compilador {
                         return;
                     }
 
+                    /* 
+                        Geração de Código do IF ELSE.
+                        Basicamente compara resultado da expressão e realiza o jump com base no resultado.
+                    */
                     String rotFalse = "Rot" + setRot();
                     String rotEnd = "Rot" + setRot();
 
@@ -1953,7 +1968,10 @@ public class Compilador {
                                 throwIdentifierError("id_incompatible_class");
                                 return;
                             }
+
+                            // Chamada para a leitura.
                             translationReadln();
+
                             checkToken(tokenId);
                             if (pauseCompiling)
                                 return;
@@ -2085,11 +2103,13 @@ public class Compilador {
                 if (pauseCompiling)
                     return;
 
+                // Nao pode imprimir Boolean.
                 if (expArgsA1.type == "Boolean") {
                     throwIdentifierError("incompatible_types");
                     return;
                 }
 
+                // Chamada para Write 
                 translationWrite(expArgsA1);
 
                 while (currentToken.token == tokenComma) {
@@ -2102,11 +2122,14 @@ public class Compilador {
                     EXP_A(expArgsA2);
                     if (pauseCompiling)
                         return;
+
+                    // Nao pode imprimir Boolean.
                     if (expArgsA2.type == "Boolean") {
                         throwIdentifierError("incompatible_types");
                         return;
                     }
 
+                    // Chamada para Write 
                     translationWrite(expArgsA2);
                 }
             }
@@ -2221,6 +2244,12 @@ public class Compilador {
                     String rotTrue = "";
                     String rotFalse = "";
 
+                    /* 
+                        Geração de código das operações de comparação
+                            Caso as duas expressões sejam Int, so aloca em registradores e realiza as comparacoes de inteiros com base no Operador.
+                            Caso uma ou duas delas seja float, verifica necessidade de conversão de tipo e aloca para registradores xmm e realiza comparacoes de reais com base no Operador.
+                            Caso seja comparação de Strings, isso é feito char a char.
+                    */
                     if (expArgsB1.type == "Integer" && expArgsB2.type == "Integer") {
                         try {
                             writer.write("\tmov eax, [M+" + expArgsA.addr
@@ -2315,7 +2344,7 @@ public class Compilador {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    } else if (expArgsB1.type == "String") { // TO-DO: String comparison
+                    } else if (expArgsB1.type == "String") {
                         try {
                             rotTrue = "Rot" + setRot();
                             rotFalse = "Rot" + setRot();
@@ -2340,6 +2369,7 @@ public class Compilador {
                         }
                     }
 
+                    // Com base no resultado da comparacao, coloca resultado 0 ou 1 no registrador eax, cria novo temporario para expArgsA e aloca eax neste endereco.
                     try {
                         String rotEnd = "Rot" + setRot();
 
@@ -2397,11 +2427,16 @@ public class Compilador {
                 if (pauseCompiling)
                     return;
 
+                // Menos so pode em Int e Float
                 if (minus && !(expArgsC1.type == "Integer" || expArgsC1.type == "Float")) {
                     throwIdentifierError("incompatible_types");
                     return;
                 }
 
+                /* 
+                    Caso tenha tokenMinus, nega valor da expressao. 
+                    Se a expressao for int, usa o neg. Se for float, realiza multiplicacao por -1.
+                */
                 if (minus) {
                     expArgsB.addr = tempCounter;
                     updateTempCounter(expArgsC1.type, 0);
@@ -2453,6 +2488,14 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
+                    /* 
+                        Geração de Código para operacoes + - e Or.
+                        + e - : 
+                            Caso as duas expressões sejam Int, so aloca em registradores e realiza a operacao de inteiros com base no Operador.
+                            Caso uma ou duas delas seja float, verifica necessidade de conversão de tipo e aloca para registradores xmm e realiza a operacao de reais com base no Operador.
+                        Or:
+                            So pode com boolean, codigo sera explicado abaixo.
+                    */
                     if (operator == tokenPlus) {
                         if ((expArgsC1.type != "Integer" && expArgsC1.type != "Float")
                                 || (expArgsC2.type != "Integer" && expArgsC2.type != "Float")
@@ -2602,6 +2645,15 @@ public class Compilador {
                             return;
                         }
 
+                        /* 
+                            Geração de Código do OR
+                            Aloca o resultado das expressões nos registradores eax e ebx, e aloca 2 no ecx.
+                            Soma eax e ebx, o resultado vai para eax.
+                            Limpa o rdx com CDQ.
+                            Realiza divisao inteira de eax por ecx (2)
+                            Soma quociente (eax) e resto (edx), esse é o resultado do Or.
+                            Dessa forma, se a soma deu 2, vai virar 1. Se deu 1 vai continuar 1 e se deu 0 vai continuar 0.
+                        */
                         try {
                             writer.write("\tmov eax, [M+" + expArgsB.addr
                                     + "] ; alocando valor em end. de expArgsB a registrador\n");
@@ -2685,6 +2737,18 @@ public class Compilador {
                     if (pauseCompiling)
                         return;
 
+                    /* 
+                        Geração de Código para operacoes * / div mod e AND.
+                        * : 
+                            Caso as duas expressões sejam Int, so aloca em registradores e realiza a operacao de inteiros com base no Operador.
+                            Caso uma ou duas delas seja float, verifica necessidade de conversão de tipo e aloca para registradores xmm e realiza a operacao de reais com base no Operador.
+                        / :
+                            Verifica necessidade de conversao de tipos das expressoes e aloca em registradores xmm, visto que o resultado dessa divisao real sempre sera float.
+                        div e mod:
+                            So funciona com inteiros. Realiza idiv e aloca eax (quociente) para div ou edx (resto) para mod em endereco da expressao.
+                        AND:
+                            So pode com boolean, codigo sera explicado abaixo.
+                    */
                     if (operator == tokenMult) {
                         if ((expArgsD1.type != "Integer" && expArgsD1.type != "Float")
                                 || (expArgsD2.type != "Integer" && expArgsD2.type != "Float")
@@ -2859,6 +2923,11 @@ public class Compilador {
                             return;
                         }
 
+                        /* 
+                            Geração de Código do AND.
+                            Aloca resultados das expressões em registradores eax e ebx e realiza multiplicacao deles com imul. 
+                            Aloca em endereco de expArgsC (novoTemp) o resultado.
+                        */
                         try {
                             writer.write("\tmov eax, [M+" + expArgsC.addr
                                     + "] ; alocando valor em end. de expArgsC a registrador\n");
@@ -2908,6 +2977,7 @@ public class Compilador {
                 if (pauseCompiling)
                     return;
 
+                // Not so funciona com boolean
                 if (not && expArgsE.type != "Boolean") {
                     throwIdentifierError("incompatible_types");
                     return;
@@ -2915,6 +2985,11 @@ public class Compilador {
 
                 expArgsD.type = expArgsE.type;
 
+                /* 
+                    Caso not, aloca resultado da expressao em registrador eax e nega com neg.
+                    Soma 1 para finalizar not logico.
+                    Aloca resultado em endereco de expArgsD (novoTemp)
+                */
                 if (not) {
                     expArgsD.addr = tempCounter;
                     updateTempCounter(expArgsE.type, 0);
@@ -2976,6 +3051,7 @@ public class Compilador {
                         if (pauseCompiling)
                             return;
 
+                        // Conversao de int / float so funciona com estes tipos.
                         if (expArgsA.type != "Integer" && expArgsA.type != "Float") {
                             throwIdentifierError("incompatible_types");
                             return;
@@ -2988,6 +3064,10 @@ public class Compilador {
                         } else
                             throwParserError();
 
+                        /* 
+                            Caso a conversao seja de Float para int -> novoTemp, aloca em xmm0 valor em expArgsA, utiliza cvtss2si e aloca resultado em endereco de expArgsE
+                            Caso a conversao seja de Int para float -> novoTemp, aloca em eax valor em expArgsA, utiliza cvtsi2ss e e aloca resultado em endereco de expArgsE
+                        */
                         try {
                             if (expArgsE.type == "Integer" && expArgsA.type == "Float") {
                                 expArgsE.addr = tempCounter;
@@ -3100,11 +3180,14 @@ public class Compilador {
                             return;
                         }
 
+                        /*  
+                            Acesso a posicao de String. 
+                            Endereço de expArgsF é novo temporario. Zera rax, indice em eax e soma o mesmo com endereco inicial da string em registrador de 64 bits (rax).
+                            Valor em rax vai para registrador bl (char). Aloca valor em bl para endereco de expArgsF.
+                        */
                         expArgsF.type = "Char";
-
                         expArgsF.addr = tempCounter;
                         updateTempCounter(expArgsF.type, 0);
-
                         try {
                             writer.write("\tmov rax, 0 ; zerando rax\n");
                             writer.write("\tmov eax, [M+" + expArgsA2.addr
@@ -3128,6 +3211,11 @@ public class Compilador {
                 } else if (currentToken.token == tokenValue) {
                     expArgsF.type = currentToken.type;
 
+                    /* 
+                        A expressão é um valor.
+                        Caso seja Float ou String, abre sessão de dados e aloca na memoria pois nao tem como usar movss com imediato. Atualiza posicao global de memoria.
+                        Caso seja int ou char, coloca valor em registrador eax ou al e aloca em endereco de expArgsF (novo Temporario).
+                    */
                     if (currentToken.type == "Float" || currentToken.type == "String") {
                         try {
                             writer.write("section .data\n");
