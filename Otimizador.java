@@ -84,7 +84,7 @@ public class Otimizador {
     }
 
     public static ArrayList<String> getOptimizedLines() throws Exception{
-        BufferedReader br = new BufferedReader(new FileReader("arq.asm"));
+        BufferedReader br = new BufferedReader(new FileReader("peephole_test.asm"));
         String line;
         int lineCount = 0;
         String newLine = "";
@@ -116,9 +116,6 @@ public class Otimizador {
                 }
 
                 lineOperator.add(line);
-                if(lineIndex==3220){
-                    System.out.println("Bora");
-                }
 
                 //Aqui tenho os elementos das duas linhas prévias
                 if(!(currLineElements.isEmpty()||previousLineElements.isEmpty())){

@@ -19,7 +19,11 @@ Rot0:
 	sub bl, [rdx] ; dasdasdsad
 	mov [rax], dx ; registrador recebe primeiro caractere da string 
 	mov ax, [rdx] ; dasdasdsad
-	mov rdx, [end] ; registrador recebe primeiro caractere da string 
-	mov [end], rdx ; dasdasdsad
+	mov rdx, M+ ; registrador recebe primeiro caractere da string 
+	mov M+, rdx ; dasdasdsad
+	mov rdx, [M+1] ; registrador recebe primeiro caractere da string 
+	mov [M+2], rdx ; dasdasdsad
+	mov rdx, [M+3] ; registrador recebe primeiro caractere da string 
+	mov [M+3], rdx ; dasdasdsad
     syscall ; dasdas
     

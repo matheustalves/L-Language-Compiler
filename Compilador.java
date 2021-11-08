@@ -6,15 +6,12 @@
     *   Matheus Teixeira Alves          636132
 */
 
-// import java.io.File;
-// import java.io.FileNotFoundException;
 import java.util.Hashtable;
-// import java.util.Scanner;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-//import java.io.FileReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 public class Compilador {
@@ -2344,7 +2341,7 @@ public class Compilador {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    } else if (expArgsB1.type == "String") {
+                    } else if (expArgsB1.type == "String") { 
                         try {
                             rotTrue = "Rot" + setRot();
                             rotFalse = "Rot" + setRot();
@@ -3297,8 +3294,8 @@ public class Compilador {
             symbolTable.put(reservedWords[i], symbol);
         }
 
-        //BufferedReader br = new BufferedReader(new FileReader("tests/prec_float.in"));
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader br = new BufferedReader(new FileReader("tests/codegen.in"));
+        //BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         fileStr = readAllCharsOneByOne(br);
 
