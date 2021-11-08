@@ -1858,18 +1858,17 @@ public class Compilador {
 
                     tempCounter = 0;
                     EXP_args expArgsA3 = new EXP_args();
-                    if (pauseCompiling)
-                        return;
 
                     /* 
                         Geração de código do While. Basicamente compara resultado da expressão e realiza o jump com base no resultado.
                     */
                     String rotBegin = "Rot" + setRot();
                     String rotEnd = "Rot" + setRot();
-
                     try {
                         writer.write("\t" + rotBegin + ": ; RotInicio\n");
                         EXP_A(expArgsA3);
+                        if (pauseCompiling)
+                            return;
                         if (expArgsA3.type != "Boolean") {
                             throwIdentifierError("incompatible_types");
                             return;
@@ -2342,7 +2341,7 @@ public class Compilador {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    } else if (expArgsB1.type == "String") { 
+                    } else if (expArgsB1.type == "String") {
                         try {
                             rotTrue = "Rot" + setRot();
                             rotFalse = "Rot" + setRot();
