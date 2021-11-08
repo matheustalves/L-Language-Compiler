@@ -1,6 +1,6 @@
 START-> 	(1) { (2) DECL_A | (3) COMANDO} eof (12)
 
-DECL_A-> 	(| float | string | char) DECL_B1 {,  DECL_B2} ;	|
+DECL_A-> 	(int | float | string | char) DECL_B1 {,  DECL_B2} ;	|
 			const id (15) (4) (8) = [- (5)] valor (6) (7);
 
 DECL_B-> 	id  (15) (4) (10) [<- (9) [- (5)] valor (11) (6) (7)] 

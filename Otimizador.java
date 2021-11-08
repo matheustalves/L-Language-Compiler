@@ -8,36 +8,21 @@
 
 
 
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 
 public class Otimizador {
-
-    static ArrayList<String> getTokens(){
-        List<String> tokenList = Arrays.asList("rsi", "rdi", "rax", "rbx", "rcx", "rdx",
-                                "eax", "ebx", "ecx", "edx", "al", "bl", "cl", "dl", "ax", "bx", "cx", "dx");
-        ArrayList<String> tokens = new ArrayList<String>();
-        tokens.addAll(tokenList);
-
-        return tokens;
-    }
 
     static String matchRegisterSize(String reg){
         List<String> list64 = Arrays.asList("rsi", "rdi", "rax", "rbx", "rcx", "rdx");
@@ -56,7 +41,6 @@ public class Otimizador {
 
     static String matchElements(ArrayList<String> prevLine, ArrayList<String> currLine){
         String newLine = "";
-        //ArrayList<String> lineOperator = new ArrayList<String>();
         String reg1Size, reg2Size;
         String reg1, reg2;
         String dest, source;
@@ -84,7 +68,7 @@ public class Otimizador {
     }
 
     public static ArrayList<String> getOptimizedLines() throws Exception{
-        BufferedReader br = new BufferedReader(new FileReader("peephole_test.asm"));
+        BufferedReader br = new BufferedReader(new FileReader("arq.asm"));
         String line;
         int lineCount = 0;
         String newLine = "";
@@ -166,6 +150,5 @@ public class Otimizador {
         optimizedLines = getOptimizedLines();
         writeToFile(optimizedLines);
         //Escrever de volta no arquivo.
-        System.out.print("s");
     }
 }

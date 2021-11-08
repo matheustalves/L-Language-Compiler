@@ -8,11 +8,7 @@ Features:
 🎉FEATURE COMPLETE🎉
 
 Documentação:
-- [ ] Escrever o ET de codegen
-
-Melhorias:
-- [ ] Remover os ifs desnecessários, deixando pro checkToken consumir o token e reportar o erro
-- [ ] Otimização peephole
+🎉COMPLETE🎉
 
 Bugs:
 🎉BUG FREE (POR ENQUANTO)🎉

@@ -1,0 +1,26 @@
+writeln("---------\\----------");
+writeln("Teste de atribuicao multipla e loop:");
+writeln("---------\\----------");
+
+string a_mta <- "aaaa", b_mta, c_mta <- "aaaa";
+writeln("string a_mta <- aaaa, b_mta, c_mta <- aaaa");
+writeln("a_mta, b_mta e c_mta: ", a_mta, ", ", b_mta, " e ",c_mta);
+
+n_mta<-4;
+const loop = 0;
+writeln("b_mta<-aaaa");
+b_mta<-"aaaa";
+
+writeln("while (n_mta>0) n_mta-- com n_mta = 4, imprime a_mta quando n_mta par, muda b_mta e imprime quando n_mta impar, muda c_mta pra uau e imprime.");
+while(n_mta>loop){
+    if (n_mta mod 2 = 0) writeln(a_mta[n_mta]);
+    if (!(n_mta mod 2 = 0)) {
+        b_mta[n_mta]<-'b_mta';
+        writeln(b_mta[n_mta]);
+    }    
+    c_mta <- "uau";
+    writeln(c_mta);
+    n_mta<-n_mta-1;
+}
+
+writeln("a_mta, b_mta e c_mta: ", a_mta, ", ", b_mta, " e ",c_mta);

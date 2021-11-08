@@ -1,0 +1,24 @@
+writeln("Teste de atribuicao multipla e loop:");
+
+string a <- "aaaa", b, c <- "aaaa";
+writeln("string a <- aaaa, b, c <- aaaa");
+writeln("a, b e c: ", a, ", ", b, " e ",c);
+
+int n<-4;
+const loop = 0;
+writeln("b<-aaaa");
+b<-"aaaa";
+
+writeln("while (n>0) n-- com n = 4, imprime a quando n par, muda b e imprime quando n impar, muda c pra uau e imprime.");
+while(n>loop){
+    if (n mod 2 = 0) writeln(a[n]);
+    if (!(n mod 2 = 0)) {
+        b[n]<-'b';
+        writeln(b[n]);
+    }    
+    c <- "uau";
+    writeln(c);
+    n<-n-1;
+}
+
+writeln("a, b e c: ", a, ", ", b, " e ",c);

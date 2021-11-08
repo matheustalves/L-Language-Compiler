@@ -11,7 +11,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.io.FileReader;
+//import java.io.FileReader;
 import java.io.IOException;
 
 public class Compilador {
@@ -785,6 +785,7 @@ public class Compilador {
         Classe do Analisador Sintático, Tradução e Geração de Código
     
         As regras de tradução estão especificadas no arquivo de documentação do trabalho.
+        As regras de geração de código estão especificadas no arquivo de documentação do trabalho, e não foram inseridas aqui por serem extensas demais.
     
         Variáveis locais:
             posMem -> endereço atual da memoria
@@ -3294,8 +3295,8 @@ public class Compilador {
             symbolTable.put(reservedWords[i], symbol);
         }
 
-        BufferedReader br = new BufferedReader(new FileReader("tests/codegen.in"));
-        //BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        //BufferedReader br = new BufferedReader(new FileReader("tests/codegen.in"));
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         fileStr = readAllCharsOneByOne(br);
 

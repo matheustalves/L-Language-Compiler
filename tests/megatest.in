@@ -255,7 +255,74 @@ while(m_wh>n_wh){
 }
 
 writeln("---------\\----------");
-writeln("Entrada do Alexei:");
+writeln("Teste de comparacao de strings com read:");
+writeln("---------\\----------");
+
+
+string test_b, b_testing<- "BERNARDO";
+string test_c, c_testing<- "compiladoress";
+string test_d, d_testing<- "amaNHECER";
+
+float test_f, f<-10.111;
+float g_testing<--.111, test_g;
+
+
+writeln("Digite BERNARDO:");
+readln(test_b);
+if(test_b=b_testing) writeln("Iguais!");
+else writeln("Diferentes!");
+
+writeln("Digite compiladoress:");
+readln(test_c);
+if(test_c=c_testing) writeln("Iguais!");
+else writeln("Diferentes!");
+
+writeln("Digite amaNHECER");
+readln(test_d);
+if(test_d=d_testing) writeln("Iguais!");
+else writeln("Diferentes!");
+
+writeln("Digite um numero menor ou igual a 10.111: ");
+readln(f);
+if(test_f<=f) writeln("Menor ou igual!");
+else writeln ("Maior!");
+
+writeln("Digite um numero maior ou igual a -.111: ");
+readln(f);
+if(test_g>=g_testing) writeln("Maior ou igual!");
+else writeln ("Maior!");
+
+
+
+writeln("---------\\----------");
+writeln("Teste de atribuicao multipla e loop:");
+writeln("---------\\----------");
+
+string a_mta <- "aaaa", b_mta, c_mta <- "aaaa";
+writeln("string a_mta <- aaaa, b_mta, c_mta <- aaaa");
+writeln("a_mta, b_mta e c_mta: ", a_mta, ", ", b_mta, " e ",c_mta);
+
+int n_mta<-4;
+const loop = 0;
+writeln("b_mta<-aaaa");
+b_mta<-"aaaa";
+
+writeln("while (n_mta>0) n_mta-- com n_mta = 4, imprime a_mta quando n_mta par, muda b_mta e imprime quando n_mta impar, muda c_mta pra uau e imprime.");
+while(n_mta>loop){
+    if (n_mta mod 2 = 0) writeln(a_mta[n_mta]);
+    if (!(n_mta mod 2 = 0)) {
+        b_mta[n_mta]<-'b';
+        writeln(b_mta[n_mta]);
+    }    
+    c_mta <- "uau";
+    writeln(c_mta);
+    n_mta<-n_mta-1;
+}
+
+writeln("a_mta, b_mta e c_mta: ", a_mta, ", ", b_mta, " e ",c_mta);
+
+writeln("---------\\----------");
+writeln("Entrada do pub.in:");
 writeln("---------\\----------");
 
 int n_pub<-1;
