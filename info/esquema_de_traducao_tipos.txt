@@ -1,0 +1,85 @@
+START-> 	{DECL_A | COMANDO} eof
+
+DECL_A-> 	(int | float | string | char) (45) DECL_B1 {, (46) DECL_B2} ;	|
+			const id (38) = [- (31)] valor (39) (40) (41);
+
+DECL_B-> 	id (38) [<- [- (31)] valor (39) (42) ] (43)
+
+COMANDO->	id (2) (14) ["[" (15) EXP_A1 (44) "]"] <- EXP_A2 (16);		  |
+			while EXP_A3 (17) TIPO_CMD				        |
+			if EXP_A4 (18) TIPO_CMD [else TIPO_CMD]			|
+			readln "(" id (2) (47)")";				            |
+			(write | writeln) "(" LISTA_EXP ")";		|
+			;
+
+TIPO_CMD->	COMANDO | "{" {COMANDO} "}"
+LISTA_EXP->	EXP_A1 (48) {, EXP_A2 (49)}
+
+EXP_A-> 	EXP_B1 (32) [(33) (= (36)| != (37) | < (37)| > (37)| <= (37)| >= (37)) EXP_B2 (34) (35)]
+EXP_B->		[- (31)] EXP_C1 (26) (27) { (+ | - | "||") EXP_C2 (28) (29) (30)}
+EXP_C->		EXP_D1 (20) { ("*" | && | / | div | mod) EXP_D2 (21) (22) (23) (24) (25)} 
+EXP_D->		{! (11) } EXP_E (12) (13)
+EXP_E->		(int (9) | float (10) ) "(" EXP_A (8) ")" | EXP_F (7)
+EXP_F->     "(" EXP_A1 ")" (6)  | id (2)(3) ["[" EXP_A2 (4)(5) "]"] | valor (1)
+
+(1): {EXP_F.tipo := valor.tipo}
+(2): {if id.simbolo.classe = null then ERRO}
+(3): {EXP_F.tipo := id.simbolo.tipo}
+(4): {if (EXP_A2.tipo != integer | id.simbolo.tipo != string) then ERRO}
+(5): {EXP_F.tipo := char}
+(6): {EXP_F.tipo := EXP_A1.tipo}
+(7): {EXP_E.tipo := EXP_F.tipo}
+(8): {if !(EXP_A.tipo = integer | EXP_A.tipo = float) then ERRO}
+(9): {EXP_E.tipo := integer}
+(10): {EXP_E.tipo := float}
+(11): {houve_negacao := True}
+(12): {if (houve_negacao & EXP_E.tipo != bool) then ERRO}
+(13): {EXP_D.tipo := EXP_E.tipo}
+(14): {if id.simbolo.classe != variavel then ERRO}
+(15): {isStringIndex = true}
+(16): {if ((isStringIndex & EXP_A2.tipo != char) | 
+			(!isStringIndex & (!(EXP_A2.tipo == "Integer" & id.simbolo.tipo == "Float") & (EXP_A2.tipo != id.simbolo.tipo)))) 
+			then ERRO}
+(17): {if EXP_A3.tipo != bool then ERRO}
+(18): {if EXP_A4.tipo != bool then ERRO}
+(19): {if EXP_D1.tipo = float | } ? verificar tipo de float * int 
+(20): {EXP_C.tipo := EXP_D1.tipo}
+(21): {if (operador = "*") then if (!((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D2.tipo = integer | EXP_D2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float)) then ERRO;
+		else if (EXP_D1.tipo = float | EXP_D2.tipo = float) then EXP_C.tipo = float else EXP_C.tipo = integer}
+(22): {if (operador = /) then if (!((EXP_D1.tipo = integer | EXP_D1.tipo = float) & (EXP_D2.tipo = integer | EXP_D2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float))  then ERRO;
+		else if (EXP_D1.tipo = float | EXP_D2.tipo = float) then EXP_C.tipo = float else EXP_C.tipo = integer}
+(23): {if (operador = div) then if !((EXP_D1.tipo = integer & EXP_D2.tipo = integer) then ERRO}
+(24): {if (operador = mod) then if !((EXP_D1.tipo = integer & EXP_D2.tipo = integer) then ERRO}
+(25): {if (operador = &&) then if !((EXP_D1.tipo = boolean & EXP_D2.tipo = boolean) then ERRO}
+(26): {if (minus & !(EXP_C1.tipo = integer | EXP_C2.tipo = float)) then ERRO}
+(27): {EXP_B.tipo := EXP_C1.tipo}
+(28): {if (operador = +) then if (!((EXP_C1.tipo = integer | EXP_C1.tipo = float) & (EXP_C2.tipo = integer | EXP_C2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float)))  then ERRO;
+		else if (EXP_C1.tipo = float | EXP_C2.tipo = float) then EXP_B.tipo = float else EXP_B.tipo = integer}
+(29): {if (operador = -) then if (!((EXP_C1.tipo = integer | EXP_C1.tipo = float) & (EXP_C2.tipo = integer | EXP_C2.tipo = float)) | (EXP_D1.tipo != integer && EXP_D1.tipo != float) |  (EXP_D2.tipo != integer && EXP_D2.tipo != float))) then ERRO;
+		else if (EXP_C1.tipo = float | EXP_C2.tipo = float) then EXP_B.tipo = float else EXP_B.tipo = integer}
+(30): {if (operador = "||") then if !((EXP_C1.tipo = boolean & EXP_C2.tipo = boolean) then ERRO}
+(31): {minus = True}
+(32): {EXP_A.tipo := EXP_B1.tipo} 
+(33): {OPERADOR.tipo := EXP_B1.tipo}
+(34): {if !((EXP_B1.tipo = string & EXP_B2.tipo = string) |
+		(EXP_B1.tipo = char & EXP_B2.tipo = char) |
+		(EXP_B1.tipo = integer & EXP_B2.tipo = integer) |
+		(EXP_B1.tipo = float & EXP_B2.tipo = integer) |
+		(EXP_B1.tipo = integer & EXP_B2.tipo = float) |
+		(EXP_B1.tipo = float & EXP_B2.tipo = float)) then ERRO}
+(35): {EXP_A.tipo := bool}
+(36): {if OPERADOR.tipo != (string|int|float|char) then ERRO}
+(37): {if OPERADOR.tipo != (int|float|char) then ERRO}
+(38): {if id.simbolo.classe != null then ERRO_id_declarado}
+(39): {if (minus & !(valor.tipo = integer | valor.tipo = float)) then ERRO}
+(40): {id.simbolo.tipo := valor.tipo_constante}
+(41): {id.simbolo.classe := constante}
+(42): {id.simbolo.classe := variavel}
+(43): {id.simbolo.tipo := DECL_B.tipo}
+(44): {if (EXP_A1.tipo != integer | id.simbolo.tipo != string) then ERRO}
+(45): {DECL_B1.tipo := prev_tipo}
+(46): {DECL_B2.tipo := prev_tipo}
+(47): {if id.simbolo.classe != "var" then ERRO}
+(48): {if EXP_A1.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
+(49): {if EXP_A2.tipo = **tipo_proibido** then ERRO} //verificar se existe algum tipo proibido de printar
+
