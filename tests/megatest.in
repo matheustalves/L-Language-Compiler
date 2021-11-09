@@ -264,7 +264,7 @@ string test_c, c_testing<- "compiladoress";
 string test_d, d_testing<- "amaNHECER";
 
 float test_f, f_testing<-10.111;
-float g_testing<--.111, test_g;
+float g_testing<- -.111, test_g;
 
 
 writeln("Digite BERNARDO:");
@@ -287,10 +287,10 @@ readln(test_f);
 if(test_f<=f_testing) writeln("Menor ou igual!");
 else writeln ("Maior!");
 
-writeln("Digite um numero maior que -.111: ");
+writeln("Digite um numero maior que -0.111: ");
 readln(test_g);
 if(test_g>g_testing) writeln("Maior!");
-else writeln ("Maior!");
+else writeln ("Menor ou igual!");
 
 
 
@@ -417,6 +417,25 @@ while(n<=5){
 
 
 writeln("Voce digitou ",contador, " caracteres iguais.");
+
+writeln("---------\\----------");
+writeln("Comparacao de char:");
+writeln("---------\\----------");
+
+char b_charcomp;
+char c_charcomp;
+
+writeln("Digite char 1:");
+readln(b_charcomp);
+writeln("Digite o char 2:");
+readln(c_charcomp);
+
+if((b_charcomp=c_charcomp)) writeln("Iguais");
+else if(c_charcomp!=b_charcomp){ 
+    writeln("Diferentes");
+    if(b_charcomp>c_charcomp) writeln("1 maior que 2");
+    else if(b_charcomp<c_charcomp) writeln("1 menor que 2");
+}
 
 writeln("---------\\----------");
 writeln("Bateria de operacoes, atribuicoes e conversoes:");

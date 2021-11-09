@@ -1,0 +1,14 @@
+char b;
+char c;
+
+writeln("Digite char 1:");
+readln(b);
+writeln("Digite o char 2:");
+readln(c);
+
+if((b=c)) writeln("Iguais");
+else if(c!=b){ 
+    writeln("Diferentes");
+    if(b>c) writeln("1 maior que 2");
+    else if(b<c) writeln("1 menor que 2");
+}

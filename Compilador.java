@@ -186,6 +186,16 @@ public class Compilador {
                 return false;
         }
 
+        /*
+            Metodo isSpecialChar -> Permite chars de caracteres especiais que nao sejam '
+        */
+        boolean isSpecialChar(char c) {
+            if ((c >= 33 || c <= 126) && c != 39)
+                return true;
+            else
+                return false;
+        }
+
         /*  
             Método isHexa -> Verifica se caracter é Hexadecimal
         */
@@ -528,7 +538,7 @@ public class Compilador {
 
             if (c == '#') {
                 throwError("unexpected_eof");
-            } else if (Character.isDigit(c) || isLetter(c)) {
+            } else if (Character.isDigit(c) || isLetter(c) || isSpecialChar(c)) {
                 lexeme += c;
             } else {
                 lexeme += c;

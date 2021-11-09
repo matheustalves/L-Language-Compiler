@@ -1,0 +1,15 @@
+char b_charcomp;
+char c_charcomp;
+char d<-''';
+
+writeln("Digite char 1:");
+readln(b_charcomp);
+writeln("Digite o char 2:");
+readln(c_charcomp);
+
+if((b_charcomp=c_charcomp)) writeln("Iguais");
+else if(c_charcomp!=b_charcomp){ 
+    writeln("Diferentes");
+    if(b_charcomp>c_charcomp) writeln("1 maior que 2");
+    else if(b_charcomp<c_charcomp) writeln("1 menor que 2");
+}
